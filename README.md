@@ -76,6 +76,18 @@ HUNTER_API_KEY=
 Without keys, the admin UI still works, but provider routes return a clear
 not-configured response.
 
+For local Google Places testing, add the key to `.env.local`:
+
+```bash
+GOOGLE_PLACES_API_KEY=your-google-places-key
+```
+
+Then restart the dev server:
+
+```bash
+npm run dev:clean
+```
+
 ## VPS Deployment
 
 See `DEPLOY_HOSTINGER.md`.

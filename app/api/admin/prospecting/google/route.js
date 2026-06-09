@@ -24,5 +24,8 @@ export async function POST(request) {
 
   const url = new URL("/admin", request.url);
   if (!result.ok) url.searchParams.set("notice", result.reason);
+  if (result.ok) {
+    url.searchParams.set("notice", `Imported ${result.prospects.length} Google Places prospects for "${query}".`);
+  }
   return NextResponse.redirect(url, 303);
 }
