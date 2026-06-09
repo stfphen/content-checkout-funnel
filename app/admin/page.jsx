@@ -22,9 +22,11 @@ const statuses = [
   "do_not_contact"
 ];
 
-export default async function AdminPage() {
+export default async function AdminPage({ searchParams }) {
   const session = await getAdminSession();
   if (!session) redirect("/admin/login");
+  const params = await searchParams;
+  const notice = params?.notice;
 
   const [tenants, leads, contractors, drafts] = await Promise.all([
     listTenants(),
@@ -50,6 +52,8 @@ export default async function AdminPage() {
           <button className="button button--secondary" type="submit">Logout</button>
         </form>
       </header>
+
+      {notice ? <div className="admin-notice">{notice}</div> : null}
 
       <section className="admin-metrics" aria-label="Lead pipeline summary">
         {leadCounts.map((item) => (
@@ -120,6 +124,14 @@ export default async function AdminPage() {
             <button className="button button--primary" type="submit">Find Prospects</button>
           </form>
           <form action="/api/admin/prospecting/hunter" method="post" className="admin-form">
+            <label>
+              Tenant
+              <select name="tenantId" defaultValue={tenants[0]?.id}>
+                {tenants.map((tenant) => (
+                  <option key={tenant.id} value={tenant.id}>{tenant.brand.name}</option>
+                ))}
+              </select>
+            </label>
             <label>
               Domain
               <input name="domain" placeholder="example.com" required />
