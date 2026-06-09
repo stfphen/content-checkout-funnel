@@ -10,9 +10,8 @@ Existing Traefik proxy on ports 80/443
 Domain: dgtlmag.com
 ```
 
-This funnel is a static Nginx site in Docker. The VPS already uses Traefik, so
-the funnel container joins the existing `traefik-public` network and exposes the
-domain through Traefik labels.
+The app runs as a Next.js container plus a private Postgres container. Traefik
+publishes the app through the existing `traefik-public` network.
 
 ## 1. DNS
 
@@ -23,52 +22,72 @@ A     @      62.72.16.32
 A     www    62.72.16.32
 ```
 
-Verify from your Mac:
-
-```bash
-dig +short dgtlmag.com
-dig +short www.dgtlmag.com
-```
-
 ## 2. Prepare the Local Bundle
 
 From your Mac:
 
 ```bash
 cd /Users/emery/content-checkout-funnel
-tar --exclude=".git" --exclude=".DS_Store" -czf /tmp/content-checkout-funnel.tgz .
+COPYFILE_DISABLE=1 tar \
+  --exclude=".git" \
+  --exclude=".DS_Store" \
+  --exclude="._*" \
+  --exclude="node_modules" \
+  --exclude=".next" \
+  --exclude="data" \
+  -czf /tmp/content-funnel-clean.tgz .
 ```
 
 ## 3. Upload to the VPS
 
-Use the SSH user you normally use for Hostinger. If you use `root`:
-
 ```bash
-scp /tmp/content-checkout-funnel.tgz root@62.72.16.32:/tmp/
+scp /tmp/content-funnel-clean.tgz root@62.72.16.32:/root/content-funnel-clean.tgz
 ```
 
-## 4. Install on the VPS
+## 4. Configure Environment
+
+SSH into the VPS:
 
 ```bash
 ssh root@62.72.16.32
+cd /opt/content-checkout-funnel
+```
+
+Create or update `/opt/content-checkout-funnel/.env` after extracting:
+
+```bash
+cat > .env <<'EOF'
+ADMIN_EMAIL=admin@dgtlmag.com
+ADMIN_PASSWORD=change-this-password
+SESSION_SECRET=replace-with-a-long-random-string
+RESEND_API_KEY=
+GOOGLE_PLACES_API_KEY=
+HUNTER_API_KEY=
+EOF
+```
+
+Use strong values before public launch.
+
+## 5. Install and Deploy
+
+```bash
 systemctl disable --now caddy || true
 mkdir -p /opt/content-checkout-funnel
-rm -rf /opt/content-checkout-funnel/*
-tar -xzf /tmp/content-checkout-funnel.tgz -C /opt/content-checkout-funnel
+find /opt/content-checkout-funnel -mindepth 1 -maxdepth 1 -not -name ".env" -exec rm -rf {} +
+tar -xzf /root/content-funnel-clean.tgz -C /opt/content-checkout-funnel
 cd /opt/content-checkout-funnel
 docker compose config
 docker compose up -d --build
 ```
 
-## 5. Verify
+## 6. Verify
 
 ```bash
 curl -I http://127.0.0.1:8088/
 docker inspect content-checkout-funnel --format '{{range $k,$v := .NetworkSettings.Networks}}{{println $k}}{{end}}'
-docker inspect content-checkout-funnel --format '{{json .Config.Labels}}'
-docker logs traefik --tail=80
-curl -k -I https://dgtlmag.com/
 curl -I https://dgtlmag.com/
+docker logs content-checkout-funnel --tail=80
+docker logs traefik --tail=80
 ```
 
 Expected:
@@ -76,26 +95,15 @@ Expected:
 ```text
 http://127.0.0.1:8088/ -> 200 OK
 container network -> traefik-public
-https://dgtlmag.com/ -> 200 OK once Let’s Encrypt has issued the cert
+https://dgtlmag.com/ -> 200 OK
 ```
 
-If `curl -k` works but normal `curl` shows a self-signed certificate, Traefik is
-reachable but has not issued the Let's Encrypt certificate yet. Check DNS and
-Traefik logs.
+## 7. Admin
 
-## 6. Live Checkout Configuration
+Open:
 
-Edit `config.js` before deploying live checkout:
-
-```js
-stripePaymentLinks: {
-  "ugc-content": "https://buy.stripe.com/...",
-  "pro-content-day": "https://buy.stripe.com/...",
-  "growth-retainer": "",
-  "campaign-scope": ""
-}
+```text
+https://dgtlmag.com/admin
 ```
 
-Use `bookingLinks` for retainer or custom campaign qualification calls.
-
-Use `leadWebhookUrl` for Zapier, Make, n8n, Airtable, or a custom CRM endpoint.
+Use the credentials from `.env`.

@@ -3,18 +3,48 @@ services:
     build: .
     container_name: content-checkout-funnel
     restart: unless-stopped
+    environment:
+      ADMIN_EMAIL: ${ADMIN_EMAIL:-admin@dgtlmag.com}
+      ADMIN_PASSWORD: ${ADMIN_PASSWORD:-change-this-password}
+      SESSION_SECRET: ${SESSION_SECRET:-replace-this-session-secret}
+      DATABASE_URL: postgres://content_funnel:content_funnel@content-funnel-postgres:5432/content_funnel
+      PUBLIC_APP_URL: https://dgtlmag.com
+      RESEND_API_KEY: ${RESEND_API_KEY:-}
+      GOOGLE_PLACES_API_KEY: ${GOOGLE_PLACES_API_KEY:-}
+      HUNTER_API_KEY: ${HUNTER_API_KEY:-}
+    depends_on:
+      - content-funnel-postgres
     networks:
       - traefik-public
+      - content-funnel-internal
     ports:
-      - "127.0.0.1:8088:80"
+      - "127.0.0.1:8088:3000"
     labels:
       traefik.enable: "true"
       traefik.docker.network: "traefik-public"
       traefik.http.routers.dgtlmag.rule: "Host(`dgtlmag.com`) || Host(`www.dgtlmag.com`)"
       traefik.http.routers.dgtlmag.entrypoints: "websecure"
       traefik.http.routers.dgtlmag.tls.certresolver: "letsencrypt"
-      traefik.http.services.dgtlmag.loadbalancer.server.port: "80"
+      traefik.http.services.dgtlmag.loadbalancer.server.port: "3000"
+
+  content-funnel-postgres:
+    image: postgres:17-alpine
+    container_name: content-funnel-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: content_funnel
+      POSTGRES_USER: content_funnel
+      POSTGRES_PASSWORD: content_funnel
+    volumes:
+      - content-funnel-postgres-data:/var/lib/postgresql/data
+    networks:
+      - content-funnel-internal
 
 networks:
   traefik-public:
     external: true
+  content-funnel-internal:
+    internal: true
+
+volumes:
+  content-funnel-postgres-data:

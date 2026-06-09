@@ -1,76 +1,81 @@
 # Content Checkout Funnel
 
-Static sales/product funnel for the no-name content creation offer.
+White-label content creation funnel and internal lead generation dashboard.
 
-## Files
+The app now runs as a Next.js SaaS foundation:
 
-- `index.html` - funnel page and product catalogue
-- `styles.css` - Apple-inspired responsive UI
-- `config.js` - Stripe Payment Link, booking link, and webhook configuration
-- `app.js` - package selection, lead payload, checkout routing
-- `assets/content-day-hero.png` - generated hero asset
+- Public funnel pages rendered from tenant/domain configuration
+- Internal admin login at `/admin`
+- Tenant config import/export workflow
+- Lead capture and pipeline tracking
+- CSV lead import
+- Google Places and Hunter integration points
+- Resend integration point for future approved sending
+- Contractor capacity notes
+- Docker deployment behind the existing Traefik proxy
 
-## Run
-
-Open `index.html` directly in a browser, or run a local server:
-
-```bash
-cd /Users/emery/content-checkout-funnel
-python3 -m http.server 8088
-```
-
-Then open `http://localhost:8088`.
-
-## Docker Staging
-
-Build and run the same static funnel behind Nginx:
+## Local Development
 
 ```bash
 cd /Users/emery/content-checkout-funnel
-docker compose up -d --build
+npm install
+cp .env.example .env
+npm run dev
 ```
 
-Then open `http://localhost:8088`.
+Open:
 
-## Stripe Setup
-
-The page is ready for Stripe Payment Links. Create products in Stripe, generate
-Payment Links, then paste them into `config.js`:
-
-```js
-stripePaymentLinks: {
-  "ugc-content": "https://buy.stripe.com/...",
-  "pro-content-day": "https://buy.stripe.com/...",
-  "growth-retainer": "",
-  "campaign-scope": ""
-}
+```text
+http://localhost:8088
+http://localhost:8088/admin
 ```
 
-For retainers or custom campaigns, use `bookingLinks` instead of direct checkout.
+Default local admin credentials come from `.env.example`:
 
-## Lead Capture
+```text
+admin@dgtlmag.com
+change-this-password
+```
 
-For a no-backend setup, leave `leadWebhookUrl` blank and use the `Copy Lead`
-button while testing.
+If `DATABASE_URL` is not set, the app uses a local JSON store under `data/`.
 
-For automation, set `leadWebhookUrl` to a Zapier, Make, n8n, Airtable, or custom
-API endpoint. The form posts JSON with the package, business details, source URL,
-and timestamp.
+## Tests and Build
+
+```bash
+npm test
+npm run build
+```
+
+## Tenant Configuration
+
+The default tenant config lives in `lib/defaultTenant.js`. In the admin
+dashboard, export/edit/import JSON configs to create white-label versions for
+new domains and partners.
+
+Each tenant can configure:
+
+- domains
+- brand name and CTA copy
+- hero media
+- package catalogue
+- Stripe Payment Links
+- booking links
+- reply-to/sender/phone routing notes
+- contractor capacity notes
+
+## API Keys
+
+Optional provider keys:
+
+```text
+RESEND_API_KEY=
+GOOGLE_PLACES_API_KEY=
+HUNTER_API_KEY=
+```
+
+Without keys, the admin UI still works, but provider routes return a clear
+not-configured response.
 
 ## VPS Deployment
 
-This project can run on an Ubuntu VPS with Docker. Copy the project to the VPS,
-then run:
-
-```bash
-cd content-checkout-funnel
-docker compose up -d --build
-```
-
-The included compose file exposes the site on port `8088`. If the server allows
-that port, staging will be available at `http://62.72.16.32:8088`.
-
-For production, put Caddy, Traefik, or Nginx Proxy Manager in front of it and
-terminate HTTPS on a real domain.
-
-See `DEPLOY_HOSTINGER.md` for the full Hostinger VPS command sequence.
+See `DEPLOY_HOSTINGER.md`.

@@ -5,6 +5,8 @@ npm-debug.log
 .env
 .env.*
 !.env.example
+.next/
+data/
 dist/
 build/
 coverage/
