@@ -63,6 +63,7 @@ SESSION_SECRET=replace-with-a-long-random-string
 RESEND_API_KEY=
 GOOGLE_PLACES_API_KEY=
 HUNTER_API_KEY=
+APOLLO_API_KEY=
 EOF
 ```
 

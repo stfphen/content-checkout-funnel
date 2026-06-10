@@ -107,37 +107,62 @@ export default async function AdminPage({ searchParams }) {
 
         <article className="admin-panel">
           <h2>API Prospecting</h2>
-          <p>Search local prospects through Google Places, then enrich contacts with Hunter when API keys are configured.</p>
-          <form action="/api/admin/prospecting/google" method="post" className="admin-form">
-            <label>
-              Tenant
-              <select name="tenantId" defaultValue={tenants[0]?.id}>
-                {tenants.map((tenant) => (
-                  <option key={tenant.id} value={tenant.id}>{tenant.brand.name}</option>
-                ))}
-              </select>
-            </label>
-            <label>
-              Search
-              <input name="query" placeholder="med spas in Toronto" required />
-            </label>
-            <button className="button button--primary" type="submit">Find Prospects</button>
-          </form>
-          <form action="/api/admin/prospecting/hunter" method="post" className="admin-form">
-            <label>
-              Tenant
-              <select name="tenantId" defaultValue={tenants[0]?.id}>
-                {tenants.map((tenant) => (
-                  <option key={tenant.id} value={tenant.id}>{tenant.brand.name}</option>
-                ))}
-              </select>
-            </label>
-            <label>
-              Domain
-              <input name="domain" placeholder="example.com" required />
-            </label>
-            <button className="button button--secondary" type="submit">Check Hunter</button>
-          </form>
+          <p>Search local prospects through Google Places, then enrich contacts with Hunter or Apollo when API keys are configured.</p>
+
+          <div style={{ display: 'grid', gap: '24px', marginTop: '20px' }}>
+            <form action="/api/admin/prospecting/google" method="post" className="admin-form" style={{ padding: '16px', border: '1px solid var(--line)', borderRadius: 'var(--radius)' }}>
+              <h3>Google Places Search</h3>
+              <label>
+                Tenant
+                <select name="tenantId" defaultValue={tenants[0]?.id}>
+                  {tenants.map((tenant) => (
+                    <option key={tenant.id} value={tenant.id}>{tenant.brand.name}</option>
+                  ))}
+                </select>
+              </label>
+              <label>
+                Search Query
+                <input name="query" placeholder="med spas in Toronto" required />
+              </label>
+              <button className="button button--primary" type="submit">Find Prospects</button>
+            </form>
+
+            <div className="admin-grid" style={{ gridTemplateColumns: '1fr 1fr', gap: '16px', margin: 0 }}>
+              <form action="/api/admin/prospecting/hunter" method="post" className="admin-form" style={{ padding: '16px', border: '1px solid var(--line)', borderRadius: 'var(--radius)', marginTop: 0 }}>
+                <h3>Hunter Domain Search</h3>
+                <label>
+                  Tenant
+                  <select name="tenantId" defaultValue={tenants[0]?.id}>
+                    {tenants.map((tenant) => (
+                      <option key={tenant.id} value={tenant.id}>{tenant.brand.name}</option>
+                    ))}
+                  </select>
+                </label>
+                <label>
+                  Domain
+                  <input name="domain" placeholder="example.com" required />
+                </label>
+                <button className="button button--secondary" type="submit">Enrich with Hunter</button>
+              </form>
+
+              <form action="/api/admin/prospecting/apollo" method="post" className="admin-form" style={{ padding: '16px', border: '1px solid var(--line)', borderRadius: 'var(--radius)', marginTop: 0 }}>
+                <h3>Apollo Person Search</h3>
+                <label>
+                  Tenant
+                  <select name="tenantId" defaultValue={tenants[0]?.id}>
+                    {tenants.map((tenant) => (
+                      <option key={tenant.id} value={tenant.id}>{tenant.brand.name}</option>
+                    ))}
+                  </select>
+                </label>
+                <label>
+                  Domain
+                  <input name="domain" placeholder="example.com" required />
+                </label>
+                <button className="button button--secondary" type="submit">Enrich with Apollo</button>
+              </form>
+            </div>
+          </div>
         </article>
 
         <article className="admin-panel">

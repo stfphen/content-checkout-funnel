@@ -3,7 +3,10 @@ import "../styles.css";
 export const metadata = {
   title: "Content Day",
   description:
-    "A configurable white-label content creation funnel and lead generation dashboard."
+    "A configurable white-label content creation funnel and lead generation dashboard.",
+  icons: {
+    icon: "/favicon.svg",
+  },
 };
 
 export default function RootLayout({ children }) {

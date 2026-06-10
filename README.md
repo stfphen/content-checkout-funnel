@@ -9,7 +9,7 @@ The app now runs as a Next.js SaaS foundation:
 - Tenant config import/export workflow
 - Lead capture and pipeline tracking
 - CSV lead import
-- Google Places and Hunter integration points
+- Google Places, Hunter, and Apollo integration points
 - Resend integration point for future approved sending
 - Contractor capacity notes
 - Docker deployment behind the existing Traefik proxy
@@ -71,6 +71,7 @@ Optional provider keys:
 RESEND_API_KEY=
 GOOGLE_PLACES_API_KEY=
 HUNTER_API_KEY=
+APOLLO_API_KEY=
 ```
 
 Without keys, the admin UI still works, but provider routes return a clear
