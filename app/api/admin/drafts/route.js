@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { getAdminSession } from "../../../../lib/auth";
 import { buildDraftEmail } from "../../../../lib/outreach";
-import { createDraftEmail, getTenantBySlug, listLeads, listTenants, updateLeadStatus } from "../../../../lib/store";
+import { createDraftEmail, getTenantBySlug, listLeads, listTenants, updateLead } from "../../../../lib/store";
 
 export async function POST(request) {
   const session = await getAdminSession();
@@ -15,10 +15,13 @@ export async function POST(request) {
   const lead = leads.find((item) => item.id === leadId);
   const tenant = tenants.find((item) => item.id === tenantId) || (await getTenantBySlug("dgtlmag"));
 
-  if (lead && lead.status !== "do_not_contact") {
+  if (lead && lead.pipelineStatus !== "disqualified") {
     const draft = buildDraftEmail({ tenant, lead, packageId });
     await createDraftEmail({ ...draft, leadId, tenantId: tenant.id });
-    await updateLeadStatus(leadId, "drafted");
+    await updateLead(leadId, {
+      outreachStatus: "drafted",
+      pipelineStatus: ["new", "researched"].includes(lead.pipelineStatus) ? "qualified" : lead.pipelineStatus
+    });
   }
 
   return NextResponse.redirect(new URL("/admin", request.url), 303);

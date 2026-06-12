@@ -1,9 +1,23 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 import { leadFromCsvRecord, parseCsv } from "../lib/csv.js";
-import { normalizeTenantConfig } from "../lib/defaultTenant.js";
+import { defaultTenant, normalizeTenantConfig } from "../lib/defaultTenant.js";
 import { searchApolloPeople } from "../lib/integrations/apollo.js";
+import { lookupHunterDomain } from "../lib/integrations/hunter.js";
+import {
+  decorateLeadsWithDuplicates,
+  filterAndSortLeads,
+  leadsToCsv,
+  normalizeLeadInput,
+  scoreLead
+} from "../lib/leadUtils.js";
 import { buildDraftEmail } from "../lib/outreach.js";
+import { buildProspectingQuery, mergeBatchCounts, selectedPreviewResults } from "../lib/prospecting.js";
+import {
+  sanitizeTenantConfig,
+  tenantConfigToJson,
+  validateTenantConfig
+} from "../lib/tenantValidation.js";
 
 test("normalizes partial tenant config with default funnel content", () => {
   const tenant = normalizeTenantConfig({
@@ -17,6 +31,75 @@ test("normalizes partial tenant config with default funnel content", () => {
   assert.equal(tenant.hero.headline, "Get a full month of content filmed in one day.");
   assert.equal(tenant.packages.length, 4);
   assert.equal(tenant.domains[0], "partner.example.com");
+});
+
+test("validates a full tenant config after normalization", () => {
+  const result = validateTenantConfig(defaultTenant);
+
+  assert.equal(result.ok, true);
+  assert.equal(result.errors.length, 0);
+  assert.equal(result.tenant.hero.stats.length, 3);
+});
+
+test("rejects unsafe tenant identity and package config", () => {
+  const result = validateTenantConfig({
+    ...defaultTenant,
+    slug: "Bad Slug",
+    status: "published",
+    brand: { ...defaultTenant.brand, primaryColor: "blue" },
+    defaultPackageId: "missing-package",
+    packages: [
+      {
+        ...defaultTenant.packages[0],
+        id: "duplicate",
+        action: "pay",
+        paymentLink: "stripe.example"
+      },
+      {
+        ...defaultTenant.packages[1],
+        id: "duplicate"
+      }
+    ]
+  });
+
+  assert.equal(result.ok, false);
+  assert.deepEqual(
+    result.errors.map((error) => error.path),
+    [
+      "slug",
+      "status",
+      "packages",
+      "defaultPackageId",
+      "packages.0.action",
+      "packages.0.paymentLink",
+      "brand.primaryColor"
+    ]
+  );
+});
+
+test("requires explicit tenant fields for import validation", () => {
+  const result = validateTenantConfig({
+    brand: { name: "Partial Brand" }
+  });
+
+  assert.equal(result.ok, false);
+  assert.ok(result.errors.some((error) => error.path === "id"));
+  assert.ok(result.errors.some((error) => error.path === "slug"));
+  assert.ok(result.errors.some((error) => error.path === "domains"));
+  assert.ok(result.errors.some((error) => error.path === "packages"));
+});
+
+test("sanitizes optional tenant arrays and exports stable JSON", () => {
+  const tenant = sanitizeTenantConfig({
+    ...defaultTenant,
+    hero: { ...defaultTenant.hero, stats: null },
+    packages: [{ ...defaultTenant.packages[0], features: null }]
+  });
+  const json = tenantConfigToJson(tenant);
+
+  assert.deepEqual(tenant.hero.stats, []);
+  assert.deepEqual(tenant.packages[0].features, []);
+  assert.equal(JSON.parse(json).id, defaultTenant.id);
 });
 
 test("parses CSV leads with quoted fields", () => {
@@ -110,4 +193,126 @@ test("searches Apollo people with current endpoint and query params", async () =
     if (originalKey === undefined) delete process.env.APOLLO_API_KEY;
     else process.env.APOLLO_API_KEY = originalKey;
   }
+});
+
+test("scores leads with deterministic reasons", () => {
+  const lead = normalizeLeadInput({
+    businessName: "Example Med Spa",
+    website: "https://examplemedspa.com",
+    email: "owner@examplemedspa.com",
+    phone: "416-555-0100",
+    category: "med spa",
+    googleRating: 4.7,
+    googleReviewCount: 80
+  });
+  const score = scoreLead(lead);
+
+  assert.equal(score.score, 70);
+  assert.match(score.reason, /website exists/);
+  assert.match(score.reason, /high-value category/);
+});
+
+test("detects duplicate leads by domain business and Google Place ID", () => {
+  const leads = [
+    normalizeLeadInput({
+      id: "lead_1",
+      businessName: "Example Dental",
+      website: "https://exampledental.com",
+      googlePlaceId: "places/abc"
+    }),
+    normalizeLeadInput({
+      id: "lead_2",
+      businessName: "Example Dental",
+      website: "https://www.exampledental.com/services"
+    }),
+    normalizeLeadInput({
+      id: "lead_3",
+      businessName: "Other Dental",
+      googlePlaceId: "places/abc"
+    })
+  ];
+
+  const decorated = decorateLeadsWithDuplicates(leads);
+  assert.equal(decorated[0].possibleDuplicates.length, 2);
+  assert.ok(decorated[0].possibleDuplicates.some((duplicate) => duplicate.reasons.includes("domain + business")));
+  assert.ok(decorated[0].possibleDuplicates.some((duplicate) => duplicate.reasons.includes("Google Place ID")));
+});
+
+test("filters leads and exports filtered CSV", () => {
+  const leads = [
+    normalizeLeadInput({
+      id: "lead_1",
+      businessName: "Toronto Clinic",
+      city: "Toronto",
+      category: "clinic",
+      sourceType: "google_places",
+      leadScore: 40
+    }),
+    normalizeLeadInput({
+      id: "lead_2",
+      businessName: "Barrie Cafe",
+      city: "Barrie",
+      category: "coffee shop",
+      sourceType: "csv",
+      leadScore: 10
+    })
+  ];
+
+  const filtered = filterAndSortLeads(leads, { city: "Toronto", sort: "score_desc" });
+  const csv = leadsToCsv(filtered);
+
+  assert.equal(filtered.length, 1);
+  assert.match(csv, /Toronto Clinic/);
+  assert.doesNotMatch(csv, /Barrie Cafe/);
+});
+
+test("returns standard not-configured provider response for Hunter", async () => {
+  const originalKey = process.env.HUNTER_API_KEY;
+  delete process.env.HUNTER_API_KEY;
+
+  try {
+    const result = await lookupHunterDomain("example.com");
+    assert.equal(result.ok, false);
+    assert.equal(result.provider, "hunter");
+    assert.equal(result.configured, false);
+    assert.match(result.error, /HUNTER_API_KEY/);
+  } finally {
+    if (originalKey === undefined) delete process.env.HUNTER_API_KEY;
+    else process.env.HUNTER_API_KEY = originalKey;
+  }
+});
+
+test("builds prospecting queries and selected batch imports", () => {
+  const query = buildProspectingQuery({ category: "med spas", city: "Toronto" });
+  const batch = {
+    previewResults: [
+      { businessName: "One" },
+      { businessName: "Two" },
+      { businessName: "Three" }
+    ]
+  };
+  const selected = selectedPreviewResults(batch, [0, 2]);
+  const counts = mergeBatchCounts({ found: 3, imported: 1 }, { imported: 3, skippedDuplicates: 1 });
+
+  assert.equal(query, "med spas in Toronto");
+  assert.deepEqual(selected.map((item) => item.businessName), ["One", "Three"]);
+  assert.equal(counts.found, 3);
+  assert.equal(counts.imported, 3);
+  assert.equal(counts.skippedDuplicates, 1);
+});
+
+test("normalizes legacy JSON fallback leads into the new schema", () => {
+  const lead = normalizeLeadInput({
+    business: "Legacy Shop",
+    name: "Legacy Owner",
+    url: "https://legacy.example",
+    sourceType: "form",
+    status: "researched"
+  });
+
+  assert.equal(lead.businessName, "Legacy Shop");
+  assert.equal(lead.contactName, "Legacy Owner");
+  assert.equal(lead.domain, "legacy.example");
+  assert.equal(lead.sourceType, "public_form");
+  assert.equal(lead.pipelineStatus, "researched");
 });
