@@ -77,10 +77,17 @@ APOLLO_API_KEY=
 Without keys, the admin UI still works, but provider routes return a clear
 not-configured response.
 
-For local Google Places testing, add the key to `.env.local`:
+For local testing, add keys to `.env.local` without pasting secrets into chat:
 
 ```bash
-GOOGLE_PLACES_API_KEY=your-google-places-key
+cd /Users/emery/content-checkout-funnel
+touch .env.local
+read -s -p "Google Places API key: " GOOGLE_KEY; echo
+read -s -p "Hunter API key: " HUNTER_KEY; echo
+read -s -p "Apollo API key: " APOLLO_KEY; echo
+grep -v '^GOOGLE_PLACES_API_KEY=' .env.local | grep -v '^HUNTER_API_KEY=' | grep -v '^APOLLO_API_KEY=' > .env.local.tmp
+mv .env.local.tmp .env.local
+printf 'GOOGLE_PLACES_API_KEY=%s\nHUNTER_API_KEY=%s\nAPOLLO_API_KEY=%s\n' "$GOOGLE_KEY" "$HUNTER_KEY" "$APOLLO_KEY" >> .env.local
 ```
 
 Then restart the dev server:
@@ -88,6 +95,26 @@ Then restart the dev server:
 ```bash
 npm run dev:clean
 ```
+
+For the VPS deployment, set the same keys in `/opt/content-checkout-funnel/.env`
+and rebuild the container:
+
+```bash
+cd /opt/content-checkout-funnel
+touch .env
+read -s -p "Google Places API key: " GOOGLE_KEY; echo
+read -s -p "Hunter API key: " HUNTER_KEY; echo
+read -s -p "Apollo API key: " APOLLO_KEY; echo
+grep -v '^GOOGLE_PLACES_API_KEY=' .env | grep -v '^HUNTER_API_KEY=' | grep -v '^APOLLO_API_KEY=' > .env.tmp
+mv .env.tmp .env
+printf 'GOOGLE_PLACES_API_KEY=%s\nHUNTER_API_KEY=%s\nAPOLLO_API_KEY=%s\n' "$GOOGLE_KEY" "$HUNTER_KEY" "$APOLLO_KEY" >> .env
+docker compose up -d --build
+```
+
+Hunter Domain Search can return email addresses for a known company domain.
+Apollo People API Search is for finding net-new people by company domain and
+title filters; Apollo's search endpoint does not return email addresses or
+phone numbers directly, so those leads may still need a later enrichment step.
 
 ## VPS Deployment
 

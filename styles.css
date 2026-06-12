@@ -980,10 +980,32 @@ p {
   font-size: 28px;
 }
 
+.api-provider-stack {
+  display: grid;
+  gap: 24px;
+  margin-top: 20px;
+}
+
+.api-provider-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 16px;
+}
+
+.api-provider-card {
+  padding: 16px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+}
+
 .admin-form {
   display: grid;
   gap: 12px;
   margin-top: 18px;
+}
+
+.api-provider-card.admin-form {
+  margin-top: 0;
 }
 
 .admin-form label {
@@ -1093,7 +1115,8 @@ p {
 
 @media (max-width: 880px) {
   .admin-header,
-  .admin-grid {
+  .admin-grid,
+  .api-provider-grid {
     grid-template-columns: 1fr;
   }
 

@@ -109,8 +109,8 @@ export default async function AdminPage({ searchParams }) {
           <h2>API Prospecting</h2>
           <p>Search local prospects through Google Places, then enrich contacts with Hunter or Apollo when API keys are configured.</p>
 
-          <div style={{ display: 'grid', gap: '24px', marginTop: '20px' }}>
-            <form action="/api/admin/prospecting/google" method="post" className="admin-form" style={{ padding: '16px', border: '1px solid var(--line)', borderRadius: 'var(--radius)' }}>
+          <div className="api-provider-stack">
+            <form action="/api/admin/prospecting/google" method="post" className="admin-form api-provider-card">
               <h3>Google Places Search</h3>
               <label>
                 Tenant
@@ -127,8 +127,8 @@ export default async function AdminPage({ searchParams }) {
               <button className="button button--primary" type="submit">Find Prospects</button>
             </form>
 
-            <div className="admin-grid" style={{ gridTemplateColumns: '1fr 1fr', gap: '16px', margin: 0 }}>
-              <form action="/api/admin/prospecting/hunter" method="post" className="admin-form" style={{ padding: '16px', border: '1px solid var(--line)', borderRadius: 'var(--radius)', marginTop: 0 }}>
+            <div className="api-provider-grid">
+              <form action="/api/admin/prospecting/hunter" method="post" className="admin-form api-provider-card">
                 <h3>Hunter Domain Search</h3>
                 <label>
                   Tenant
@@ -145,7 +145,7 @@ export default async function AdminPage({ searchParams }) {
                 <button className="button button--secondary" type="submit">Enrich with Hunter</button>
               </form>
 
-              <form action="/api/admin/prospecting/apollo" method="post" className="admin-form" style={{ padding: '16px', border: '1px solid var(--line)', borderRadius: 'var(--radius)', marginTop: 0 }}>
+              <form action="/api/admin/prospecting/apollo" method="post" className="admin-form api-provider-card">
                 <h3>Apollo Person Search</h3>
                 <label>
                   Tenant
@@ -158,6 +158,10 @@ export default async function AdminPage({ searchParams }) {
                 <label>
                   Domain
                   <input name="domain" placeholder="example.com" required />
+                </label>
+                <label>
+                  Titles
+                  <input name="titles" placeholder="owner, founder, marketing manager" />
                 </label>
                 <button className="button button--secondary" type="submit">Enrich with Apollo</button>
               </form>

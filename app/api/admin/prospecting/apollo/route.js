@@ -10,7 +10,11 @@ export async function POST(request) {
   const form = await request.formData();
   const domain = String(form.get("domain") || "");
   const tenantId = String(form.get("tenantId") || "");
-  const result = await searchApolloPeople({ domain });
+  const titles = String(form.get("titles") || "")
+    .split(",")
+    .map((title) => title.trim())
+    .filter(Boolean);
+  const result = await searchApolloPeople({ domain, titles });
 
   const url = new URL("/admin", request.url);
   if (!result.ok) {
@@ -25,7 +29,7 @@ export async function POST(request) {
       name: contact.name,
       email: contact.email,
       url: `https://${domain}`,
-      notes: contact.position ? `Apollo contact: ${contact.position}` : "Apollo contact",
+      notes: buildApolloNotes(contact),
       status: "researched",
       sourceType: "apollo",
       metadata: contact
@@ -34,4 +38,11 @@ export async function POST(request) {
 
   url.searchParams.set("notice", `Imported ${result.contacts.length} Apollo contacts for ${domain}.`);
   return NextResponse.redirect(url, 303);
+}
+
+function buildApolloNotes(contact) {
+  const role = contact.position ? `Apollo person search: ${contact.position}` : "Apollo person search";
+  if (contact.email) return role;
+  if (contact.emailAvailable) return `${role}. Apollo shows an email is available; use enrichment before outreach.`;
+  return `${role}. No email returned by Apollo search.`;
 }

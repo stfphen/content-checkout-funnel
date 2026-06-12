@@ -12,6 +12,7 @@ services:
       RESEND_API_KEY: ${RESEND_API_KEY:-}
       GOOGLE_PLACES_API_KEY: ${GOOGLE_PLACES_API_KEY:-}
       HUNTER_API_KEY: ${HUNTER_API_KEY:-}
+      APOLLO_API_KEY: ${APOLLO_API_KEY:-}
     depends_on:
       - content-funnel-postgres
     networks:
