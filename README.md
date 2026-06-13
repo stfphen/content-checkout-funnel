@@ -80,6 +80,19 @@ Apollo target role keywords for batch enrichment are:
 owner, founder, marketing, manager, general manager, director, operations, business development
 ```
 
+## Lead Engine QA Checklist
+
+Use this checklist before continuing into Outreach Sequence V1:
+
+- Create a Google Places batch for `med spas + Toronto`.
+- Confirm preview results load or show a clear provider/key error.
+- Import selected preview results into the pipeline.
+- Open an imported lead detail panel and inspect source metadata, score, status, and notes.
+- Re-import the same selected result and confirm reliable duplicates are skipped or flagged.
+- Apply a filter, then export the filtered CSV.
+- Generate a draft email from the lead detail panel.
+- Temporarily remove provider keys locally and confirm Google/Hunter/Apollo routes show not-configured notices instead of crashing.
+
 ## Tests and Build
 
 ```bash
