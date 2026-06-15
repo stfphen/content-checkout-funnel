@@ -1,7 +1,14 @@
 import { NextResponse } from "next/server";
 import { getAdminSession } from "../../../../lib/auth";
 import { buildDraftEmail } from "../../../../lib/outreach";
-import { createDraftEmail, getTenantBySlug, listLeads, listTenants, updateLead } from "../../../../lib/store";
+import {
+  createDraftEmail,
+  createOutreachEvent,
+  getTenantBySlug,
+  listLeads,
+  listTenants,
+  updateLead
+} from "../../../../lib/store";
 
 export async function POST(request) {
   const session = await getAdminSession();
@@ -21,6 +28,15 @@ export async function POST(request) {
     await updateLead(leadId, {
       outreachStatus: "drafted",
       pipelineStatus: ["new", "researched"].includes(lead.pipelineStatus) ? "qualified" : lead.pipelineStatus
+    });
+    await createOutreachEvent({
+      leadId,
+      campaignId: lead.campaignId || "",
+      type: "drafted",
+      metadata: {
+        subject: draft.subject,
+        packageId
+      }
     });
   }
 

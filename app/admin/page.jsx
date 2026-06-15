@@ -1,9 +1,15 @@
 import { redirect } from "next/navigation";
+import OutreachQueueBuilder from "../../components/admin/OutreachQueueBuilder";
 import { getAdminSession } from "../../lib/auth";
 import {
   listContractors,
   listDraftEmails,
   listLeads,
+  listOutreachCampaigns,
+  listOutreachEvents,
+  listOutreachQueue,
+  listOutreachSuppressions,
+  listOutreachTemplates,
   listProspectingBatches,
   listTenants
 } from "../../lib/store";
@@ -14,6 +20,14 @@ import {
   outreachStatuses,
   pipelineStatuses
 } from "../../lib/leadUtils";
+import {
+  buildOutreachMetrics,
+  campaignStatuses,
+  outreachQueueStatuses,
+  renderOutreachTemplate,
+  suppressionReasons,
+  suggestFollowUpDate
+} from "../../lib/outreachSequence";
 
 export const dynamic = "force-dynamic";
 
@@ -23,12 +37,28 @@ export default async function AdminPage({ searchParams }) {
   const params = await searchParams;
   const notice = params?.notice;
 
-  const [tenants, leads, contractors, drafts, batches] = await Promise.all([
+  const [
+    tenants,
+    leads,
+    contractors,
+    drafts,
+    batches,
+    outreachTemplates,
+    outreachCampaigns,
+    outreachQueue,
+    outreachSuppressions,
+    outreachEvents
+  ] = await Promise.all([
     listTenants(),
     listLeads(),
     listContractors(),
     listDraftEmails(),
-    listProspectingBatches()
+    listProspectingBatches(),
+    listOutreachTemplates(),
+    listOutreachCampaigns(),
+    listOutreachQueue(),
+    listOutreachSuppressions(),
+    listOutreachEvents()
   ]);
 
   const leadFilters = {
@@ -53,6 +83,20 @@ export default async function AdminPage({ searchParams }) {
   }));
   const cities = uniqueOptions(leads.map((lead) => lead.city));
   const categories = uniqueOptions(leads.map((lead) => lead.category));
+  const outreachMetrics = buildOutreachMetrics({ queue: outreachQueue, events: outreachEvents, leads });
+  const activeTemplates = outreachTemplates.filter((template) => template.isActive !== false);
+  const defaultTemplate = activeTemplates[0];
+  const defaultTenant = tenants[0] || {};
+  const sampleLead = filteredLeads[0] || leads[0] || {};
+  const templatePreview = defaultTemplate
+    ? renderOutreachTemplate(defaultTemplate, { lead: sampleLead, tenant: defaultTenant, senderName: "DGTL" })
+    : null;
+  const queueByLead = groupBy(outreachQueue, "leadId");
+  const eventsByLead = groupBy(outreachEvents, "leadId");
+  const dueFollowUps = leads.filter((lead) => {
+    if (!lead.nextFollowUpAt) return false;
+    return new Date(lead.nextFollowUpAt).getTime() <= Date.now();
+  });
 
   return (
     <main className="admin-shell">
@@ -173,6 +217,237 @@ export default async function AdminPage({ searchParams }) {
       <section className="admin-panel">
         <div className="pipeline-header">
           <div>
+            <h2>Outreach Sequence V1</h2>
+            <p>Queue approved B2B outreach, send selected messages through Resend, and track suppression, replies, bookings, and follow-ups.</p>
+          </div>
+          <span className="status-pill">{outreachQueue.length} queue items</span>
+        </div>
+
+        <div className="outreach-metrics">
+          <article><span>{outreachMetrics.totalQueued}</span><p>Queued</p></article>
+          <article><span>{outreachMetrics.totalApproved}</span><p>Approved</p></article>
+          <article><span>{outreachMetrics.totalSent}</span><p>Sent</p></article>
+          <article><span>{outreachMetrics.totalFailed}</span><p>Failed</p></article>
+          <article><span>{outreachMetrics.totalSuppressedSkipped}</span><p>Suppressed / skipped</p></article>
+          <article><span>{outreachMetrics.replyRate}%</span><p>Reply rate</p></article>
+          <article><span>{outreachMetrics.bookedRate}%</span><p>Booked-call rate</p></article>
+        </div>
+
+        <div className="outreach-admin-grid">
+          <section className="outreach-card">
+            <h3>Template Library</h3>
+            <form action="/api/admin/outreach/templates" method="post" className="admin-form">
+              <input type="hidden" name="action" value="create" />
+              <label>
+                Tenant
+                <select name="tenantId" defaultValue={tenants[0]?.id}>
+                  {tenants.map((tenant) => (
+                    <option key={tenant.id} value={tenant.id}>{tenant.brand.name}</option>
+                  ))}
+                </select>
+              </label>
+              <input name="name" placeholder="Intro for med spas" required />
+              <input name="category" placeholder="Optional category" />
+              <input name="offerType" placeholder="Optional offer type" />
+              <input name="subject" placeholder="Subject with {{businessName}}" required />
+              <textarea name="body" rows="7" placeholder="Body with {{contactName}}, {{city}}, {{recommendedOffer}}" required />
+              <button className="button button--primary" type="submit">Create Template</button>
+            </form>
+            <div className="outreach-list">
+              {outreachTemplates.map((template) => (
+                <details key={template.id} className="outreach-list-item">
+                  <summary>
+                    <strong>{template.name}</strong>
+                    <span>{template.isActive === false ? "inactive" : template.system ? "starter" : "active"}</span>
+                  </summary>
+                  <pre>{renderOutreachTemplate(template, { lead: sampleLead, tenant: defaultTenant, senderName: "DGTL" }).body}</pre>
+                  {!template.system ? (
+                    <form action="/api/admin/outreach/templates" method="post" className="admin-form">
+                      <input type="hidden" name="templateId" value={template.id} />
+                      <input type="hidden" name="action" value="update" />
+                      <input name="name" defaultValue={template.name} required />
+                      <input name="category" defaultValue={template.category} />
+                      <input name="offerType" defaultValue={template.offerType} />
+                      <input name="subject" defaultValue={template.subject} required />
+                      <textarea name="body" rows="6" defaultValue={template.body} required />
+                      <label className="admin-check">
+                        <input name="isActive" type="checkbox" defaultChecked={template.isActive !== false} />
+                        Active
+                      </label>
+                      <button className="button button--secondary" type="submit">Save Template</button>
+                    </form>
+                  ) : null}
+                  {!template.system && template.isActive !== false ? (
+                    <form action="/api/admin/outreach/templates" method="post" className="inline-form">
+                      <input type="hidden" name="templateId" value={template.id} />
+                      <input type="hidden" name="action" value="deactivate" />
+                      <button className="button button--secondary" type="submit">Deactivate</button>
+                    </form>
+                  ) : null}
+                </details>
+              ))}
+            </div>
+          </section>
+
+          <section className="outreach-card">
+            <h3>Campaigns</h3>
+            <form action="/api/admin/outreach/campaigns" method="post" className="admin-form">
+              <input type="hidden" name="action" value="create" />
+              <label>
+                Tenant
+                <select name="tenantId" defaultValue={tenants[0]?.id}>
+                  {tenants.map((tenant) => (
+                    <option key={tenant.id} value={tenant.id}>{tenant.brand.name}</option>
+                  ))}
+                </select>
+              </label>
+              <input name="name" placeholder="Toronto med spa outreach" required />
+              <textarea name="description" rows="3" placeholder="Campaign notes" />
+              <select name="status" defaultValue="draft">
+                {campaignStatuses.map((status) => <option key={status} value={status}>{status}</option>)}
+              </select>
+              <input name="sourceFilter" placeholder="Optional source filter" />
+              <input name="cityFilter" placeholder="Optional city filter" />
+              <input name="categoryFilter" placeholder="Optional category filter" />
+              <input name="dailySendCap" type="number" min="1" defaultValue="25" />
+              <input name="perDomainDailyCap" type="number" min="1" defaultValue="1" />
+              <button className="button button--primary" type="submit">Create Campaign</button>
+            </form>
+            <div className="outreach-list">
+              {outreachCampaigns.map((campaign) => (
+                <details key={campaign.id} className="outreach-list-item">
+                  <summary>
+                    <strong>{campaign.name}</strong>
+                    <span>{campaign.status} | {campaign.dailySendCap}/day | {campaign.perDomainDailyCap}/domain</span>
+                  </summary>
+                  <form action="/api/admin/outreach/campaigns" method="post" className="admin-form">
+                    <input type="hidden" name="campaignId" value={campaign.id} />
+                    <input type="hidden" name="action" value="update" />
+                    <input name="name" defaultValue={campaign.name} required />
+                    <textarea name="description" rows="3" defaultValue={campaign.description} />
+                    <select name="status" defaultValue={campaign.status}>
+                      {campaignStatuses.map((status) => <option key={status} value={status}>{status}</option>)}
+                    </select>
+                    <input name="sourceFilter" defaultValue={campaign.sourceFilter} />
+                    <input name="cityFilter" defaultValue={campaign.cityFilter} />
+                    <input name="categoryFilter" defaultValue={campaign.categoryFilter} />
+                    <input name="dailySendCap" type="number" min="1" defaultValue={campaign.dailySendCap} />
+                    <input name="perDomainDailyCap" type="number" min="1" defaultValue={campaign.perDomainDailyCap} />
+                    <button className="button button--secondary" type="submit">Save Campaign</button>
+                  </form>
+                </details>
+              ))}
+              {!outreachCampaigns.length ? <p>No campaigns yet.</p> : null}
+            </div>
+          </section>
+        </div>
+
+        <section className="outreach-card outreach-card--wide">
+          <div className="pipeline-header">
+            <div>
+              <h3>Queue Builder</h3>
+              <p>Using the current lead filters: {filteredLeads.length} visible leads.</p>
+            </div>
+            {templatePreview ? <span className="status-pill">Preview: {templatePreview.subject}</span> : null}
+          </div>
+          <OutreachQueueBuilder
+            leads={filteredLeads}
+            tenants={tenants}
+            templates={outreachTemplates}
+            campaigns={outreachCampaigns}
+            suppressions={outreachSuppressions}
+          />
+        </section>
+
+        <div className="outreach-admin-grid">
+          <section className="outreach-card">
+            <h3>Approved Queue</h3>
+            <form action="/api/admin/outreach/queue/send" method="post">
+              <div className="outreach-list">
+                {outreachQueue.slice(0, 75).map((item) => (
+                  <label key={item.id} className="outreach-queue-row">
+                    <input
+                      type="checkbox"
+                      name="queueItemId"
+                      value={item.id}
+                      defaultChecked={item.status === "approved"}
+                      disabled={item.status !== "approved"}
+                    />
+                    <span>
+                      <strong>{item.subject}</strong>
+                      <small>{item.recipientEmail} | {item.status} | {item.scheduledFor ? new Date(item.scheduledFor).toLocaleString() : "No schedule"}</small>
+                      {item.failureReason ? <small>{item.failureReason}</small> : null}
+                    </span>
+                  </label>
+                ))}
+                {!outreachQueue.length ? <p>No outreach queued yet.</p> : null}
+              </div>
+              {outreachQueue.some((item) => item.status === "approved") ? (
+                <button className="button button--primary" type="submit">Send Approved</button>
+              ) : null}
+            </form>
+          </section>
+
+          <section className="outreach-card">
+            <h3>Suppression List</h3>
+            <form action="/api/admin/outreach/suppressions" method="post" className="admin-form">
+              <label>
+                Tenant
+                <select name="tenantId" defaultValue="">
+                  <option value="">All tenants</option>
+                  {tenants.map((tenant) => (
+                    <option key={tenant.id} value={tenant.id}>{tenant.brand.name}</option>
+                  ))}
+                </select>
+              </label>
+              <input name="email" type="email" placeholder="email@example.com" />
+              <input name="domain" placeholder="example.com" />
+              <select name="reason" defaultValue="manual">
+                {suppressionReasons.map((reason) => <option key={reason} value={reason}>{reason.replaceAll("_", " ")}</option>)}
+              </select>
+              <button className="button button--primary" type="submit">Add Suppression</button>
+            </form>
+            <div className="outreach-list">
+              {outreachSuppressions.slice(0, 50).map((item) => (
+                <div key={item.id} className="outreach-list-row">
+                  <strong>{item.email || item.domain}</strong>
+                  <span>{item.reason} | {item.tenantId || "all tenants"}</span>
+                </div>
+              ))}
+              {!outreachSuppressions.length ? <p>No suppressions yet.</p> : null}
+            </div>
+          </section>
+        </div>
+
+        <div className="outreach-admin-grid">
+          <section className="outreach-card">
+            <h3>Due Follow-ups</h3>
+            <div className="outreach-list">
+              {dueFollowUps.map((lead) => (
+                <div key={lead.id} className="outreach-list-row">
+                  <strong>{lead.businessName}</strong>
+                  <span>{lead.nextFollowUpAt ? new Date(lead.nextFollowUpAt).toLocaleDateString() : "No date"} | {lead.email || "No email"}</span>
+                </div>
+              ))}
+              {!dueFollowUps.length ? <p>No due follow-ups.</p> : null}
+            </div>
+          </section>
+
+          <section className="outreach-card">
+            <h3>Performance</h3>
+            <div className="outreach-performance-grid">
+              <MetricTable title="Sent by Source" data={outreachMetrics.sentBySource} />
+              <MetricTable title="Sent by City" data={outreachMetrics.sentByCity} />
+              <MetricTable title="Sent by Category" data={outreachMetrics.sentByCategory} />
+              <MetricTable title="Queue Status" data={outreachMetrics.byStatus} />
+            </div>
+          </section>
+        </div>
+      </section>
+
+      <section className="admin-panel">
+        <div className="pipeline-header">
+          <div>
             <h2>Lead Pipeline</h2>
             <p>{filteredLeads.length} visible leads from {leads.length} total.</p>
           </div>
@@ -220,7 +495,10 @@ export default async function AdminPage({ searchParams }) {
         </form>
 
         <div className="lead-control-list">
-          {filteredLeads.map((lead) => (
+          {filteredLeads.map((lead) => {
+            const leadQueue = queueByLead.get(lead.id) || [];
+            const leadEvents = eventsByLead.get(lead.id) || [];
+            return (
             <details className="lead-card" key={lead.id}>
               <summary>
                 <span>
@@ -243,6 +521,8 @@ export default async function AdminPage({ searchParams }) {
                     <div><dt>Address</dt><dd>{lead.address || "None"}</dd></div>
                     <div><dt>Batch</dt><dd>{lead.batchId || "None"}</dd></div>
                     <div><dt>Google</dt><dd>{lead.googleRating || 0} rating | {lead.googleReviewCount || 0} reviews</dd></div>
+                    <div><dt>Last Contacted</dt><dd>{lead.lastContactedAt ? new Date(lead.lastContactedAt).toLocaleDateString() : "Never"}</dd></div>
+                    <div><dt>Next Follow-up</dt><dd>{lead.nextFollowUpAt ? new Date(lead.nextFollowUpAt).toLocaleDateString() : "None"}</dd></div>
                   </dl>
 
                   {lead.possibleDuplicates?.length ? (
@@ -310,6 +590,23 @@ export default async function AdminPage({ searchParams }) {
                       <input name="assignedTo" defaultValue={lead.assignedTo || ""} />
                     </label>
                     <label>
+                      Campaign
+                      <select name="campaignId" defaultValue={lead.campaignId || ""}>
+                        <option value="">No campaign</option>
+                        {outreachCampaigns.map((campaign) => (
+                          <option key={campaign.id} value={campaign.id}>{campaign.name}</option>
+                        ))}
+                      </select>
+                    </label>
+                    <label>
+                      Reply Status
+                      <input name="replyStatus" defaultValue={lead.replyStatus || ""} />
+                    </label>
+                    <label>
+                      Next Follow-up
+                      <input name="nextFollowUpAt" type="date" defaultValue={lead.nextFollowUpAt ? String(lead.nextFollowUpAt).slice(0, 10) : ""} />
+                    </label>
+                    <label>
                       Notes
                       <textarea name="notes" rows="4" defaultValue={lead.notes || ""} />
                     </label>
@@ -322,10 +619,79 @@ export default async function AdminPage({ searchParams }) {
                     <input type="hidden" name="packageId" value={lead.packageId || tenants[0]?.defaultPackageId} />
                     <button className="button button--secondary" type="submit">Generate Draft Email</button>
                   </form>
+
+                  <div className="lead-actions">
+                    <form action="/api/admin/outreach/events" method="post">
+                      <input type="hidden" name="leadId" value={lead.id} />
+                      <input type="hidden" name="action" value="replied" />
+                      <button className="button button--secondary" type="submit">Mark Replied</button>
+                    </form>
+                    <form action="/api/admin/outreach/events" method="post">
+                      <input type="hidden" name="leadId" value={lead.id} />
+                      <input type="hidden" name="action" value="booked" />
+                      <button className="button button--secondary" type="submit">Mark Booked</button>
+                    </form>
+                    <form action="/api/admin/outreach/events" method="post">
+                      <input type="hidden" name="leadId" value={lead.id} />
+                      <input type="hidden" name="action" value="do_not_contact" />
+                      <button className="button button--secondary" type="submit">Do Not Contact</button>
+                    </form>
+                  </div>
+
+                  <form action="/api/admin/outreach/events" method="post" className="admin-form">
+                    <input type="hidden" name="leadId" value={lead.id} />
+                    <input type="hidden" name="action" value="follow_up" />
+                    <label>
+                      Follow-up Date
+                      <input name="nextFollowUpAt" type="date" defaultValue={lead.nextFollowUpAt ? String(lead.nextFollowUpAt).slice(0, 10) : suggestFollowUpDate()} />
+                    </label>
+                    <button className="button button--secondary" type="submit">Set Follow-up</button>
+                  </form>
+
+                  <form action="/api/admin/outreach/queue" method="post" className="admin-form">
+                    <input type="hidden" name="leadId" value={lead.id} />
+                    <input type="hidden" name="tenantId" value={lead.tenantId || tenants[0]?.id} />
+                    <input type="hidden" name="queueStatus" value="queued" />
+                    <input type="hidden" name="includeContacted" value="on" />
+                    <label>
+                      Follow-up Template
+                      <select name="templateId" defaultValue={activeTemplates[1]?.id || activeTemplates[0]?.id || ""}>
+                        {activeTemplates.map((template) => (
+                          <option key={template.id} value={template.id}>{template.name}</option>
+                        ))}
+                      </select>
+                    </label>
+                    <label>
+                      Sender Email
+                      <input name="senderEmail" type="email" placeholder="you@approved-domain.com" />
+                    </label>
+                    <input name="scheduledFor" type="hidden" value={lead.nextFollowUpAt || ""} />
+                    <button className="button button--secondary" type="submit">Queue Follow-up</button>
+                  </form>
+
+                  <section className="outreach-history">
+                    <h3>Outreach History</h3>
+                    <div className="outreach-list">
+                      {leadQueue.map((item) => (
+                        <div key={item.id} className="outreach-list-row">
+                          <strong>{item.subject}</strong>
+                          <span>{item.status} | {item.recipientEmail} | {item.sentAt ? new Date(item.sentAt).toLocaleString() : "not sent"}</span>
+                        </div>
+                      ))}
+                      {leadEvents.map((event) => (
+                        <div key={event.id} className="outreach-list-row">
+                          <strong>{event.type}</strong>
+                          <span>{new Date(event.createdAt).toLocaleString()}</span>
+                        </div>
+                      ))}
+                      {!leadQueue.length && !leadEvents.length ? <p>No outreach history yet.</p> : null}
+                    </div>
+                  </section>
                 </section>
               </div>
             </details>
-          ))}
+            );
+          })}
           {!filteredLeads.length ? <p>No leads match the current filters.</p> : null}
         </div>
       </section>
@@ -454,4 +820,27 @@ export default async function AdminPage({ searchParams }) {
 
 function uniqueOptions(values) {
   return [...new Set(values.filter(Boolean))].sort((a, b) => a.localeCompare(b));
+}
+
+function groupBy(items, key) {
+  const groups = new Map();
+  for (const item of items) {
+    const value = item[key] || "";
+    if (!groups.has(value)) groups.set(value, []);
+    groups.get(value).push(item);
+  }
+  return groups;
+}
+
+function MetricTable({ title, data }) {
+  const rows = Object.entries(data || {}).filter(([, count]) => count);
+  return (
+    <div className="metric-table">
+      <strong>{title}</strong>
+      {rows.map(([label, count]) => (
+        <span key={label}>{label}: {count}</span>
+      ))}
+      {!rows.length ? <span>No sent data yet.</span> : null}
+    </div>
+  );
 }

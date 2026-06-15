@@ -12,7 +12,7 @@ The app now runs as a Next.js SaaS foundation:
 - Prospecting Batch Builder for Google Places preview/import workflows
 - CSV lead import
 - Google Places, Hunter, and Apollo integration points
-- Resend integration point for future approved sending
+- Outreach Sequence V1 with template library, queue preview, suppression controls, approved Resend sending, follow-ups, and lightweight metrics
 - Contractor capacity notes
 - Docker deployment behind the existing Traefik proxy
 
@@ -80,6 +80,50 @@ Apollo target role keywords for batch enrichment are:
 owner, founder, marketing, manager, general manager, director, operations, business development
 ```
 
+## Outreach Sequence V1
+
+The `/admin` dashboard includes an approved outbound workflow layered on top of
+Lead Pipeline V1:
+
+- Template library with plain-text subject/body templates and merge fields
+- Starter templates when no custom templates exist
+- Campaign records with status, source/city/category filters, daily send caps, and per-domain daily caps
+- Queue builder that selects currently filtered leads, previews personalized messages, and queues only eligible leads
+- Approved queue view for explicit "Send Approved" Resend actions
+- Suppression list for emails/domains with compliance reasons
+- Outreach events and lead history for drafted, queued, approved, sent, failed, skipped, suppressed, replied, booked, and unsubscribed states
+- Follow-up dates on leads plus a due follow-up view
+- Lightweight performance metrics for queue status, replies, booked calls, and sent volume by source/city/category
+
+Supported template merge fields:
+
+```text
+{{businessName}}
+{{contactName}}
+{{city}}
+{{category}}
+{{painPoints}}
+{{recommendedOffer}}
+{{tenantName}}
+{{bookingLink}}
+{{senderName}}
+```
+
+Approved sending rules:
+
+- Nothing sends automatically on page load or after queue creation.
+- Messages must be queued and then explicitly sent from the approved queue.
+- Leads without recipient emails are skipped before queue creation.
+- Suppressed emails/domains cannot be queued or sent.
+- Already-contacted leads are skipped unless the admin explicitly includes them.
+- Daily send caps and per-domain daily caps are enforced before Resend calls.
+- Successful sends update the queue item, lead outreach status, pipeline status, `lastContactedAt`, suggested `nextFollowUpAt`, and outreach events.
+- Failed sends store the provider failure reason on the queue item.
+
+Follow-ups are manual in this sprint. Sending a message suggests a follow-up
+date three business days out, and admins can edit the date or manually queue a
+follow-up from the lead detail panel.
+
 ## Lead Engine QA Checklist
 
 Use this checklist before continuing into Outreach Sequence V1:
@@ -92,6 +136,11 @@ Use this checklist before continuing into Outreach Sequence V1:
 - Apply a filter, then export the filtered CSV.
 - Generate a draft email from the lead detail panel.
 - Temporarily remove provider keys locally and confirm Google/Hunter/Apollo routes show not-configured notices instead of crashing.
+- Create or preview an outreach template with merge fields.
+- Select filtered leads in the queue builder and confirm missing-email, suppressed, and already-contacted leads are skipped or warned.
+- Add an email/domain to the suppression list and confirm it cannot be queued/sent.
+- Queue approved outreach, then temporarily remove `RESEND_API_KEY` and confirm sending reports not-configured without crashing.
+- With a configured Resend sender/domain, send one approved queue item and confirm lead status, `lastContactedAt`, follow-up date, and outreach history update.
 
 ## Tests and Build
 
@@ -130,6 +179,11 @@ APOLLO_API_KEY=
 
 Without keys, the admin UI still works, but provider routes return a clear
 not-configured response.
+
+For Outreach Sequence V1, `RESEND_API_KEY` is required before approved queue
+items can be sent. The sender email entered in `/admin` must be an approved
+sender/domain in Resend. Missing `RESEND_API_KEY` returns a standard
+not-configured provider response and does not crash the dashboard.
 
 For local testing, add keys to `.env.local` without pasting secrets into chat:
 
@@ -175,7 +229,10 @@ phone numbers directly, so those leads may still need a later enrichment step.
 - Apollo People API Search may not return direct emails or phone numbers. The app stores profile data and marks contact data as partial when appropriate.
 - Hunter requires a valid API key and account permissions for Domain Search results.
 - Google Places usage depends on API key, billing, quota, and enabled Places API permissions.
-- Email sending is still draft-only unless a separate approved sending workflow is implemented.
+- Replies are manually marked unless inbound parsing is added later.
+- Follow-ups are manually approved and sent; there is no autonomous sequence runner.
+- The unsubscribe route is intentionally basic and records email/domain suppression only.
+- Resend sender/domain verification is configured externally in Resend.
 - Stripe payment links can be configured in tenant packages, but webhook/payment fulfillment is intentionally not part of this sprint.
 
 ## VPS Deployment

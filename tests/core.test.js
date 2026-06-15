@@ -4,6 +4,7 @@ import { leadFromCsvRecord, parseCsv } from "../lib/csv.js";
 import { defaultTenant, normalizeTenantConfig } from "../lib/defaultTenant.js";
 import { searchApolloPeople } from "../lib/integrations/apollo.js";
 import { lookupHunterDomain } from "../lib/integrations/hunter.js";
+import { sendResendEmail, validateResendConfig } from "../lib/integrations/resend.js";
 import {
   decorateLeadsWithDuplicates,
   filterAndSortLeads,
@@ -12,6 +13,14 @@ import {
   scoreLead
 } from "../lib/leadUtils.js";
 import { buildDraftEmail } from "../lib/outreach.js";
+import {
+  buildQueuePlan,
+  canSendQueueItem,
+  defaultOutreachTemplates,
+  findSuppressionForLead,
+  renderOutreachTemplate,
+  suggestFollowUpDate
+} from "../lib/outreachSequence.js";
 import { buildProspectingQuery, mergeBatchCounts, selectedPreviewResults } from "../lib/prospecting.js";
 import {
   sanitizeTenantConfig,
@@ -315,4 +324,183 @@ test("normalizes legacy JSON fallback leads into the new schema", () => {
   assert.equal(lead.domain, "legacy.example");
   assert.equal(lead.sourceType, "public_form");
   assert.equal(lead.pipelineStatus, "researched");
+});
+
+test("renders outreach templates with supported merge fields", () => {
+  const rendered = renderOutreachTemplate(
+    {
+      subject: "Idea for {{businessName}} in {{city}}",
+      body: "Hey {{contactName}}, {{tenantName}} can help with {{recommendedOffer}}. {{bookingLink}}"
+    },
+    {
+      lead: {
+        businessName: "Example Clinic",
+        contactName: "Sam",
+        city: "Toronto",
+        recommendedOffer: "Pro Content Day"
+      },
+      tenant: normalizeTenantConfig({
+        brand: { name: "DGTL" },
+        packages: [{ id: "pkg", name: "Starter", bookingLink: "https://book.example" }],
+        defaultPackageId: "pkg"
+      })
+    }
+  );
+
+  assert.equal(rendered.subject, "Idea for Example Clinic in Toronto");
+  assert.match(rendered.body, /Hey Sam/);
+  assert.match(rendered.body, /DGTL/);
+  assert.match(rendered.body, /Pro Content Day/);
+});
+
+test("queues only eligible outreach leads and reports skipped reasons", () => {
+  const tenant = normalizeTenantConfig({});
+  const leads = [
+    normalizeLeadInput({ id: "lead_email", businessName: "Has Email", email: "owner@example.com" }),
+    normalizeLeadInput({ id: "lead_missing", businessName: "Missing Email" }),
+    normalizeLeadInput({ id: "lead_suppressed", businessName: "Suppressed", email: "blocked@example.com" }),
+    normalizeLeadInput({
+      id: "lead_contacted",
+      businessName: "Contacted",
+      email: "contacted@example.com",
+      outreachStatus: "contacted"
+    })
+  ];
+
+  const plan = buildQueuePlan({
+    leads,
+    tenant,
+    template: defaultOutreachTemplates[0],
+    suppressions: [{ email: "blocked@example.com", reason: "manual" }],
+    senderEmail: "sales@dgtl.example"
+  });
+
+  assert.equal(plan.items.length, 1);
+  assert.equal(plan.items[0].leadId, "lead_email");
+  assert.deepEqual(
+    plan.skipped.map((item) => item.reason),
+    ["missing_email", "suppressed", "already_contacted"]
+  );
+});
+
+test("suppression matching blocks email and domain targets", () => {
+  const lead = normalizeLeadInput({
+    email: "owner@example.com",
+    website: "https://example.com"
+  });
+
+  assert.equal(findSuppressionForLead(lead, [{ email: "OWNER@example.com", reason: "manual" }]).reason, "manual");
+  assert.equal(findSuppressionForLead(lead, [{ domain: "example.com", reason: "do_not_contact" }]).reason, "do_not_contact");
+});
+
+test("send caps enforce daily and per-domain limits", () => {
+  const today = new Date("2026-06-15T12:00:00.000Z");
+  const item = {
+    id: "queue_2",
+    tenantId: "tenant_a",
+    campaignId: "campaign_a",
+    status: "approved",
+    recipientEmail: "new@example.com",
+    senderEmail: "sales@dgtl.example"
+  };
+  const queue = [
+    {
+      id: "queue_1",
+      tenantId: "tenant_a",
+      campaignId: "campaign_a",
+      status: "sent",
+      recipientEmail: "old@example.com",
+      sentAt: "2026-06-15T08:00:00.000Z"
+    }
+  ];
+
+  assert.equal(
+    canSendQueueItem({ item, queue, campaign: { dailySendCap: 1, perDomainDailyCap: 2 }, now: today }).reason,
+    "daily_cap_reached"
+  );
+  assert.equal(
+    canSendQueueItem({ item, queue, campaign: { dailySendCap: 10, perDomainDailyCap: 1 }, now: today }).reason,
+    "per_domain_daily_cap_reached"
+  );
+  assert.equal(
+    canSendQueueItem({ item, queue, campaign: { dailySendCap: 10, perDomainDailyCap: 2 }, now: today }).ok,
+    true
+  );
+});
+
+test("Resend returns not-configured provider response", async () => {
+  const originalKey = process.env.RESEND_API_KEY;
+  delete process.env.RESEND_API_KEY;
+
+  try {
+    const config = await validateResendConfig();
+    const send = await sendResendEmail({
+      from: "sales@example.com",
+      to: "lead@example.com",
+      subject: "Test",
+      text: "Hello"
+    });
+
+    assert.equal(config.ok, false);
+    assert.equal(config.provider, "resend");
+    assert.equal(config.configured, false);
+    assert.equal(send.ok, false);
+    assert.equal(send.provider, "resend");
+    assert.equal(send.configured, false);
+  } finally {
+    if (originalKey === undefined) delete process.env.RESEND_API_KEY;
+    else process.env.RESEND_API_KEY = originalKey;
+  }
+});
+
+test("Resend success and failure responses preserve provider shape", async () => {
+  const originalFetch = globalThis.fetch;
+  const originalKey = process.env.RESEND_API_KEY;
+  process.env.RESEND_API_KEY = "resend-test-key";
+
+  try {
+    globalThis.fetch = async () => ({
+      ok: true,
+      status: 200,
+      async json() {
+        return { id: "msg_123" };
+      }
+    });
+    const success = await sendResendEmail({
+      from: "sales@example.com",
+      to: "lead@example.com",
+      subject: "Test",
+      text: "Hello"
+    });
+    assert.equal(success.ok, true);
+    assert.equal(success.provider, "resend");
+    assert.equal(success.data.id, "msg_123");
+
+    globalThis.fetch = async () => ({
+      ok: false,
+      status: 400,
+      async json() {
+        return { message: "Invalid sender" };
+      }
+    });
+    const failure = await sendResendEmail({
+      from: "bad@example.com",
+      to: "lead@example.com",
+      subject: "Test",
+      text: "Hello"
+    });
+    assert.equal(failure.ok, false);
+    assert.equal(failure.provider, "resend");
+    assert.equal(failure.configured, true);
+    assert.match(failure.error, /Invalid sender/);
+  } finally {
+    globalThis.fetch = originalFetch;
+    if (originalKey === undefined) delete process.env.RESEND_API_KEY;
+    else process.env.RESEND_API_KEY = originalKey;
+  }
+});
+
+test("suggests follow-up dates three business days out", () => {
+  assert.equal(suggestFollowUpDate(new Date("2026-06-12T12:00:00.000Z")), "2026-06-17");
+  assert.equal(suggestFollowUpDate(new Date("2026-06-15T12:00:00.000Z")), "2026-06-18");
 });

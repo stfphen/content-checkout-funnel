@@ -21,7 +21,10 @@ export async function POST(request) {
     leadScoreReason: String(form.get("leadScoreReason") || ""),
     painPoints: String(form.get("painPoints") || ""),
     recommendedOffer: String(form.get("recommendedOffer") || ""),
-    assignedTo: String(form.get("assignedTo") || "")
+    assignedTo: String(form.get("assignedTo") || ""),
+    nextFollowUpAt: String(form.get("nextFollowUpAt") || ""),
+    replyStatus: String(form.get("replyStatus") || ""),
+    campaignId: String(form.get("campaignId") || "")
   });
 
   const url = new URL(redirectTo, request.url);
