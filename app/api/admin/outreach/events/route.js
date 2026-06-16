@@ -1,9 +1,10 @@
 import { NextResponse } from "next/server";
-import { getAdminSession } from "../../../../../lib/auth";
+import { permissionDeniedResponse, requireRole } from "../../../../../lib/permissions";
 import { normalizeDomain, normalizeEmail } from "../../../../../lib/outreachSequence";
 import {
   createOutreachEvent,
   createOutreachSuppression,
+  getSessionTeamId,
   listLeads,
   listOutreachQueue,
   updateLead,
@@ -17,22 +18,28 @@ function redirectAdmin(request, notice) {
 }
 
 export async function POST(request) {
-  const session = await getAdminSession();
-  if (!session) return NextResponse.redirect(new URL("/admin/login", request.url), 303);
+  let session;
+  try {
+    session = await requireRole(["owner", "admin", "sales"]);
+  } catch (error) {
+    return permissionDeniedResponse(error, request);
+  }
 
   const form = await request.formData();
+  const teamId = getSessionTeamId(session);
   const leadId = String(form.get("leadId") || "");
   const action = String(form.get("action") || "");
   const nextFollowUpAt = String(form.get("nextFollowUpAt") || "");
-  const [leads, queue] = await Promise.all([listLeads(), listOutreachQueue()]);
+  const [leads, queue] = await Promise.all([listLeads({ teamId }), listOutreachQueue({ teamId })]);
   const lead = leads.find((item) => item.id === leadId);
   if (!lead) return redirectAdmin(request, "Lead not found.");
 
   const latestQueueItem = queue.find((item) => item.leadId === leadId && ["sent", "approved", "queued"].includes(item.status));
 
   if (action === "follow_up") {
-    await updateLead(leadId, { nextFollowUpAt });
+    await updateLead(leadId, { nextFollowUpAt }, { teamId });
     await createOutreachEvent({
+      teamId,
       leadId,
       queueId: latestQueueItem?.id || "",
       campaignId: latestQueueItem?.campaignId || lead.campaignId || "",
@@ -56,14 +63,15 @@ export async function POST(request) {
     pipelineStatus: next.pipelineStatus,
     replyStatus: action,
     campaignId: latestQueueItem?.campaignId || lead.campaignId || ""
-  });
+  }, { teamId });
 
   if (latestQueueItem && ["replied", "booked"].includes(action)) {
-    await updateOutreachQueueItem(latestQueueItem.id, { status: action });
+    await updateOutreachQueueItem(latestQueueItem.id, { status: action }, { teamId });
   }
 
   if (action === "do_not_contact" && (lead.email || lead.domain || lead.websiteUrl)) {
     await createOutreachSuppression({
+      teamId,
       tenantId: lead.tenantId,
       email: normalizeEmail(lead.email),
       domain: normalizeDomain(lead.domain || lead.websiteUrl),
@@ -72,6 +80,7 @@ export async function POST(request) {
   }
 
   await createOutreachEvent({
+    teamId,
     leadId,
     queueId: latestQueueItem?.id || "",
     campaignId: latestQueueItem?.campaignId || lead.campaignId || "",

@@ -1,23 +1,30 @@
 import { NextResponse } from "next/server";
-import { getAdminSession } from "../../../../../../lib/auth";
+import { logAudit } from "../../../../../../lib/audit";
+import { permissionDeniedResponse, requireRole } from "../../../../../../lib/permissions";
 import { lookupHunterDomain } from "../../../../../../lib/integrations/hunter";
 import { searchApolloPeople } from "../../../../../../lib/integrations/apollo";
 import { mergeBatchCounts, selectedPreviewResults } from "../../../../../../lib/prospecting";
 import { scoreLead } from "../../../../../../lib/leadUtils";
 import {
   createLead,
+  getSessionTeamId,
   getProspectingBatch,
   updateLead,
   updateProspectingBatch
 } from "../../../../../../lib/store";
 
 export async function POST(request) {
-  const session = await getAdminSession();
-  if (!session) return NextResponse.redirect(new URL("/admin/login", request.url), 303);
+  let session;
+  try {
+    session = await requireRole(["owner", "admin", "sales"]);
+  } catch (error) {
+    return permissionDeniedResponse(error, request);
+  }
 
+  const teamId = getSessionTeamId(session);
   const form = await request.formData();
   const batchId = String(form.get("batchId") || "");
-  const batch = await getProspectingBatch(batchId);
+  const batch = await getProspectingBatch(batchId, { teamId });
   const url = new URL("/admin", request.url);
   url.searchParams.set("batchId", batchId);
 
@@ -36,6 +43,7 @@ export async function POST(request) {
   for (const prospect of selectedProspects) {
     const lead = await createLead({
       ...prospect,
+      teamId,
       tenantId: batch.tenantId,
       batchId: batch.id,
       category: prospect.category || batch.category,
@@ -54,6 +62,19 @@ export async function POST(request) {
     }
 
     imported += 1;
+    await logAudit({
+      userId: session.user?.id,
+      action: "lead.imported",
+      targetType: "lead",
+      targetId: lead.id,
+      metadata: {
+        teamId,
+        tenantId: batch.tenantId,
+        provider: batch.provider,
+        batchId: batch.id,
+        businessName: lead.businessName
+      }
+    });
     const enrichment = await enrichLeadFromBatch({ lead, batch });
     if (enrichment.enriched) enriched += 1;
     if (enrichment.failed) failed += 1;
@@ -66,7 +87,7 @@ export async function POST(request) {
     failed: Number(batch.counts.failed || 0) + failed
   });
 
-  await updateProspectingBatch(batch.id, { status: "completed", counts });
+  await updateProspectingBatch(batch.id, { status: "completed", counts }, { teamId });
   url.searchParams.set(
     "notice",
     `Imported ${imported} leads. Skipped ${skippedDuplicates} duplicates. Enriched ${enriched}. Failed ${failed}.`
@@ -120,7 +141,7 @@ async function enrichLeadFromBatch({ lead, batch }) {
     enrichmentStatus,
     leadScore: scored.score,
     leadScoreReason: scored.reason
-  });
+  }, { teamId: lead.teamId });
 
   return { enriched, failed };
 }

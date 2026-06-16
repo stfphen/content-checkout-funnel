@@ -1,6 +1,15 @@
 import { redirect } from "next/navigation";
+import { AdminTabbedShell, AdminTabPanel } from "../../components/admin/AdminTabbedShell";
 import OutreachQueueBuilder from "../../components/admin/OutreachQueueBuilder";
 import { getAdminSession } from "../../lib/auth";
+import { listAuditLogs } from "../../lib/audit";
+import {
+  canManageContractors,
+  canManageLeads,
+  canManageTenants,
+  canManageUsers,
+  canViewDashboard
+} from "../../lib/permissions";
 import {
   listContractors,
   listDraftEmails,
@@ -11,7 +20,8 @@ import {
   listOutreachSuppressions,
   listOutreachTemplates,
   listProspectingBatches,
-  listTenants
+  listTenants,
+  getSessionTeamId
 } from "../../lib/store";
 import {
   enrichmentStatuses,
@@ -28,14 +38,27 @@ import {
   suppressionReasons,
   suggestFollowUpDate
 } from "../../lib/outreachSequence";
+import { listTeamUsers, USER_ROLES } from "../../lib/users";
 
 export const dynamic = "force-dynamic";
 
 export default async function AdminPage({ searchParams }) {
   const session = await getAdminSession();
   if (!session) redirect("/admin/login");
+  if (!canViewDashboard(session)) redirect("/admin/login");
   const params = await searchParams;
   const notice = params?.notice;
+  const canManageLeadActions = canManageLeads(session);
+  const canManageTenantActions = canManageTenants(session);
+  const canManageContractorActions = canManageContractors(session);
+  const teamId = getSessionTeamId(session);
+  const canManageTeamUsers = canManageUsers(session) && Boolean(teamId);
+  const visibleTabs = [
+    ...(session.role === "contractor" ? [] : ["pipeline"]),
+    ...(canManageLeadActions ? ["prospecting", "outreach"] : []),
+    ...(canManageTenantActions ? ["tenants"] : []),
+    ...(canManageTeamUsers || canManageContractorActions || session.role === "contractor" ? ["team"] : [])
+  ];
 
   const [
     tenants,
@@ -47,18 +70,22 @@ export default async function AdminPage({ searchParams }) {
     outreachCampaigns,
     outreachQueue,
     outreachSuppressions,
-    outreachEvents
+    outreachEvents,
+    teamUsers,
+    auditLogs
   ] = await Promise.all([
-    listTenants(),
-    listLeads(),
-    listContractors(),
-    listDraftEmails(),
-    listProspectingBatches(),
-    listOutreachTemplates(),
-    listOutreachCampaigns(),
-    listOutreachQueue(),
-    listOutreachSuppressions(),
-    listOutreachEvents()
+    listTenants({ teamId }),
+    listLeads({ teamId }),
+    listContractors({ teamId }),
+    listDraftEmails({ teamId }),
+    listProspectingBatches({ teamId }),
+    listOutreachTemplates({ teamId }),
+    listOutreachCampaigns({ teamId }),
+    listOutreachQueue({ teamId }),
+    listOutreachSuppressions({ teamId }),
+    listOutreachEvents({ teamId }),
+    canManageTeamUsers ? listTeamUsers(teamId) : Promise.resolve([]),
+    canManageTeamUsers ? listAuditLogs({ teamId, limit: 75 }) : Promise.resolve([])
   ]);
 
   const leadFilters = {
@@ -99,29 +126,20 @@ export default async function AdminPage({ searchParams }) {
   });
 
   return (
-    <main className="admin-shell">
-      <header className="admin-header">
-        <div>
-          <p className="eyebrow">Admin Dashboard</p>
-          <h1>Lead Generation Control</h1>
-          <p>Manage white-label funnels, prospects, leads, contractors, and outreach drafts from one place.</p>
-        </div>
-        <form action="/api/admin/logout" method="post">
-          <button className="button button--secondary" type="submit">Logout</button>
-        </form>
-      </header>
-
-      {notice ? <div className="admin-notice">{notice}</div> : null}
-
-      <section className="admin-metrics" aria-label="Lead pipeline summary">
+    <AdminTabbedShell notice={notice} visibleTabs={visibleTabs}>
+      <AdminTabPanel tabId="pipeline">
+        <section className="admin-metrics v2-metrics-scroll" aria-label="Lead pipeline summary">
         {leadCounts.map((item) => (
-          <article key={item.status}>
-            <span>{item.count}</span>
-            <p>{item.status.replaceAll("_", " ")}</p>
+          <article key={item.status} className="v2-metric-pill">
+            <span className="v2-metric-count">{item.count}</span>
+            <p className="v2-metric-label">{item.status.replaceAll("_", " ")}</p>
           </article>
         ))}
-      </section>
+        </section>
+      </AdminTabPanel>
 
+      {canManageLeadActions ? (
+      <AdminTabPanel tabId="prospecting">
       <section className="admin-panel">
         <h2>Prospecting Batch Builder</h2>
         <p>Create a search batch, preview Google Places results, then import selected prospects into the pipeline.</p>
@@ -213,7 +231,11 @@ export default async function AdminPage({ searchParams }) {
           </div>
         ) : null}
       </section>
+      </AdminTabPanel>
+      ) : null}
 
+      {canManageLeadActions ? (
+      <AdminTabPanel tabId="outreach">
       <section className="admin-panel">
         <div className="pipeline-header">
           <div>
@@ -444,7 +466,10 @@ export default async function AdminPage({ searchParams }) {
           </section>
         </div>
       </section>
+      </AdminTabPanel>
+      ) : null}
 
+      <AdminTabPanel tabId="pipeline">
       <section className="admin-panel">
         <div className="pipeline-header">
           <div>
@@ -539,6 +564,8 @@ export default async function AdminPage({ searchParams }) {
                 </section>
 
                 <section>
+                  {canManageLeadActions ? (
+                  <>
                   <h3>Edit Pipeline Fields</h3>
                   <form action="/api/admin/leads/update" method="post" className="admin-form">
                     <input type="hidden" name="leadId" value={lead.id} />
@@ -668,6 +695,8 @@ export default async function AdminPage({ searchParams }) {
                     <input name="scheduledFor" type="hidden" value={lead.nextFollowUpAt || ""} />
                     <button className="button button--secondary" type="submit">Queue Follow-up</button>
                   </form>
+                  </>
+                  ) : null}
 
                   <section className="outreach-history">
                     <h3>Outreach History</h3>
@@ -695,7 +724,32 @@ export default async function AdminPage({ searchParams }) {
           {!filteredLeads.length ? <p>No leads match the current filters.</p> : null}
         </div>
       </section>
+      </AdminTabPanel>
 
+      {canManageTenantActions ? (
+      <AdminTabPanel tabId="tenants">
+      <section className="admin-grid">
+        <article className="admin-panel admin-panel--wide">
+          <h2>Tenants</h2>
+          <p>Review configured white-label brands and open public previews.</p>
+          <div className="tenant-summary-grid">
+            {tenants.map((tenant) => (
+              <div key={tenant.id} className="tenant-summary-card">
+                <strong>{tenant.brand.name}</strong>
+                <span>{tenant.slug} | {tenant.status}</span>
+                <span>{tenant.domains.join(", ")}</span>
+                <a className="button button--secondary" href={`/t/${tenant.slug}`} target="_blank">Preview</a>
+              </div>
+            ))}
+          </div>
+        </article>
+
+      </section>
+      </AdminTabPanel>
+      ) : null}
+
+      {canManageLeadActions ? (
+      <AdminTabPanel tabId="pipeline">
       <section className="admin-grid">
         <article className="admin-panel">
           <h2>CSV Lead Import</h2>
@@ -714,6 +768,13 @@ export default async function AdminPage({ searchParams }) {
           </form>
         </article>
 
+      </section>
+      </AdminTabPanel>
+      ) : null}
+
+      {canManageLeadActions ? (
+      <AdminTabPanel tabId="prospecting">
+      <section className="admin-grid">
         <article className="admin-panel">
           <h2>API Prospecting</h2>
           <p>Quick one-off provider actions. Use the batch builder above for daily acquisition work.</p>
@@ -778,9 +839,135 @@ export default async function AdminPage({ searchParams }) {
           </div>
         </article>
 
+      </section>
+      </AdminTabPanel>
+      ) : null}
+
+      {(canManageTeamUsers || canManageContractorActions || session.role === "contractor") ? (
+      <AdminTabPanel tabId="team">
+      <section className="admin-grid">
+        {canManageTeamUsers ? (
+        <article className="admin-panel admin-panel--wide">
+          <div className="pipeline-header">
+            <div>
+              <h2>Team Credentials</h2>
+              <p>Create database-backed logins, update roles, and activate or deactivate access for {session.team.name}.</p>
+            </div>
+            <span className="status-pill">{teamUsers.length} users</span>
+          </div>
+
+          <form action="/api/admin/users" method="post" className="admin-form team-user-form">
+            <input type="hidden" name="action" value="create" />
+            <input type="hidden" name="teamId" value={session.team.id} />
+            <label>
+              Name
+              <input name="name" placeholder="Team member name" required />
+            </label>
+            <label>
+              Email
+              <input name="email" type="email" placeholder="teammate@example.com" required />
+            </label>
+            <label>
+              Temporary Password
+              <input name="password" type="password" minLength="12" placeholder="At least 12 characters" required />
+            </label>
+            <label>
+              Role
+              <select name="role" defaultValue="viewer" required>
+                {USER_ROLES.map((role) => (
+                  <option key={role} value={role}>{role}</option>
+                ))}
+              </select>
+            </label>
+            <button className="button button--primary" type="submit">Create Credential</button>
+          </form>
+
+          <div className="team-users-table" role="table" aria-label="Team users">
+            <div className="team-users-table__row team-users-table__row--head" role="row">
+              <span role="columnheader">Name</span>
+              <span role="columnheader">Email</span>
+              <span role="columnheader">Role</span>
+              <span role="columnheader">Status</span>
+              <span role="columnheader">Created</span>
+              <span role="columnheader">Actions</span>
+            </div>
+            {teamUsers.map((user) => (
+              <div key={user.id} className="team-users-table__row" role="row">
+                <span role="cell"><strong>{user.name || "No name"}</strong></span>
+                <span role="cell">{user.email}</span>
+                <span role="cell">
+                  <form action="/api/admin/users" method="post" className="inline-form team-role-form">
+                    <input type="hidden" name="action" value="update_role" />
+                    <input type="hidden" name="teamId" value={session.team.id} />
+                    <input type="hidden" name="userId" value={user.id} />
+                    <select name="role" defaultValue={user.role}>
+                      {USER_ROLES.map((role) => (
+                        <option key={role} value={role}>{role}</option>
+                      ))}
+                    </select>
+                    <button className="button button--secondary" type="submit">Save</button>
+                  </form>
+                </span>
+                <span role="cell">
+                  <span className={`status-pill status-pill--${user.status}`}>{user.status}</span>
+                </span>
+                <span role="cell">{user.createdAt ? new Date(user.createdAt).toLocaleDateString() : "Unknown"}</span>
+                <span role="cell">
+                  <form action="/api/admin/users" method="post" className="inline-form">
+                    <input type="hidden" name="action" value={user.status === "active" ? "deactivate" : "reactivate"} />
+                    <input type="hidden" name="teamId" value={session.team.id} />
+                    <input type="hidden" name="userId" value={user.id} />
+                    <button
+                      className="button button--secondary"
+                      type="submit"
+                      disabled={user.id === session.user?.id && user.status === "active"}
+                    >
+                      {user.status === "active" ? "Deactivate" : "Reactivate"}
+                    </button>
+                  </form>
+                </span>
+              </div>
+            ))}
+            {!teamUsers.length ? <p>No team users yet.</p> : null}
+          </div>
+        </article>
+        ) : null}
+
+        {canManageTeamUsers ? (
+        <article className="admin-panel admin-panel--wide">
+          <div className="pipeline-header">
+            <div>
+              <h2>Audit Log</h2>
+              <p>Recent team administration and sales operations.</p>
+            </div>
+            <span className="status-pill">{auditLogs.length} events</span>
+          </div>
+          <div className="team-users-table audit-log-table" role="table" aria-label="Audit log">
+            <div className="team-users-table__row team-users-table__row--head" role="row">
+              <span role="columnheader">Time</span>
+              <span role="columnheader">User</span>
+              <span role="columnheader">Action</span>
+              <span role="columnheader">Target</span>
+              <span role="columnheader">Metadata</span>
+            </div>
+            {auditLogs.map((event) => (
+              <div key={event.id} className="team-users-table__row audit-log-table__row" role="row">
+                <span role="cell">{event.createdAt ? new Date(event.createdAt).toLocaleString() : "Unknown"}</span>
+                <span role="cell">{event.userName || event.userEmail || event.userId || "Unknown"}</span>
+                <span role="cell"><strong>{event.action}</strong></span>
+                <span role="cell">{[event.targetType, event.targetId].filter(Boolean).join(": ") || "None"}</span>
+                <span role="cell"><code>{JSON.stringify(event.metadata || {})}</code></span>
+              </div>
+            ))}
+            {!auditLogs.length ? <p>No audit events yet.</p> : null}
+          </div>
+        </article>
+        ) : null}
+
         <article className="admin-panel">
           <h2>Contractor Capacity</h2>
           <p>Track delivery partners, service area, capacity, and rate notes before assigning booked work.</p>
+          {canManageContractorActions ? (
           <form action="/api/admin/contractors" method="post" className="admin-form">
             <input name="name" placeholder="Contractor name" required />
             <input name="email" type="email" placeholder="email@example.com" />
@@ -791,6 +978,7 @@ export default async function AdminPage({ searchParams }) {
             <textarea name="rateNotes" rows="3" placeholder="Rate and margin notes" />
             <button className="button button--primary" type="submit">Add Contractor</button>
           </form>
+          ) : null}
           <div className="admin-list">
             {contractors.map((contractor) => (
               <div key={contractor.id}>
@@ -801,6 +989,7 @@ export default async function AdminPage({ searchParams }) {
           </div>
         </article>
 
+        {canManageLeadActions ? (
         <article className="admin-panel">
           <h2>Draft Emails</h2>
           <div className="admin-list admin-list--drafts">
@@ -813,8 +1002,11 @@ export default async function AdminPage({ searchParams }) {
             {!drafts.length ? <p>No draft emails yet.</p> : null}
           </div>
         </article>
+        ) : null}
       </section>
-    </main>
+      </AdminTabPanel>
+      ) : null}
+    </AdminTabbedShell>
   );
 }
 

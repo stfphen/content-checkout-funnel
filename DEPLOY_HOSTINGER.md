@@ -50,16 +50,25 @@ SSH into the VPS:
 
 ```bash
 ssh root@62.72.16.32
+mkdir -p /opt/content-checkout-funnel
 cd /opt/content-checkout-funnel
 ```
 
-Create or update `/opt/content-checkout-funnel/.env` after extracting:
+Create or update `/opt/content-checkout-funnel/.env`; the deploy step below
+preserves this file while replacing the app bundle:
 
 ```bash
-cat > .env <<'EOF'
-ADMIN_EMAIL=admin@dgtlmag.com
-ADMIN_PASSWORD=change-this-password
-SESSION_SECRET=replace-with-a-long-random-string
+umask 077
+POSTGRES_PASSWORD="$(openssl rand -base64 32)"
+
+cat > .env <<EOF
+POSTGRES_DB=content_funnel
+POSTGRES_USER=content_funnel
+POSTGRES_PASSWORD=$POSTGRES_PASSWORD
+OWNER_EMAIL=owner@dgtlmag.com
+OWNER_NAME=DGTL MAG Owner
+TEAM_NAME=DGTL MAG
+TEAM_SLUG=dgtlmag
 RESEND_API_KEY=
 GOOGLE_PLACES_API_KEY=
 HUNTER_API_KEY=
@@ -67,7 +76,11 @@ APOLLO_API_KEY=
 EOF
 ```
 
-Use strong values before public launch.
+Use unique generated values before public launch. Do not reuse local
+placeholder passwords from `.env.example`. `docker-compose.yml` builds the
+container `DATABASE_URL` from `POSTGRES_DB`, `POSTGRES_USER`, and
+`POSTGRES_PASSWORD`, so the app always connects to the private Postgres service
+in this deployment.
 
 ## 5. Install and Deploy
 
@@ -78,10 +91,60 @@ find /opt/content-checkout-funnel -mindepth 1 -maxdepth 1 -not -name ".env" -exe
 tar -xzf /root/content-funnel-clean.tgz -C /opt/content-checkout-funnel
 cd /opt/content-checkout-funnel
 docker compose config
+docker compose build content-funnel
+docker compose up -d content-funnel-postgres
+docker compose run --rm --no-deps content-funnel npm run migrate
+read -s -p "Owner password: " OWNER_PASSWORD; echo
+docker compose run --rm --no-deps \
+  -e OWNER_PASSWORD="$OWNER_PASSWORD" \
+  content-funnel npm run create-owner
 docker compose up -d --build
 ```
 
-## 6. Verify
+The owner password is passed as a one-time environment variable and is not
+printed or written to `.env`. Re-running `npm run create-owner` is safe; it
+leaves the existing user in place and ensures the membership has the `owner`
+role.
+
+## 6. Database Backups and Restore
+
+The Postgres Docker volume persists database files, but take an explicit dump
+before production redeploys, migrations, or VPS maintenance.
+
+Create a timestamped backup on the VPS:
+
+```bash
+cd /opt/content-checkout-funnel
+scripts/backup-db.sh
+```
+
+Backups are stored in:
+
+```text
+/opt/content-checkout-funnel/backups/
+```
+
+The backup file name includes the database name and UTC timestamp, for example:
+
+```text
+backups/content_funnel_20260615T180000Z.dump
+```
+
+Restore a backup into the Compose Postgres service:
+
+```bash
+cd /opt/content-checkout-funnel
+RESTORE_CONFIRM="restore content_funnel" scripts/restore-db.sh backups/content_funnel_20260615T180000Z.dump
+```
+
+The restore script runs `pg_restore --clean --if-exists` for `.dump` backups
+and `psql` for `.sql` backups. It refuses to run unless `RESTORE_CONFIRM`
+matches the target database name.
+
+Test the restore process on a non-production copy before major migrations. A
+backup that has not been restored successfully should not be treated as proven.
+
+## 7. Verify
 
 ```bash
 curl -I http://127.0.0.1:8088/
@@ -99,7 +162,7 @@ container network -> traefik-public
 https://dgtlmag.com/ -> 200 OK
 ```
 
-## 7. Admin
+## 8. Admin
 
 Open:
 
@@ -107,4 +170,5 @@ Open:
 https://dgtlmag.com/admin
 ```
 
-Use the credentials from `.env`.
+Use the owner email from `.env` and the owner password you entered during
+deployment.

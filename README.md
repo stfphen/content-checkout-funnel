@@ -32,14 +32,36 @@ http://localhost:8088
 http://localhost:8088/admin
 ```
 
-Default local admin credentials come from `.env.example`:
+Admin login is database-backed. Before signing in, run PostgreSQL migrations and
+create the first owner user:
 
-```text
-admin@dgtlmag.com
-change-this-password
+```bash
+npm run migrate
+read -s -p "Owner password: " OWNER_PASSWORD; echo
+OWNER_EMAIL=owner@example.com \
+OWNER_NAME="Local Owner" \
+OWNER_PASSWORD="$OWNER_PASSWORD" \
+TEAM_NAME="Local Team" \
+TEAM_SLUG=local-team \
+npm run create-owner
 ```
 
 If `DATABASE_URL` is not set, the app uses a local JSON store under `data/`.
+That fallback is for local development only. Docker/VPS deployments require
+PostgreSQL settings in `.env` and must not use the example passwords.
+
+For local Postgres testing, copy `.env.example` and replace the placeholder
+database values. For production, generate unique secrets instead of reusing any
+local placeholder:
+
+```bash
+openssl rand -base64 32 # POSTGRES_PASSWORD
+openssl rand -base64 32 # OWNER_PASSWORD
+```
+
+`npm run create-owner` is safe to run more than once. It creates the team if
+missing, creates the owner user if missing, and ensures that user has the
+`owner` role. Passwords are hashed before storage and are not printed.
 
 ## Lead Pipeline V1
 
@@ -205,7 +227,8 @@ npm run dev:clean
 ```
 
 For the VPS deployment, set the same keys in `/opt/content-checkout-funnel/.env`
-and rebuild the container:
+and rebuild the container. Keep the existing production `POSTGRES_PASSWORD`
+when updating API keys:
 
 ```bash
 cd /opt/content-checkout-funnel

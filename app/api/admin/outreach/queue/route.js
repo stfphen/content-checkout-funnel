@@ -1,13 +1,15 @@
 import { NextResponse } from "next/server";
-import { getAdminSession } from "../../../../../lib/auth";
+import { permissionDeniedResponse, requireRole } from "../../../../../lib/permissions";
 import { buildQueuePlan } from "../../../../../lib/outreachSequence";
 import {
   createOutreachEvent,
   createOutreachQueueItems,
+  getSessionTeamId,
   listLeads,
   listOutreachSuppressions,
   listOutreachTemplates,
   listTenants,
+  requireTenantAccess,
   updateLead
 } from "../../../../../lib/store";
 
@@ -18,14 +20,24 @@ function redirectAdmin(request, notice) {
 }
 
 export async function POST(request) {
-  const session = await getAdminSession();
-  if (!session) return NextResponse.redirect(new URL("/admin/login", request.url), 303);
+  let session;
+  try {
+    session = await requireRole(["owner", "admin", "sales"]);
+  } catch (error) {
+    return permissionDeniedResponse(error, request);
+  }
 
   const form = await request.formData();
+  const teamId = getSessionTeamId(session);
   const leadIds = form.getAll("leadId").map(String).filter(Boolean);
   if (!leadIds.length) return redirectAdmin(request, "Select at least one lead to queue.");
 
   const tenantId = String(form.get("tenantId") || "");
+  try {
+    await requireTenantAccess(teamId, tenantId);
+  } catch (error) {
+    return permissionDeniedResponse(error, request);
+  }
   const templateId = String(form.get("templateId") || "");
   const campaignId = String(form.get("campaignId") || "");
   const scheduledFor = String(form.get("scheduledFor") || "");
@@ -35,10 +47,10 @@ export async function POST(request) {
   const includeContacted = form.get("includeContacted") === "on";
 
   const [leads, tenants, templates, suppressions] = await Promise.all([
-    listLeads(),
-    listTenants(),
-    listOutreachTemplates(),
-    listOutreachSuppressions()
+    listLeads({ teamId }),
+    listTenants({ teamId }),
+    listOutreachTemplates({ teamId }),
+    listOutreachSuppressions({ teamId })
   ]);
   const selectedLeads = leads.filter((lead) => leadIds.includes(lead.id));
   const tenant = tenants.find((item) => item.id === tenantId) || tenants[0] || {};
@@ -59,14 +71,15 @@ export async function POST(request) {
     includeContacted
   });
 
-  const created = await createOutreachQueueItems(plan.items);
+  const created = await createOutreachQueueItems(plan.items.map((item) => ({ ...item, teamId })));
   for (const item of created) {
     await updateLead(item.leadId, {
       outreachStatus: item.status,
       pipelineStatus: item.status === "approved" ? "qualified" : undefined,
       campaignId: item.campaignId
-    });
+    }, { teamId });
     await createOutreachEvent({
+      teamId,
       leadId: item.leadId,
       queueId: item.id,
       campaignId: item.campaignId,

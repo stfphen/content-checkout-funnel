@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
-import { getAdminSession } from "../../../../../lib/auth";
+import { permissionDeniedResponse, requireRole } from "../../../../../lib/permissions";
 import { normalizeDomain, normalizeEmail } from "../../../../../lib/outreachSequence";
-import { createOutreachSuppression } from "../../../../../lib/store";
+import { createOutreachSuppression, getSessionTeamId, requireTenantAccess } from "../../../../../lib/store";
 
 function redirectAdmin(request, notice) {
   const url = new URL("/admin", request.url);
@@ -10,18 +10,32 @@ function redirectAdmin(request, notice) {
 }
 
 export async function POST(request) {
-  const session = await getAdminSession();
-  if (!session) return NextResponse.redirect(new URL("/admin/login", request.url), 303);
+  let session;
+  try {
+    session = await requireRole(["owner", "admin", "sales"]);
+  } catch (error) {
+    return permissionDeniedResponse(error, request);
+  }
 
   const form = await request.formData();
+  const teamId = getSessionTeamId(session);
   const email = normalizeEmail(form.get("email"));
   const domain = normalizeDomain(form.get("domain"));
   const reason = String(form.get("reason") || "manual");
+  const tenantId = String(form.get("tenantId") || "");
 
   if (!email && !domain) return redirectAdmin(request, "Add an email or domain to suppress.");
+  if (tenantId) {
+    try {
+      await requireTenantAccess(teamId, tenantId);
+    } catch (error) {
+      return permissionDeniedResponse(error, request);
+    }
+  }
 
   await createOutreachSuppression({
-    tenantId: String(form.get("tenantId") || ""),
+    teamId,
+    tenantId,
     email,
     domain,
     reason

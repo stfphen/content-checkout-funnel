@@ -1,14 +1,18 @@
 import { NextResponse } from "next/server";
-import { getAdminSession } from "../../../../../lib/auth";
+import { ALL_ROLES, permissionDeniedResponse, requireRole } from "../../../../../lib/permissions";
 import { filterAndSortLeads, leadsToCsv } from "../../../../../lib/leadUtils";
-import { listLeads } from "../../../../../lib/store";
+import { getSessionTeamId, listLeads } from "../../../../../lib/store";
 
 export async function GET(request) {
-  const session = await getAdminSession();
-  if (!session) return NextResponse.redirect(new URL("/admin/login", request.url), 303);
+  let session;
+  try {
+    session = await requireRole(ALL_ROLES);
+  } catch (error) {
+    return permissionDeniedResponse(error, request);
+  }
 
   const params = request.nextUrl.searchParams;
-  const leads = filterAndSortLeads(await listLeads(), {
+  const leads = filterAndSortLeads(await listLeads({ teamId: getSessionTeamId(session) }), {
     query: params.get("q"),
     city: params.get("city"),
     category: params.get("category"),

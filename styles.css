@@ -63,6 +63,7 @@
   transition: all 0.2s ease;
   flex: 1;
   height: 100%;
+  text-decoration: none;
 }
 
 .v2-nav-item svg {
@@ -83,6 +84,24 @@
 .v2-dashboard-main {
   flex: 1;
   padding: 24px 20px 100px; /* Extra padding for bottom nav */
+}
+
+.v2-dashboard-main.admin-shell {
+  width: 100%;
+  margin: 0;
+}
+
+.v2-nav-logout {
+  margin-top: auto;
+  width: 100%;
+}
+
+.v2-nav-logout .v2-nav-item {
+  width: 100%;
+}
+
+.v2-nav-item--danger {
+  color: #ff3b30;
 }
 
 .v2-view-header {
@@ -264,6 +283,10 @@
 
   .v2-dashboard-main {
     padding: 40px 60px;
+  }
+
+  .v2-dashboard-main.admin-shell {
+    margin: 0;
   }
 }
 
@@ -1236,6 +1259,33 @@ p {
   grid-column: 1 / -1;
 }
 
+.admin-panel,
+.outreach-card {
+  scroll-margin-top: 24px;
+}
+
+.tenant-summary-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 12px;
+  margin-top: 16px;
+}
+
+.tenant-summary-card {
+  display: grid;
+  gap: 8px;
+  padding: 14px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: var(--soft);
+}
+
+.tenant-summary-card span {
+  color: var(--muted);
+  font-size: 13px;
+  overflow-wrap: anywhere;
+}
+
 .tenant-builder {
   display: grid;
   gap: 18px;
@@ -1902,6 +1952,61 @@ p {
   font: inherit;
 }
 
+.team-user-form {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  align-items: end;
+}
+
+.team-user-form .button {
+  align-self: end;
+}
+
+.team-users-table {
+  margin-top: 22px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  overflow-x: auto;
+  background: var(--white);
+}
+
+.team-users-table__row {
+  min-width: 920px;
+  display: grid;
+  grid-template-columns: 1.1fr 1.4fr 1.4fr 0.8fr 0.8fr 1fr;
+  gap: 12px;
+  align-items: center;
+  padding: 14px 16px;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.06);
+}
+
+.team-users-table__row:last-child {
+  border-bottom: 0;
+}
+
+.team-users-table__row--head {
+  color: var(--muted);
+  background: var(--soft);
+  font-size: 12px;
+  font-weight: 700;
+  text-transform: uppercase;
+}
+
+.team-role-form {
+  display: grid;
+  grid-template-columns: minmax(100px, 1fr) auto;
+  gap: 8px;
+  align-items: center;
+}
+
+.team-role-form select {
+  min-height: 38px;
+}
+
+.team-users-table .button {
+  min-height: 38px;
+  padding: 8px 14px;
+}
+
 .admin-error {
   margin: 0;
   color: #b00020;
@@ -1998,6 +2103,7 @@ p {
   .preview-grid,
   .lead-detail-grid,
   .lead-facts,
+  .tenant-summary-grid,
   .tenant-builder__section-grid,
   .tenant-builder__fields,
   .package-editor__grid,

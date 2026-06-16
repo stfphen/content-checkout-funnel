@@ -1,15 +1,30 @@
 import { NextResponse } from "next/server";
-import { getAdminSession } from "../../../../../lib/auth";
+import { permissionDeniedResponse, requireRole } from "../../../../../lib/permissions";
 import { searchGooglePlaces } from "../../../../../lib/integrations/googlePlaces";
 import { buildProspectingQuery, defaultApolloRoles, mergeBatchCounts } from "../../../../../lib/prospecting";
-import { createProspectingBatch, updateProspectingBatch } from "../../../../../lib/store";
+import {
+  createProspectingBatch,
+  getSessionTeamId,
+  requireTenantAccess,
+  updateProspectingBatch
+} from "../../../../../lib/store";
 
 export async function POST(request) {
-  const session = await getAdminSession();
-  if (!session) return NextResponse.redirect(new URL("/admin/login", request.url), 303);
+  let session;
+  try {
+    session = await requireRole(["owner", "admin", "sales"]);
+  } catch (error) {
+    return permissionDeniedResponse(error, request);
+  }
 
   const form = await request.formData();
   const tenantId = String(form.get("tenantId") || "");
+  const teamId = getSessionTeamId(session);
+  try {
+    await requireTenantAccess(teamId, tenantId);
+  } catch (error) {
+    return permissionDeniedResponse(error, request);
+  }
   const category = String(form.get("category") || "");
   const city = String(form.get("city") || "");
   const query = buildProspectingQuery({
@@ -19,6 +34,7 @@ export async function POST(request) {
   });
   const maxResults = Number(form.get("maxResults") || 20);
   const batch = await createProspectingBatch({
+    teamId,
     tenantId,
     name: String(form.get("name") || `${category || query} - ${city || "Prospecting"}`),
     query,
@@ -41,7 +57,7 @@ export async function POST(request) {
       status: "failed",
       counts: mergeBatchCounts(batch.counts, { failed: 1 }),
       error: result.error || result.reason
-    });
+    }, { teamId });
     url.searchParams.set("notice", result.error || result.reason);
     return NextResponse.redirect(url, 303);
   }
@@ -51,7 +67,7 @@ export async function POST(request) {
     previewResults: result.prospects,
     counts: mergeBatchCounts(batch.counts, { found: result.prospects.length }),
     error: ""
-  });
+  }, { teamId });
 
   url.searchParams.set("notice", `Previewed ${result.prospects.length} prospects for "${query}".`);
   return NextResponse.redirect(url, 303);

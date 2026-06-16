@@ -1,9 +1,10 @@
 import { NextResponse } from "next/server";
-import { getAdminSession } from "../../../../../../lib/auth";
+import { permissionDeniedResponse, requireRole } from "../../../../../../lib/permissions";
 import { sendResendEmail } from "../../../../../../lib/integrations/resend";
 import { canSendQueueItem, suggestFollowUpDate } from "../../../../../../lib/outreachSequence";
 import {
   createOutreachEvent,
+  getSessionTeamId,
   listOutreachCampaigns,
   listOutreachQueue,
   listOutreachSuppressions,
@@ -33,17 +34,22 @@ function escapeHtml(value = "") {
 }
 
 export async function POST(request) {
-  const session = await getAdminSession();
-  if (!session) return NextResponse.redirect(new URL("/admin/login", request.url), 303);
+  let session;
+  try {
+    session = await requireRole(["owner", "admin", "sales"]);
+  } catch (error) {
+    return permissionDeniedResponse(error, request);
+  }
 
   const form = await request.formData();
+  const teamId = getSessionTeamId(session);
   const queueIds = form.getAll("queueItemId").map(String).filter(Boolean);
   if (!queueIds.length) return redirectAdmin(request, "Select at least one approved queue item to send.");
 
   const [queue, campaigns, suppressions] = await Promise.all([
-    listOutreachQueue(),
-    listOutreachCampaigns(),
-    listOutreachSuppressions()
+    listOutreachQueue({ teamId }),
+    listOutreachCampaigns({ teamId }),
+    listOutreachSuppressions({ teamId })
   ]);
   const queueSnapshot = [...queue];
   const campaignFallback = { dailySendCap: 100, perDomainDailyCap: 1 };
@@ -70,9 +76,10 @@ export async function POST(request) {
       const next = await updateOutreachQueueItem(item.id, {
         status: sendCheck.reason === "suppressed" ? "suppressed" : "skipped",
         failureReason: sendCheck.reason
-      });
+      }, { teamId });
       Object.assign(item, next || {});
       await createOutreachEvent({
+        teamId,
         leadId: item.leadId,
         queueId: item.id,
         campaignId: item.campaignId,
@@ -98,7 +105,7 @@ export async function POST(request) {
         sentAt,
         failureReason: "",
         resendMessageId
-      });
+      }, { teamId });
       Object.assign(item, next || {}, { sentAt, status: "sent" });
       await updateLead(item.leadId, {
         outreachStatus: "contacted",
@@ -106,8 +113,9 @@ export async function POST(request) {
         lastContactedAt: sentAt,
         nextFollowUpAt: suggestFollowUpDate(new Date(sentAt)),
         campaignId: item.campaignId
-      });
+      }, { teamId });
       await createOutreachEvent({
+        teamId,
         leadId: item.leadId,
         queueId: item.id,
         campaignId: item.campaignId,
@@ -124,9 +132,10 @@ export async function POST(request) {
       const next = await updateOutreachQueueItem(item.id, {
         status: "failed",
         failureReason
-      });
+      }, { teamId });
       Object.assign(item, next || {}, { status: "failed", failureReason });
       await createOutreachEvent({
+        teamId,
         leadId: item.leadId,
         queueId: item.id,
         campaignId: item.campaignId,

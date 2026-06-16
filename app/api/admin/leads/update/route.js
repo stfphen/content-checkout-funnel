@@ -1,10 +1,14 @@
 import { NextResponse } from "next/server";
-import { getAdminSession } from "../../../../../lib/auth";
-import { updateLead } from "../../../../../lib/store";
+import { permissionDeniedResponse, requireRole } from "../../../../../lib/permissions";
+import { getSessionTeamId, updateLead } from "../../../../../lib/store";
 
 export async function POST(request) {
-  const session = await getAdminSession();
-  if (!session) return NextResponse.redirect(new URL("/admin/login", request.url), 303);
+  let session;
+  try {
+    session = await requireRole(["owner", "admin", "sales"]);
+  } catch (error) {
+    return permissionDeniedResponse(error, request);
+  }
 
   const form = await request.formData();
   const leadId = String(form.get("leadId") || "");
@@ -25,7 +29,7 @@ export async function POST(request) {
     nextFollowUpAt: String(form.get("nextFollowUpAt") || ""),
     replyStatus: String(form.get("replyStatus") || ""),
     campaignId: String(form.get("campaignId") || "")
-  });
+  }, { teamId: getSessionTeamId(session) });
 
   const url = new URL(redirectTo, request.url);
   url.searchParams.set("notice", "Lead updated.");
