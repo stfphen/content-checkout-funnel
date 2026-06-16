@@ -138,6 +138,44 @@ test("maps CSV record into lead shape", () => {
   assert.equal(lead.sourceType, "csv");
 });
 
+test("preserves funding scan answers in lead metadata", () => {
+  const lead = normalizeLeadInput({
+    tenantId: "tenant_funded_growth",
+    business: "Ontario Growth Co",
+    name: "Jordan",
+    email: "jordan@example.com",
+    source: "funding_scan",
+    sourceType: "funding_scan",
+    url: "https://growth.example",
+    category: "Manufacturing",
+    metadata: {
+      fundingScan: {
+        companyWebsite: "https://growth.example",
+        industry: "Manufacturing",
+        location: "Hamilton, Ontario",
+        employeeCount: "12",
+        revenueRange: "500k_1m",
+        yearsOperating: "3_5",
+        incorporated: "yes",
+        currentlyExporting: "no",
+        interestedInExporting: "yes",
+        digitalNeeds: "Website modernization",
+        ecommerceNeeds: "Dealer portal",
+        crmAutomationNeeds: "Sales pipeline automation",
+        availableProjectBudget: "15k_50k",
+        mainGrowthGoal: "Expand into new Canadian markets"
+      }
+    }
+  });
+
+  assert.equal(lead.tenantId, "tenant_funded_growth");
+  assert.equal(lead.sourceType, "funding_scan");
+  assert.equal(lead.websiteUrl, "https://growth.example");
+  assert.equal(lead.category, "Manufacturing");
+  assert.equal(lead.metadata.fundingScan.location, "Hamilton, Ontario");
+  assert.equal(lead.metadata.fundingScan.availableProjectBudget, "15k_50k");
+});
+
 test("builds a draft email from tenant and lead context", () => {
   const tenant = normalizeTenantConfig({});
   const draft = buildDraftEmail({

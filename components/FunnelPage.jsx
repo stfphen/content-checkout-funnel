@@ -6,6 +6,7 @@ export default function FunnelPage({ tenant }) {
   const [selectedPackageId, setSelectedPackageId] = useState(tenant.defaultPackageId);
   const [formNote, setFormNote] = useState(tenant.checkout.disclaimer);
   const [toast, setToast] = useState("");
+  const isFundingTenant = tenant.slug === "funded-growth";
 
   const selectedPackage = useMemo(
     () => tenant.packages.find((pkg) => pkg.id === selectedPackageId) || tenant.packages[0],
@@ -30,6 +31,24 @@ export default function FunnelPage({ tenant }) {
     setFormNote("Preparing checkout...");
 
     const form = new FormData(event.currentTarget);
+    const fundingScan = isFundingTenant
+      ? {
+          companyWebsite: form.get("companyWebsite"),
+          industry: form.get("industry"),
+          location: form.get("location"),
+          employeeCount: form.get("employeeCount"),
+          revenueRange: form.get("revenueRange"),
+          yearsOperating: form.get("yearsOperating"),
+          incorporated: form.get("incorporated"),
+          currentlyExporting: form.get("currentlyExporting"),
+          interestedInExporting: form.get("interestedInExporting"),
+          digitalNeeds: form.get("digitalNeeds"),
+          ecommerceNeeds: form.get("ecommerceNeeds"),
+          crmAutomationNeeds: form.get("crmAutomationNeeds"),
+          availableProjectBudget: form.get("availableProjectBudget"),
+          mainGrowthGoal: form.get("mainGrowthGoal")
+        }
+      : null;
     const payload = {
       tenantId: tenant.id,
       tenantSlug: tenant.slug,
@@ -39,9 +58,18 @@ export default function FunnelPage({ tenant }) {
       name: form.get("name"),
       email: form.get("email"),
       phone: form.get("phone"),
-      url: form.get("url"),
-      notes: form.get("notes"),
-      source: window.location.href
+      url: isFundingTenant ? fundingScan.companyWebsite : form.get("url"),
+      notes: isFundingTenant ? fundingScan.mainGrowthGoal : form.get("notes"),
+      source: isFundingTenant ? "funding_scan" : window.location.href,
+      ...(isFundingTenant
+        ? {
+            sourceType: "funding_scan",
+            sourceUrl: window.location.href,
+            category: fundingScan.industry,
+            city: fundingScan.location,
+            metadata: { fundingScan }
+          }
+        : {})
     };
 
     const response = await fetch("/api/leads", {
@@ -257,14 +285,114 @@ export default function FunnelPage({ tenant }) {
                 Phone <span>optional</span>
                 <input name="phone" type="tel" autoComplete="tel" />
               </label>
-              <label>
-                Website or Instagram
-                <input name="url" autoComplete="url" placeholder="https://" />
-              </label>
-              <label>
-                What do you need content for?
-                <textarea name="notes" rows="4" />
-              </label>
+              {isFundingTenant ? (
+                <>
+                  <label>
+                    Company website
+                    <input name="companyWebsite" autoComplete="url" placeholder="https://" />
+                  </label>
+                  <label>
+                    Industry
+                    <input name="industry" required />
+                  </label>
+                  <label>
+                    Location
+                    <input name="location" autoComplete="address-level2" placeholder="City, province" required />
+                  </label>
+                  <label>
+                    Employee count
+                    <input name="employeeCount" type="number" min="0" inputMode="numeric" required />
+                  </label>
+                  <label>
+                    Revenue range
+                    <select name="revenueRange" required>
+                      <option value="">Select range</option>
+                      <option value="pre_revenue">Pre-revenue</option>
+                      <option value="under_100k">Under $100k</option>
+                      <option value="100k_500k">$100k-$500k</option>
+                      <option value="500k_1m">$500k-$1M</option>
+                      <option value="1m_5m">$1M-$5M</option>
+                      <option value="5m_plus">$5M+</option>
+                    </select>
+                  </label>
+                  <label>
+                    Years operating
+                    <select name="yearsOperating" required>
+                      <option value="">Select range</option>
+                      <option value="under_1">Under 1 year</option>
+                      <option value="1_2">1-2 years</option>
+                      <option value="3_5">3-5 years</option>
+                      <option value="6_10">6-10 years</option>
+                      <option value="10_plus">10+ years</option>
+                    </select>
+                  </label>
+                  <label>
+                    Incorporated
+                    <select name="incorporated" required>
+                      <option value="">Select status</option>
+                      <option value="yes">Yes</option>
+                      <option value="no">No</option>
+                      <option value="in_progress">In progress</option>
+                      <option value="unsure">Unsure</option>
+                    </select>
+                  </label>
+                  <label>
+                    Currently exporting
+                    <select name="currentlyExporting" required>
+                      <option value="">Select status</option>
+                      <option value="yes">Yes</option>
+                      <option value="no">No</option>
+                    </select>
+                  </label>
+                  <label>
+                    Interested in exporting
+                    <select name="interestedInExporting" required>
+                      <option value="">Select status</option>
+                      <option value="yes">Yes</option>
+                      <option value="no">No</option>
+                      <option value="unsure">Unsure</option>
+                    </select>
+                  </label>
+                  <label>
+                    Digital needs
+                    <textarea name="digitalNeeds" rows="3" required />
+                  </label>
+                  <label>
+                    E-commerce needs
+                    <textarea name="ecommerceNeeds" rows="3" required />
+                  </label>
+                  <label>
+                    CRM or automation needs
+                    <textarea name="crmAutomationNeeds" rows="3" required />
+                  </label>
+                  <label>
+                    Available project budget
+                    <select name="availableProjectBudget" required>
+                      <option value="">Select budget</option>
+                      <option value="under_5k">Under $5k</option>
+                      <option value="5k_15k">$5k-$15k</option>
+                      <option value="15k_50k">$15k-$50k</option>
+                      <option value="50k_100k">$50k-$100k</option>
+                      <option value="100k_plus">$100k+</option>
+                    </select>
+                  </label>
+                  <label>
+                    Main growth goal
+                    <textarea name="mainGrowthGoal" rows="4" required />
+                  </label>
+                </>
+              ) : (
+                <>
+                  <label>
+                    Website or Instagram
+                    <input name="url" autoComplete="url" placeholder="https://" />
+                  </label>
+                  <label>
+                    What do you need content for?
+                    <textarea name="notes" rows="4" />
+                  </label>
+                </>
+              )}
               <div className="form-actions">
                 <button className="button button--primary" type="submit">
                   {tenant.checkout.submitCta}

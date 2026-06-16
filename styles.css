@@ -785,6 +785,7 @@ p {
 }
 
 .checkout-form input,
+.checkout-form select,
 .checkout-form textarea {
   width: 100%;
   border: 1px solid rgba(0, 0, 0, 0.16);
@@ -796,6 +797,7 @@ p {
 }
 
 .checkout-form input:focus,
+.checkout-form select:focus,
 .checkout-form textarea:focus {
   border-color: var(--blue);
   outline: 0;
@@ -1100,6 +1102,7 @@ p {
   }
 
   .checkout-form input,
+  .checkout-form select,
   .checkout-form textarea {
     font-size: 16px;
   }
