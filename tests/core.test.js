@@ -27,6 +27,7 @@ import {
   tenantConfigToJson,
   validateTenantConfig
 } from "../lib/tenantValidation.js";
+import { scoreFundingLead } from "../lib/funding/admin.js";
 
 test("normalizes partial tenant config with default funnel content", () => {
   const tenant = normalizeTenantConfig({
@@ -176,6 +177,38 @@ test("preserves funding scan answers in lead metadata", () => {
   assert.equal(lead.metadata.fundingScan.availableProjectBudget, "15k_50k");
 });
 
+test("scores funding scan leads for admin review", () => {
+  const lead = normalizeLeadInput({
+    tenantId: "tenant_funded_growth",
+    business: "Ontario Growth Co",
+    sourceType: "funding_scan",
+    url: "https://growth.example",
+    category: "Manufacturing",
+    metadata: {
+      fundingScan: {
+        industry: "Manufacturing",
+        location: "Hamilton, Ontario",
+        employeeCount: "12",
+        revenueRange: "500k_1m",
+        currentlyExporting: "no",
+        interestedInExporting: "yes",
+        digitalNeeds: "Website modernization",
+        ecommerceNeeds: "Dealer portal",
+        crmAutomationNeeds: "Sales pipeline automation",
+        mainGrowthGoal: "Expand into new Canadian markets"
+      }
+    }
+  });
+
+  const score = scoreFundingLead(lead);
+
+  assert.equal(score.overallFit, 52);
+  assert.equal(score.bestFundingLane, "export_marketing");
+  assert.equal(score.bestFundingLaneLabel, "Export Marketing");
+  assert.equal(score.recommendedOffer, "Export-ready content and market-entry campaign");
+  assert.deepEqual(score.eligibilityGaps, []);
+});
+
 test("builds a draft email from tenant and lead context", () => {
   const tenant = normalizeTenantConfig({});
   const draft = buildDraftEmail({
@@ -190,6 +223,40 @@ test("builds a draft email from tenant and lead context", () => {
   assert.match(draft.subject, /Example Dental/);
   assert.match(draft.body, /Hey Alex/);
   assert.match(draft.body, /Pro Content Day/);
+});
+
+test("builds a funding follow-up draft for funding scan leads", () => {
+  const tenant = normalizeTenantConfig({});
+  const lead = normalizeLeadInput({
+    tenantId: "tenant_funded_growth",
+    business: "Ontario Growth Co",
+    name: "Jordan",
+    sourceType: "funding_scan",
+    category: "Manufacturing",
+    metadata: {
+      fundingScan: {
+        industry: "Manufacturing",
+        location: "Hamilton, Ontario",
+        employeeCount: "12",
+        revenueRange: "500k_1m",
+        currentlyExporting: "no",
+        interestedInExporting: "yes",
+        digitalNeeds: "Website modernization",
+        ecommerceNeeds: "Dealer portal",
+        crmAutomationNeeds: "Sales pipeline automation",
+        mainGrowthGoal: "Expand into new Canadian markets"
+      }
+    }
+  });
+
+  const draft = buildDraftEmail({ tenant, lead, packageId: "funding-fit-scan" });
+
+  assert.equal(draft.subject, "Funding fit next step for Ontario Growth Co");
+  assert.match(draft.body, /Ontario Growth Co/);
+  assert.match(draft.body, /Export Marketing/);
+  assert.match(draft.body, /Fundable Project Blueprint/);
+  assert.match(draft.body, /not a guarantee of funding approval/);
+  assert.match(draft.body, /short call/);
 });
 
 test("searches Apollo people with current endpoint and query params", async () => {

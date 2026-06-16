@@ -39,6 +39,7 @@ import {
   suggestFollowUpDate
 } from "../../lib/outreachSequence";
 import { listTeamUsers, USER_ROLES } from "../../lib/users";
+import { fundingScanFromLead, isFundingScanLead, scoreFundingLead } from "../../lib/funding/admin";
 
 export const dynamic = "force-dynamic";
 
@@ -124,6 +125,13 @@ export default async function AdminPage({ searchParams }) {
     if (!lead.nextFollowUpAt) return false;
     return new Date(lead.nextFollowUpAt).getTime() <= Date.now();
   });
+  const fundingScanLeads = leads
+    .filter(isFundingScanLead)
+    .map((lead) => ({
+      lead,
+      scan: fundingScanFromLead(lead),
+      score: scoreFundingLead(lead)
+    }));
 
   return (
     <AdminTabbedShell notice={notice} visibleTabs={visibleTabs}>
@@ -136,6 +144,76 @@ export default async function AdminPage({ searchParams }) {
           </article>
         ))}
         </section>
+      </AdminTabPanel>
+
+      <AdminTabPanel tabId="pipeline">
+      <section className="admin-panel admin-panel--wide">
+        <div className="pipeline-header">
+          <div>
+            <h2>Funding Scan Leads</h2>
+            <p>Review funding scan submissions, fit score, lane recommendation, and draft follow-up emails.</p>
+          </div>
+          <span className="status-pill">{fundingScanLeads.length} scans</span>
+        </div>
+
+        <div className="funding-lead-list">
+          {fundingScanLeads.map(({ lead, scan, score }) => (
+            <article className="funding-lead-card" key={lead.id}>
+              <div className="funding-lead-card__header">
+                <div>
+                  <h3>{lead.businessName || lead.business || "Unknown business"}</h3>
+                  {lead.websiteUrl || scan.companyWebsite ? (
+                    <a href={lead.websiteUrl || scan.companyWebsite} target="_blank" rel="noreferrer">
+                      {lead.websiteUrl || scan.companyWebsite}
+                    </a>
+                  ) : (
+                    <span className="muted-text">No website</span>
+                  )}
+                </div>
+                <span className={`status-pill status-pill--${lead.pipelineStatus}`}>{lead.pipelineStatus}</span>
+              </div>
+
+              <dl className="funding-lead-stats">
+                <div>
+                  <dt>Overall Fit</dt>
+                  <dd>{score.overallFit}</dd>
+                </div>
+                <div>
+                  <dt>Best Lane</dt>
+                  <dd>{score.bestFundingLaneLabel}</dd>
+                </div>
+                <div>
+                  <dt>Recommended Offer</dt>
+                  <dd>{score.recommendedOffer}</dd>
+                </div>
+              </dl>
+
+              <div className="funding-gap-list">
+                <strong>Eligibility gaps</strong>
+                {score.eligibilityGaps.length ? (
+                  <ul>
+                    {score.eligibilityGaps.map((gap) => (
+                      <li key={gap}>{gap}</li>
+                    ))}
+                  </ul>
+                ) : (
+                  <p>No immediate gaps from the scan inputs.</p>
+                )}
+              </div>
+
+              {canManageLeadActions ? (
+                <form action="/api/admin/drafts" method="post" className="inline-form">
+                  <input type="hidden" name="leadId" value={lead.id} />
+                  <input type="hidden" name="tenantId" value={lead.tenantId || tenants[0]?.id} />
+                  <input type="hidden" name="packageId" value={lead.packageId || "funding-fit-scan"} />
+                  <button className="button button--secondary" type="submit">Draft Funding Follow-Up</button>
+                </form>
+              ) : null}
+            </article>
+          ))}
+          {!fundingScanLeads.length ? <p>No funding scan leads yet.</p> : null}
+        </div>
+      </section>
       </AdminTabPanel>
 
       {canManageLeadActions ? (
