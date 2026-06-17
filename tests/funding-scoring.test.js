@@ -55,7 +55,7 @@ test("exports funding ingestion placeholder helpers from funding index", () => {
 });
 
 test("matches ecommerce and digital adoption opportunity categories", () => {
-  const matches = matchFundingPrograms({
+  const result = matchFundingPrograms({
     industry: "Retail ecommerce",
     location: "Toronto, Ontario",
     employeeCount: "8",
@@ -68,15 +68,19 @@ test("matches ecommerce and digital adoption opportunity categories", () => {
     availableProjectBudget: "15k_50k",
     mainGrowthGoal: "Increase online sales"
   });
+  const matches = result.topMatches;
 
-  assert.equal(matches[0].id, "ecommerce-growth");
-  assert.ok(matches.slice(0, 3).some((match) => match.id === "digital-adoption"));
-  assert.equal(matches[0].score.requiresHumanReview, true);
-  assert.match(matches[0].score.reasons.join(" "), /E-commerce needs/);
+  assert.equal(matches[0].id, "ecommerce-modernization");
+  assert.ok(matches.slice(0, 3).some((match) => match.id === "ontario-digital-adoption-planning"));
+  assert.equal(result.requiresHumanReview, true);
+  assert.equal(matches[0].match.requiresHumanReview, true);
+  assert.match(matches[0].match.reasons.join(" "), /E-commerce needs/);
+  assert.equal(matches[0].lane, "ecommerce_growth");
+  assert.ok(Array.isArray(matches[0].eligibleExpenseTypes));
 });
 
 test("matches export marketing opportunity category", () => {
-  const matches = matchFundingPrograms({
+  const result = matchFundingPrograms({
     industry: "Manufacturing",
     location: "Hamilton, Ontario",
     employeeCount: "12",
@@ -89,14 +93,16 @@ test("matches export marketing opportunity category", () => {
     availableProjectBudget: "50k_100k",
     mainGrowthGoal: "Build export marketing assets for US market entry"
   });
+  const matches = result.topMatches;
 
   assert.equal(matches[0].id, "export-market-development");
-  assert.equal(matches[0].score.label, "Potential fit");
-  assert.match(matches[0].score.reasons.join(" "), /Export activity or export interest/);
+  assert.equal(matches[0].match.label, "Potential fit");
+  assert.match(matches[0].match.reasons.join(" "), /Export activity or export interest/);
+  assert.match(result.recommendedNextAction, /Human review required/);
 });
 
 test("keeps weak or missing-info profile as human-review-only", () => {
-  const matches = matchFundingPrograms({
+  const result = matchFundingPrograms({
     industry: "",
     location: "",
     employeeCount: "",
@@ -108,9 +114,10 @@ test("keeps weak or missing-info profile as human-review-only", () => {
     mainGrowthGoal: ""
   });
 
-  assert.equal(matches.length, manualFundingProgramCategories.length);
-  assert.equal(matches[0].score.label, "Weak signal");
-  assert.equal(matches[0].score.requiresHumanReview, true);
-  assert.ok(matches[0].score.gaps.includes("Confirm industry."));
-  assert.ok(matches[0].score.gaps.includes("Clarify the main growth goal."));
+  assert.equal(result.allMatches.length, manualFundingProgramCategories.length);
+  assert.equal(result.topMatches[0].match.label, "Not enough information");
+  assert.equal(result.requiresHumanReview, true);
+  assert.ok(result.gaps.includes("Confirm industry."));
+  assert.ok(result.gaps.includes("Clarify the main growth goal."));
+  assert.match(result.recommendedNextAction, /Collect missing scan details/);
 });
