@@ -2,6 +2,7 @@ import assert from "node:assert/strict";
 import test from "node:test";
 import {
   FUNDING_LANES,
+  normalizeFundingOpportunity,
   scoreFundingFit
 } from "../lib/funding/index.js";
 
@@ -39,4 +40,14 @@ test("scores a sample Ontario business with stable funding fit output", () => {
   assert.deepEqual(result.eligibilityGaps, []);
   assert.ok(result.reasoning.includes("Ontario location: +8 to common provincial business-growth lanes"));
   assert.ok(result.reasoning.includes("Sells online: ecommerce and digital adoption signals"));
+});
+
+test("exports funding ingestion placeholder helpers from funding index", () => {
+  const opportunity = normalizeFundingOpportunity({
+    title: "Training Fund",
+    sourceUrl: "https://example.com/training-fund"
+  });
+
+  assert.equal(opportunity.title, "Training Fund");
+  assert.equal(opportunity.requiresHumanReview, true);
 });

@@ -28,6 +28,11 @@ import {
   validateTenantConfig
 } from "../lib/tenantValidation.js";
 import { scoreFundingLead } from "../lib/funding/admin.js";
+import {
+  dedupeFundingOpportunities,
+  normalizeFundingOpportunity,
+  validateFundingOpportunity
+} from "../lib/funding/ingestion.js";
 
 test("normalizes partial tenant config with default funnel content", () => {
   const tenant = normalizeTenantConfig({
@@ -256,7 +261,57 @@ test("builds a funding follow-up draft for funding scan leads", () => {
   assert.match(draft.body, /Export Marketing/);
   assert.match(draft.body, /Fundable Project Blueprint/);
   assert.match(draft.body, /not a guarantee of funding approval/);
+  assert.match(draft.body, /determined by the funder or program administrator/);
   assert.match(draft.body, /short call/);
+});
+
+test("normalizes funding opportunity placeholders without external ingestion", () => {
+  const opportunity = normalizeFundingOpportunity({
+    name: "Digital Modernization Grant",
+    agency: "Example Funder",
+    link: "https://example.com/grants/digital#apply",
+    closeDate: "July 15, 2026",
+    province: "Ontario",
+    activities: "CRM, ecommerce"
+  });
+
+  assert.equal(opportunity.title, "Digital Modernization Grant");
+  assert.equal(opportunity.funder, "Example Funder");
+  assert.equal(opportunity.sourceUrl, "https://example.com/grants/digital");
+  assert.equal(opportunity.deadline, "2026-07-15");
+  assert.deepEqual(opportunity.geography, ["Ontario"]);
+  assert.deepEqual(opportunity.eligibleActivities, ["CRM", "ecommerce"]);
+  assert.equal(opportunity.requiresHumanReview, true);
+  assert.equal(validateFundingOpportunity(opportunity).ok, true);
+});
+
+test("dedupes normalized funding opportunities by canonical source", () => {
+  const opportunities = dedupeFundingOpportunities([
+    {
+      title: "Export Support Program",
+      funder: "Example Funder",
+      sourceUrl: "https://example.com/programs/export/"
+    },
+    {
+      title: "Export Support Program duplicate",
+      funder: "Example Funder",
+      sourceUrl: "https://example.com/programs/export#details"
+    },
+    {
+      title: "Missing source is skipped"
+    },
+    {
+      title: "Automation RFP",
+      funder: "Procurement Office",
+      sourceUrl: "https://example.com/rfp/automation"
+    }
+  ]);
+
+  assert.equal(opportunities.length, 2);
+  assert.deepEqual(
+    opportunities.map((item) => item.title),
+    ["Export Support Program", "Automation RFP"]
+  );
 });
 
 test("searches Apollo people with current endpoint and query params", async () => {

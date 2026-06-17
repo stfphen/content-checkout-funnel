@@ -151,7 +151,7 @@ export default async function AdminPage({ searchParams }) {
         <div className="pipeline-header">
           <div>
             <h2>Funding Scan Leads</h2>
-            <p>Review funding scan submissions, fit score, lane recommendation, and draft follow-up emails.</p>
+            <p>Review funding scan submissions, potential fit, recommended next step, and draft follow-up emails. Human review required.</p>
           </div>
           <span className="status-pill">{fundingScanLeads.length} scans</span>
         </div>
@@ -175,21 +175,23 @@ export default async function AdminPage({ searchParams }) {
 
               <dl className="funding-lead-stats">
                 <div>
-                  <dt>Overall Fit</dt>
+                  <dt>Potential fit</dt>
                   <dd>{score.overallFit}</dd>
                 </div>
                 <div>
-                  <dt>Best Lane</dt>
+                  <dt>Potential lane</dt>
                   <dd>{score.bestFundingLaneLabel}</dd>
                 </div>
                 <div>
-                  <dt>Recommended Offer</dt>
+                  <dt>Recommended next step</dt>
                   <dd>{score.recommendedOffer}</dd>
                 </div>
               </dl>
 
               <div className="funding-gap-list">
-                <strong>Eligibility gaps</strong>
+                <strong>Human review required</strong>
+                <p>This is a potential fit only. Do not confirm eligibility, funding amount, or approval without reviewing the specific funder or program administrator rules.</p>
+                <strong>Readiness gaps</strong>
                 {score.eligibilityGaps.length ? (
                   <ul>
                     {score.eligibilityGaps.map((gap) => (
@@ -687,7 +689,7 @@ export default async function AdminPage({ searchParams }) {
                       <textarea name="painPoints" rows="3" defaultValue={lead.painPoints || ""} />
                     </label>
                     <label>
-                      Recommended Offer
+                      Recommended next step
                       <input name="recommendedOffer" defaultValue={lead.recommendedOffer || ""} />
                     </label>
                     <label>
