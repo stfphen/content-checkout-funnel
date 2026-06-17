@@ -132,7 +132,7 @@ export default async function AdminPage({ searchParams }) {
       lead,
       scan: fundingScanFromLead(lead),
       score: scoreFundingLead(lead),
-      opportunityMatches: matchFundingPrograms(fundingScanFromLead(lead)).slice(0, 3)
+      opportunityMatches: matchFundingPrograms(fundingScanFromLead(lead)).topMatches.slice(0, 3)
     }));
 
   return (
@@ -198,7 +198,7 @@ export default async function AdminPage({ searchParams }) {
                   {opportunityMatches.map((match) => (
                     <li key={match.id}>
                       <strong>Potential opportunity category: {match.name}</strong>
-                      <span> Why it may match: {match.score.reasons[0]}</span>
+                      <span> Why it may match: {match.match.whyItMayMatch}</span>
                     </li>
                   ))}
                 </ul>

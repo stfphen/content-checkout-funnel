@@ -61,18 +61,24 @@ The score is not a program eligibility decision. It is only a triage tool for hu
 
 ## Program Matching
 
-Program matching is currently lane-based, not live-program-based. The MVP maps scan answers to broad categories:
+Program matching is currently category-based, not live-program-based. The MVP maps scan answers to broad manual categories with fields such as lane, region, eligible business types, eligible expense types, typical funding range, match signals, disqualification signals, DGTL service fit, next step, and source notes.
 
-- Digital Adoption.
-- Ecommerce Growth.
-- Export Marketing.
-- Creative Tech.
-- Clean Tech.
+- Ontario Digital Adoption Planning.
+- Ecommerce Modernization.
+- Export Market Development.
+- Creative Technology Market Development.
+- Clean-Tech Commercialization.
 - Workforce Training.
-- Public Procurement.
+- Productivity Modernization.
+- Public-Sector Creative Services RFPs.
+- Website/CRM Modernization.
+- Regional Business Growth.
 - Market Expansion.
+- AI/Workflow Automation Readiness.
 
 The engine does not currently match leads against a live database of grants, RFPs, intake windows, deadlines, or contribution rules. Admins must manually verify any actual program fit against official funder or program administrator sources.
+
+`matchFundingPrograms(fundingScan, programs)` returns a human-review-only result with top matches, weak matches, disqualified or not-enough-information categories, reasons, gaps, a recommended next action, and `requiresHumanReview: true`.
 
 ## Manual Right Now
 
@@ -129,4 +135,3 @@ Do not automate these actions without explicit human review:
 - Changing a lead to qualified solely from scoring or ingestion.
 
 All recommendations must use language such as "may qualify" or "potential fit" and must make clear that approval is determined by the funder or program administrator.
-
