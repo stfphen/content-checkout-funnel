@@ -2,6 +2,8 @@ import assert from "node:assert/strict";
 import test from "node:test";
 import {
   FUNDING_LANES,
+  manualFundingProgramCategories,
+  matchFundingPrograms,
   normalizeFundingOpportunity,
   scoreFundingFit
 } from "../lib/funding/index.js";
@@ -50,4 +52,65 @@ test("exports funding ingestion placeholder helpers from funding index", () => {
 
   assert.equal(opportunity.title, "Training Fund");
   assert.equal(opportunity.requiresHumanReview, true);
+});
+
+test("matches ecommerce and digital adoption opportunity categories", () => {
+  const matches = matchFundingPrograms({
+    industry: "Retail ecommerce",
+    location: "Toronto, Ontario",
+    employeeCount: "8",
+    revenueRange: "100k_500k",
+    currentlyExporting: "no",
+    interestedInExporting: "no",
+    digitalNeeds: "Website analytics and digital modernization",
+    ecommerceNeeds: "Shopify conversion improvements and paid ads",
+    crmAutomationNeeds: "Basic customer follow-up automation",
+    availableProjectBudget: "15k_50k",
+    mainGrowthGoal: "Increase online sales"
+  });
+
+  assert.equal(matches[0].id, "ecommerce-growth");
+  assert.ok(matches.slice(0, 3).some((match) => match.id === "digital-adoption"));
+  assert.equal(matches[0].score.requiresHumanReview, true);
+  assert.match(matches[0].score.reasons.join(" "), /E-commerce needs/);
+});
+
+test("matches export marketing opportunity category", () => {
+  const matches = matchFundingPrograms({
+    industry: "Manufacturing",
+    location: "Hamilton, Ontario",
+    employeeCount: "12",
+    revenueRange: "500k_1m",
+    currentlyExporting: "no",
+    interestedInExporting: "yes",
+    digitalNeeds: "Website modernization for international buyers",
+    ecommerceNeeds: "Dealer portal",
+    crmAutomationNeeds: "Sales pipeline automation",
+    availableProjectBudget: "50k_100k",
+    mainGrowthGoal: "Build export marketing assets for US market entry"
+  });
+
+  assert.equal(matches[0].id, "export-market-development");
+  assert.equal(matches[0].score.label, "Potential fit");
+  assert.match(matches[0].score.reasons.join(" "), /Export activity or export interest/);
+});
+
+test("keeps weak or missing-info profile as human-review-only", () => {
+  const matches = matchFundingPrograms({
+    industry: "",
+    location: "",
+    employeeCount: "",
+    revenueRange: "pre_revenue",
+    digitalNeeds: "",
+    ecommerceNeeds: "none",
+    crmAutomationNeeds: "",
+    availableProjectBudget: "under_5k",
+    mainGrowthGoal: ""
+  });
+
+  assert.equal(matches.length, manualFundingProgramCategories.length);
+  assert.equal(matches[0].score.label, "Weak signal");
+  assert.equal(matches[0].score.requiresHumanReview, true);
+  assert.ok(matches[0].score.gaps.includes("Confirm industry."));
+  assert.ok(matches[0].score.gaps.includes("Clarify the main growth goal."));
 });

@@ -40,6 +40,7 @@ import {
 } from "../../lib/outreachSequence";
 import { listTeamUsers, USER_ROLES } from "../../lib/users";
 import { fundingScanFromLead, isFundingScanLead, scoreFundingLead } from "../../lib/funding/admin";
+import { matchFundingPrograms } from "../../lib/funding/matching";
 
 export const dynamic = "force-dynamic";
 
@@ -130,7 +131,8 @@ export default async function AdminPage({ searchParams }) {
     .map((lead) => ({
       lead,
       scan: fundingScanFromLead(lead),
-      score: scoreFundingLead(lead)
+      score: scoreFundingLead(lead),
+      opportunityMatches: matchFundingPrograms(fundingScanFromLead(lead)).slice(0, 3)
     }));
 
   return (
@@ -157,7 +159,7 @@ export default async function AdminPage({ searchParams }) {
         </div>
 
         <div className="funding-lead-list">
-          {fundingScanLeads.map(({ lead, scan, score }) => (
+          {fundingScanLeads.map(({ lead, scan, score, opportunityMatches }) => (
             <article className="funding-lead-card" key={lead.id}>
               <div className="funding-lead-card__header">
                 <div>
@@ -191,6 +193,15 @@ export default async function AdminPage({ searchParams }) {
               <div className="funding-gap-list">
                 <strong>Human review required</strong>
                 <p>This is a potential fit only. Do not confirm eligibility, funding amount, or approval without reviewing the specific funder or program administrator rules.</p>
+                <strong>Potential opportunity categories</strong>
+                <ul>
+                  {opportunityMatches.map((match) => (
+                    <li key={match.id}>
+                      <strong>Potential opportunity category: {match.name}</strong>
+                      <span> Why it may match: {match.score.reasons[0]}</span>
+                    </li>
+                  ))}
+                </ul>
                 <strong>Readiness gaps</strong>
                 {score.eligibilityGaps.length ? (
                   <ul>
