@@ -72,10 +72,17 @@ RESEND_API_KEY=
 GOOGLE_PLACES_API_KEY=
 HUNTER_API_KEY=
 APOLLO_API_KEY=
+OPENAI_API_KEY=
+OPENAI_MODEL=gpt-4o-mini
 ```
 
 Without keys, the admin UI still works, but provider routes return a clear
 not-configured response.
+
+Website enrichment always produces a deterministic sales brief first. If
+`OPENAI_API_KEY` is configured, the app attempts an optional LLM rewrite using
+only public business and website data, validates the JSON shape before saving,
+and falls back to the deterministic brief on any model or validation failure.
 
 For local testing, add keys to `.env.local` without pasting secrets into chat:
 
