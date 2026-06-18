@@ -46,6 +46,8 @@ import {
   scoreFundingLead
 } from "../../lib/funding/admin";
 import { matchFundingPrograms } from "../../lib/funding/matching";
+import { FUNDING_REVIEW_ITEMS, buildReviewState } from "../../lib/funding/review";
+import { buildCloserHandoff } from "../../lib/funding/handoff";
 
 export const dynamic = "force-dynamic";
 
@@ -306,7 +308,9 @@ export default async function AdminPage({ searchParams }) {
       lead,
       scan: fundingScanFromLead(lead),
       score: scoreFundingLead(lead),
-      opportunityMatches: matchFundingPrograms(fundingScanFromLead(lead)).topMatches.slice(0, 3)
+      opportunityMatches: matchFundingPrograms(fundingScanFromLead(lead)).topMatches.slice(0, 3),
+      review: buildReviewState(lead),
+      handoff: buildCloserHandoff(lead)
     }));
   const fundingTenant = tenants.find((tenant) => tenant.slug === "funded-growth") || tenants[0] || {};
   const fundingDashboard = buildFundingOpportunityDashboard({
@@ -338,7 +342,7 @@ export default async function AdminPage({ searchParams }) {
         </div>
 
         <div className="funding-lead-list">
-          {fundingScanLeads.map(({ lead, scan, score, opportunityMatches }) => (
+          {fundingScanLeads.map(({ lead, scan, score, opportunityMatches, review, handoff }) => (
             <article className="funding-lead-card" key={lead.id}>
               <div className="funding-lead-card__header">
                 <div>
@@ -407,6 +411,78 @@ export default async function AdminPage({ searchParams }) {
                   <p>No program matches from the current scan inputs.</p>
                 )}
               </div>
+
+              <div className="funding-review">
+                <div className="funding-review__header">
+                  <strong>Human review checklist</strong>
+                  <span className={`status-pill status-pill--${review.isComplete ? "ok" : "warn"}`}>
+                    {review.isComplete ? "Review complete" : "Requires human review"}
+                  </span>
+                </div>
+                {canManageLeadActions ? (
+                  <form action="/api/admin/funding/review" method="post" className="funding-review__form">
+                    <input type="hidden" name="leadId" value={lead.id} />
+                    <input type="hidden" name="redirectTo" value="/admin" />
+                    {FUNDING_REVIEW_ITEMS.map((item) => (
+                      <label key={item.id} className="funding-review__item">
+                        <input
+                          type="checkbox"
+                          name="items"
+                          value={item.id}
+                          defaultChecked={review.items[item.id]}
+                        />
+                        <span>
+                          {item.label}
+                          {item.required ? <em> (required)</em> : null}
+                        </span>
+                      </label>
+                    ))}
+                    <input
+                      className="input"
+                      type="text"
+                      name="reviewer"
+                      placeholder="Reviewer name"
+                      defaultValue={review.reviewer}
+                    />
+                    <button className="button button--secondary" type="submit">Save review</button>
+                    {review.updatedAt ? (
+                      <p className="funding-review__meta">
+                        Last reviewed by {review.reviewer || "unknown"} on {review.updatedAt.slice(0, 10)}
+                      </p>
+                    ) : null}
+                  </form>
+                ) : (
+                  <p>Reviewer access required to update the checklist.</p>
+                )}
+              </div>
+
+              <details className="funding-handoff">
+                <summary>Closer handoff summary{handoff.reviewIncomplete ? " (review incomplete)" : ""}</summary>
+                <div className="funding-handoff__body">
+                  <p><strong>{handoff.business}</strong>{handoff.location ? ` — ${handoff.location}` : ""}</p>
+                  <p>Best lane: {handoff.topLane} (fit {handoff.overallFit})</p>
+                  {handoff.topProgram ? (
+                    <p>Top program: {handoff.topProgram.name} — {handoff.topProgram.provider} ({handoff.topProgram.matchScore}, {handoff.topProgram.confidence})</p>
+                  ) : null}
+                  <p>Recommended offer: {handoff.recommendedOffer}</p>
+                  <p>Next step: {handoff.nextStep}</p>
+                  {handoff.fitReasons.length ? (
+                    <div>
+                      <strong>Why it may fit</strong>
+                      <ul>{handoff.fitReasons.map((reason) => <li key={reason}>{reason}</li>)}</ul>
+                    </div>
+                  ) : null}
+                  {handoff.gaps.length ? (
+                    <div>
+                      <strong>Open gaps</strong>
+                      <ul>{handoff.gaps.map((gap) => <li key={gap}>{gap}</li>)}</ul>
+                    </div>
+                  ) : null}
+                  <p className="funding-handoff__meta">
+                    Review status: {handoff.reviewStatus}. Human review required — not a funding or eligibility guarantee.
+                  </p>
+                </div>
+              </details>
 
               {canManageLeadActions ? (
                 <form action="/api/admin/drafts" method="post" className="inline-form">
