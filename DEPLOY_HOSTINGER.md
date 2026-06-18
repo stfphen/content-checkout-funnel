@@ -68,7 +68,9 @@ POSTGRES_PASSWORD=$POSTGRES_PASSWORD
 OWNER_EMAIL=owner@dgtlmag.com
 OWNER_NAME=DGTL MAG Owner
 TEAM_NAME=DGTL MAG
-TEAM_SLUG=dgtlmag
+# TEAM_SLUG must be "default" so the owner joins the team that owns the built-in
+# tenants and receives public-funnel + funding-scan leads. See "Team setup" below.
+TEAM_SLUG=default
 RESEND_API_KEY=
 GOOGLE_PLACES_API_KEY=
 HUNTER_API_KEY=
@@ -106,6 +108,8 @@ read -s -p "Owner password: " OWNER_PASSWORD; echo
 docker compose run --rm --no-deps \
   -e OWNER_PASSWORD="$OWNER_PASSWORD" \
   content-funnel npm run create-owner
+# Seed the funded-growth demo leads (optional but recommended for the demo):
+docker compose run --rm --no-deps content-funnel npm run seed:funding-demo
 docker compose up -d --build
 ```
 
@@ -113,6 +117,16 @@ The owner password is passed as a one-time environment variable and is not
 printed or written to `.env`. Re-running `npm run create-owner` is safe; it
 leaves the existing user in place and ensures the membership has the `owner`
 role.
+
+> **Team setup (important).** The built-in tenants (default + funded-growth)
+> register under the internal `team_default`, and public-funnel and funding-scan
+> leads are scoped to that team. For the operating owner to see those tenants and
+> leads in `/admin`, create the owner in that same team by setting
+> `TEAM_SLUG=default` in `.env` (the team slug, not the brand name — the brand is
+> controlled by tenant config). Verified live: with `TEAM_SLUG=default`, the
+> admin Funding tab, funding-scan leads, review checklist, and closer handoff all
+> render with the seeded demo data. Using a different `TEAM_SLUG` creates an empty
+> team whose admin sees no built-in tenants or funnel leads.
 
 ## 6. Database Backups and Restore
 
