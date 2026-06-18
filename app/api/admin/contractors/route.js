@@ -1,13 +1,20 @@
 import { NextResponse } from "next/server";
-import { getAdminSession } from "../../../../lib/auth";
-import { createContractor } from "../../../../lib/store";
+import { logAudit } from "../../../../lib/audit";
+import { permissionDeniedResponse, requireRole } from "../../../../lib/permissions";
+import { createContractor, getSessionTeamId } from "../../../../lib/store";
 
 export async function POST(request) {
-  const session = await getAdminSession();
-  if (!session) return NextResponse.redirect(new URL("/admin/login", request.url), 303);
+  let session;
+  try {
+    session = await requireRole(["owner", "admin"]);
+  } catch (error) {
+    return permissionDeniedResponse(error, request);
+  }
 
   const form = await request.formData();
-  await createContractor({
+  const teamId = getSessionTeamId(session);
+  const contractor = await createContractor({
+    teamId,
     name: String(form.get("name") || ""),
     email: String(form.get("email") || ""),
     phone: String(form.get("phone") || ""),
@@ -15,6 +22,18 @@ export async function POST(request) {
     weeklyCapacity: String(form.get("weeklyCapacity") || "0"),
     availabilityNotes: String(form.get("availabilityNotes") || ""),
     rateNotes: String(form.get("rateNotes") || "")
+  });
+  await logAudit({
+    userId: session.user?.id,
+    action: "contractor.created",
+    targetType: "contractor",
+    targetId: contractor.id,
+    metadata: {
+      teamId,
+      name: contractor.name,
+      serviceArea: contractor.serviceArea,
+      weeklyCapacity: contractor.weeklyCapacity
+    }
   });
 
   return NextResponse.redirect(new URL("/admin", request.url), 303);

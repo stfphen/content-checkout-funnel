@@ -18,6 +18,11 @@ ENV NEXT_TELEMETRY_DISABLED=1
 COPY --from=builder /app/public ./public
 COPY --from=builder /app/.next/standalone ./
 COPY --from=builder /app/.next/static ./.next/static
+COPY --from=deps /app/node_modules/bcryptjs ./node_modules/bcryptjs
+COPY package.json ./
+COPY lib ./lib
+COPY migrations ./migrations
+COPY scripts ./scripts
 
 EXPOSE 3000
 CMD ["node", "server.js"]
