@@ -39,8 +39,15 @@ import {
   suggestFollowUpDate
 } from "../../lib/outreachSequence";
 import { listTeamUsers, USER_ROLES } from "../../lib/users";
-import { fundingScanFromLead, isFundingScanLead, scoreFundingLead } from "../../lib/funding/admin";
+import {
+  buildFundingOpportunityDashboard,
+  fundingScanFromLead,
+  isFundingScanLead,
+  scoreFundingLead
+} from "../../lib/funding/admin";
 import { matchFundingPrograms } from "../../lib/funding/matching";
+import { FUNDING_REVIEW_ITEMS, buildReviewState } from "../../lib/funding/review";
+import { buildCloserHandoff } from "../../lib/funding/handoff";
 
 export const dynamic = "force-dynamic";
 
@@ -226,7 +233,7 @@ export default async function AdminPage({ searchParams }) {
   const canManageTeamUsers = canManageUsers(session) && Boolean(teamId);
   const visibleTabs = [
     ...(session.role === "contractor" ? [] : ["pipeline"]),
-    ...(canManageLeadActions ? ["prospecting", "outreach"] : []),
+    ...(canManageLeadActions ? ["funding", "prospecting", "outreach"] : []),
     ...(canManageTenantActions ? ["tenants"] : []),
     ...(canManageTeamUsers || canManageContractorActions || session.role === "contractor" ? ["team"] : [])
   ];
@@ -301,8 +308,15 @@ export default async function AdminPage({ searchParams }) {
       lead,
       scan: fundingScanFromLead(lead),
       score: scoreFundingLead(lead),
-      opportunityMatches: matchFundingPrograms(fundingScanFromLead(lead)).topMatches.slice(0, 3)
+      opportunityMatches: matchFundingPrograms(fundingScanFromLead(lead)).topMatches.slice(0, 3),
+      review: buildReviewState(lead),
+      handoff: buildCloserHandoff(lead)
     }));
+  const fundingTenant = tenants.find((tenant) => tenant.slug === "funded-growth") || tenants[0] || {};
+  const fundingDashboard = buildFundingOpportunityDashboard({
+    tenantId: fundingTenant.id,
+    leads: fundingScanLeads.map(({ lead }) => lead)
+  });
 
   return (
     <AdminTabbedShell notice={notice} visibleTabs={visibleTabs}>
@@ -328,7 +342,7 @@ export default async function AdminPage({ searchParams }) {
         </div>
 
         <div className="funding-lead-list">
-          {fundingScanLeads.map(({ lead, scan, score, opportunityMatches }) => (
+          {fundingScanLeads.map(({ lead, scan, score, opportunityMatches, review, handoff }) => (
             <article className="funding-lead-card" key={lead.id}>
               <div className="funding-lead-card__header">
                 <div>
@@ -383,6 +397,93 @@ export default async function AdminPage({ searchParams }) {
                 )}
               </div>
 
+              <div className="funding-gap-list">
+                <strong>Potential program matches</strong>
+                {score.programMatches?.length ? (
+                  <ul>
+                    {score.programMatches.map((match) => (
+                      <li key={match.program.id}>
+                        {match.program.name} ({match.matchScore}, {match.confidence})
+                      </li>
+                    ))}
+                  </ul>
+                ) : (
+                  <p>No program matches from the current scan inputs.</p>
+                )}
+              </div>
+
+              <div className="funding-review">
+                <div className="funding-review__header">
+                  <strong>Human review checklist</strong>
+                  <span className={`status-pill status-pill--${review.isComplete ? "ok" : "warn"}`}>
+                    {review.isComplete ? "Review complete" : "Requires human review"}
+                  </span>
+                </div>
+                {canManageLeadActions ? (
+                  <form action="/api/admin/funding/review" method="post" className="funding-review__form">
+                    <input type="hidden" name="leadId" value={lead.id} />
+                    <input type="hidden" name="redirectTo" value="/admin" />
+                    {FUNDING_REVIEW_ITEMS.map((item) => (
+                      <label key={item.id} className="funding-review__item">
+                        <input
+                          type="checkbox"
+                          name="items"
+                          value={item.id}
+                          defaultChecked={review.items[item.id]}
+                        />
+                        <span>
+                          {item.label}
+                          {item.required ? <em> (required)</em> : null}
+                        </span>
+                      </label>
+                    ))}
+                    <input
+                      className="input"
+                      type="text"
+                      name="reviewer"
+                      placeholder="Reviewer name"
+                      defaultValue={review.reviewer}
+                    />
+                    <button className="button button--secondary" type="submit">Save review</button>
+                    {review.updatedAt ? (
+                      <p className="funding-review__meta">
+                        Last reviewed by {review.reviewer || "unknown"} on {review.updatedAt.slice(0, 10)}
+                      </p>
+                    ) : null}
+                  </form>
+                ) : (
+                  <p>Reviewer access required to update the checklist.</p>
+                )}
+              </div>
+
+              <details className="funding-handoff">
+                <summary>Closer handoff summary{handoff.reviewIncomplete ? " (review incomplete)" : ""}</summary>
+                <div className="funding-handoff__body">
+                  <p><strong>{handoff.business}</strong>{handoff.location ? ` — ${handoff.location}` : ""}</p>
+                  <p>Best lane: {handoff.topLane} (fit {handoff.overallFit})</p>
+                  {handoff.topProgram ? (
+                    <p>Top program: {handoff.topProgram.name} — {handoff.topProgram.provider} ({handoff.topProgram.matchScore}, {handoff.topProgram.confidence})</p>
+                  ) : null}
+                  <p>Recommended offer: {handoff.recommendedOffer}</p>
+                  <p>Next step: {handoff.nextStep}</p>
+                  {handoff.fitReasons.length ? (
+                    <div>
+                      <strong>Why it may fit</strong>
+                      <ul>{handoff.fitReasons.map((reason) => <li key={reason}>{reason}</li>)}</ul>
+                    </div>
+                  ) : null}
+                  {handoff.gaps.length ? (
+                    <div>
+                      <strong>Open gaps</strong>
+                      <ul>{handoff.gaps.map((gap) => <li key={gap}>{gap}</li>)}</ul>
+                    </div>
+                  ) : null}
+                  <p className="funding-handoff__meta">
+                    Review status: {handoff.reviewStatus}. Human review required — not a funding or eligibility guarantee.
+                  </p>
+                </div>
+              </details>
+
               {canManageLeadActions ? (
                 <form action="/api/admin/drafts" method="post" className="inline-form">
                   <input type="hidden" name="leadId" value={lead.id} />
@@ -397,6 +498,80 @@ export default async function AdminPage({ searchParams }) {
         </div>
       </section>
       </AdminTabPanel>
+
+      {canManageLeadActions ? (
+      <AdminTabPanel tabId="funding">
+      <section className="admin-panel admin-panel--wide">
+        <div className="pipeline-header">
+          <div>
+            <h2>Funding Opportunities</h2>
+            <p>Manual opportunity intelligence for grants, digital adoption programs, export funding, and funded-contract angles. Human review required before any client-facing claim.</p>
+          </div>
+          <span className="status-pill">{fundingDashboard.length} opportunities</span>
+        </div>
+
+        <div className="funding-opportunity-grid">
+          {fundingDashboard.map(({ program, leadMatches, proposalChecklist }) => (
+            <article className="funding-opportunity-card" key={program.id}>
+              <div className="funding-lead-card__header">
+                <div>
+                  <p className="eyebrow">{program.fundingType}</p>
+                  <h3>{program.name}</h3>
+                  <p>{program.provider} | {program.statusLabel}</p>
+                </div>
+                <span className="status-pill">{program.intakeStatus.replaceAll("_", " ")}</span>
+              </div>
+
+              <p>{program.fitNotes}</p>
+              <dl className="funding-lead-stats">
+                <div>
+                  <dt>Targets</dt>
+                  <dd>{program.targetBusinessLabels?.slice(0, 2).join(", ") || "Business fit review"}</dd>
+                </div>
+                <div>
+                  <dt>Projects</dt>
+                  <dd>{program.projectTypes?.slice(0, 2).join(", ")}</dd>
+                </div>
+                <div>
+                  <dt>Lead Matches</dt>
+                  <dd>{leadMatches.length}</dd>
+                </div>
+              </dl>
+
+              <div className="funding-gap-list">
+                <strong>Top matched leads</strong>
+                {leadMatches.length ? (
+                  <ul>
+                    {leadMatches.map(({ lead, matchScore, confidence, outreachAngle }) => (
+                      <li key={lead.id}>
+                        {lead.businessName || lead.business || "Unknown business"} ({matchScore}, {confidence}) - {outreachAngle.serviceAngle}
+                      </li>
+                    ))}
+                  </ul>
+                ) : (
+                  <p>No lead matches above the current threshold.</p>
+                )}
+              </div>
+
+              <div className="funding-gap-list">
+                <strong>Proposal support checklist</strong>
+                <ul>
+                  {proposalChecklist.slice(0, 4).map((item) => (
+                    <li key={item}>{item}</li>
+                  ))}
+                </ul>
+              </div>
+
+              <a className="button button--secondary" href={program.sourceUrl} target="_blank" rel="noreferrer">
+                Review Source
+              </a>
+            </article>
+          ))}
+          {!fundingDashboard.length ? <p>No funding opportunities configured yet.</p> : null}
+        </div>
+      </section>
+      </AdminTabPanel>
+      ) : null}
 
       {canManageLeadActions ? (
       <AdminTabPanel tabId="prospecting">

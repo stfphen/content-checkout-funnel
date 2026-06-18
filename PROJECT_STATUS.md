@@ -1,53 +1,43 @@
 # Project Status — Content Checkout Funnel
 
-_Last updated: 2026-06-17. This file is written for both humans and future AI agents. Keep it factual; update it whenever branch/PR state changes._
+_Last updated: 2026-06-18. Written for both humans and future AI agents. Keep it factual; update whenever branch/PR state changes._
 
-## 1. Current stable branch status
+## 1. Current branch status
 
-- **`main` @ `395f0d7`** is the stable line (PR #3 merged: project stabilization + Funded Growth Engine V2).
-- `main` passes `npm test` and `npm run build`.
-- `main` includes: team auth (Postgres-backed), permissions, audit logging, team-scoped store, tenant validation, funded growth tenant + engine, manual funding program/category matching, outreach queue, batch builder, and the current `AdminTabbedShell` admin navigation.
+- **`main` @ `af3e695`** is the stable line: PR #2 (AI prospect enrichment) merged (`81f0489`) plus production-prep commits. Passes `npm test` and `npm run build`.
+- **`feature/funding-program-v1`** (active) contains Funding Program V1 productization + real Stripe checkout, fully verified on local Postgres. Ready to merge to `main`.
 
-## 2. Open PRs and what they contain
+## 2. What `feature/funding-program-v1` adds
 
-| PR | Branch | Contents | State |
-|----|--------|----------|-------|
-| **#3** | `integration/project-stabilization` | Team auth, permissions, audit logging, team-scoped store, tenant validation, Funded Growth Engine V2, manual funding matching, admin shell, `CLAUDE.md` | **Merged into `main`** (`395f0d7`) |
-| **#2** | `feature/prospect-enrichment-integration` @ `8c874ad` | Prospect enrichment: website enrichment, social profile discovery, enrichment metadata helpers (`mergeLeadMetadata`, `updateLeadResearch`), deterministic sales-intelligence brief, optional LLM sales brief, single-lead enrich route (`/api/admin/leads/enrich`), batch enrich route (`/api/admin/leads/enrich-batch`), Google auto-enrich option, and enrichment UI (summaries + "Enrich from Website" buttons) integrated into the admin lead cards | **In review, not merged.** Latest `main` merged in cleanly (zero conflicts); validated: 76/76 tests pass, build passes; pushed to origin |
+- **Funding Program V1**
+  - Additive port of the funding admin engine from `project-worker-2` (no enrichment/branding regression): `lib/funding/programDatabase.js` (richer program DB + `matchFundingProgramsForInput`), kept alongside the existing `matching.js` triage engine.
+  - Admin **Funding tab**: opportunity dashboard, per-lead program matches, funding-scan lead cards.
+  - **Human review checklist** (`lib/funding/review.js` + `/api/admin/funding/review`) — completion gated on required items; reviewer + timestamp persisted on lead metadata.
+  - **Closer handoff summary** (`lib/funding/handoff.js`).
+  - **Funding outreach sequence** (intro / fit-summary / book-a-call) in `lib/outreachSequence.js`.
+  - **Demo seed**: `npm run seed:funding-demo` (idempotent funded-growth leads across all match states).
+- **Real Stripe Checkout + webhooks** (`lib/payments/stripe.js`, `/api/checkout`, `/api/webhooks/stripe`) — activates only when `STRIPE_SECRET_KEY` is set; otherwise falls back to Payment Links / lead capture. Per-package `stripe` config in tenant configs.
 
-> Note: PR #2 was brought up to date by merging `origin/main` into the feature branch. The merge was **conflict-free** (an earlier session had already reconciled enrichment vs. stabilization), so no manual conflict resolution was required this round.
+## 3. Verification (done)
 
-## 3. Stable features (on `main`)
+- `npm test`: **101/101 pass.** `npm run build`: clean.
+- Live local Postgres pass: `migrate` → `create-owner` → `seed:funding-demo`; admin login; Funding tab, scan leads, review checklist (gated + persisted), closer handoff all render; enrichment UI + white-label branding intact (regression guards); funded-growth funnel renders the `fundedOpportunity` section; checkout falls back to capture without Stripe; webhook rejects unsigned requests (400).
 
-- Tenant-based content checkout funnel (`/t/[slug]`)
-- Admin dashboard with `AdminTabbedShell` navigation
-- Lead pipeline (team-scoped, duplicate-aware)
-- Prospecting (Google Places, Hunter, Apollo)
-- Outreach queue + outreach sequence helpers
-- Batch builder (prospecting batches)
-- Funded Growth Engine V2 + funding scan capture
-- Manual funding program / category matching
-- Team auth, permissions, audit logging, tenant validation
+## 4. Known risks / notes
 
-## 4. Features still draft / in review
+- **Team setup matters.** Built-in tenants register under `team_default`; public-funnel and funding-scan leads are scoped there. The operating owner must be created in that team (`TEAM_SLUG=default`) to see them. Documented in `DEPLOY_HOSTINGER.md` ("Team setup").
+- **External providers require keys.** Resend/Google/Hunter/Apollo keys are present in the local `.env` (git-ignored). Stripe + optional OpenAI must be provided. See `API_KEYS.md` (incl. rotation guidance).
+- **Funding data is manual** — human-reviewed program categories; no automated live ingestion yet (`lib/funding/ingestion.js` is a future boundary).
+- `npm install` reports 2 moderate-severity advisories (not addressed).
 
-- **Prospect enrichment (PR #2)** — fully implemented and unit-tested, but not yet merged to `main`. This is the only feature set currently in review.
-  - Website enrichment, social profile discovery, deterministic sales brief, optional LLM brief, single-lead + batch enrich routes, Google auto-enrich, enrichment UI.
+## 5. Worktree / branch cleanup (done)
 
-## 5. Known risks
+- Removed the 10 redundant enrichment worktrees + branches (all at `0538b33`, subsumed by merged PR #2), plus `feature/prospect-enrichment-integration` and `pr-1-demo` (tips reachable from `main`). Backup: `../worktree-rescue-20260617-2348/`.
+- **Kept:** `main`, `feature/funding-program-v1`, `project-worker-2` (remove after the funding merge — its committed tip is in `main` and its unique uncommitted work is now ported + archived), and `feature/funding-program-docs` (unmerged; left untouched).
 
-- ⚠️ **Live admin runtime needs Postgres.** Auth is now database-backed (`getAdminSession` → `DATABASE_URL` + seeded `users`/`sessions`/`team_memberships`). The enrichment UI was confirmed via build + unit tests, but **end-to-end GUI rendering was not exercised this session** because no Postgres instance was available. Before merging PR #2, run a live pass against a DB-backed admin (see `DEMO_FLOW.md`).
-- **External providers require keys.** Google/Hunter/Apollo/Resend and the optional LLM brief (`OPENAI_API_KEY`) return clear "not-configured" responses without keys; the LLM brief always falls back to the deterministic brief.
-- **Auto-enrich adds latency / external calls** during Google import; it is capped, but should be load-checked before heavy use.
-- **Funding ingestion is manual.** Program/category matching is human-reviewed; there is no automated live funding-source ingestion yet.
-- `npm install` reports **2 moderate severity vulnerabilities** (not addressed; `npm audit` for details).
+## 6. Next
 
-## 6. Local worktree cleanup status
-
-Many worktrees exist. The following enrichment sub-feature branches (all at `0538b33`) are now **subsumed into `feature/prospect-enrichment-integration`** and are cleanup candidates **once PR #2 merges**:
-
-- `feature/admin-enrichment-ui`, `feature/batch-enrichment`, `feature/enrichment-signal-interfaces`, `feature/google-auto-enrich-option`, `feature/lead-enrichment-api`, `feature/optional-llm-sales-brief`, `feature/prospect-enrichment-core`, `feature/sales-intelligence-brief`, `feature/social-profile-discovery`, `feature/website-enrichment`
-
-Separate, review individually before any cleanup: `pr-1-demo`, `worker-2-task`, `feature/funding-program-docs`.
-
-> Per repo policy: **do not delete worktrees or branches without explicit confirmation.** Treat the list above as candidates, not actions.
+1. Merge `feature/funding-program-v1` → `main`.
+2. Remove the `project-worker-2` worktree (post-merge).
+3. Provide Stripe (+ optional OpenAI) keys; rotate the four existing provider keys (`API_KEYS.md`).
+4. Run the VPS deploy runbook (`DEPLOY_HOSTINGER.md`) — DNS/Traefik/TLS + register the Stripe webhook.

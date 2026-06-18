@@ -74,6 +74,36 @@ export default function FunnelPage({ tenant }) {
         : {})
     };
 
+    // Stripe Checkout path: /api/checkout captures the lead AND creates the
+    // session server-side (price resolved from the tenant config, not here).
+    if (selectedPackage.action === "checkout" && !selectedPackage.paymentLink) {
+      const checkoutResponse = await fetch("/api/checkout", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload)
+      });
+      const checkout = await checkoutResponse.json().catch(() => ({}));
+
+      if (checkoutResponse.ok && checkout.url) {
+        window.location.href = checkout.url;
+        return;
+      }
+      if (checkoutResponse.ok && checkout.redirect) {
+        window.location.href = checkout.redirect;
+        return;
+      }
+      if (checkoutResponse.ok) {
+        setFormNote(
+          `${selectedPackage.name} selected. We captured your request and will follow up with next steps.`
+        );
+        showToast("Request captured.");
+        return;
+      }
+      setFormNote("Checkout could not start. We saved your details and will follow up.");
+      showToast("Checkout failed.");
+      return;
+    }
+
     const response = await fetch("/api/leads", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -209,6 +239,23 @@ export default function FunnelPage({ tenant }) {
             </div>
           </div>
         </section>
+
+        {tenant.fundedOpportunity ? (
+          <section className="section">
+            <div className="section__inner split">
+              <div>
+                <p className="eyebrow">{tenant.fundedOpportunity.eyebrow}</p>
+                <h2>{tenant.fundedOpportunity.headline}</h2>
+                <p>{tenant.fundedOpportunity.body}</p>
+              </div>
+              <div className="problem__grid">
+                {tenant.fundedOpportunity.points.map((point) => (
+                  <p key={point}>{point}</p>
+                ))}
+              </div>
+            </div>
+          </section>
+        ) : null}
 
         <section id="packages" className="section packages">
           <div className="section__inner">

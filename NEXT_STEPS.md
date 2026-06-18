@@ -1,37 +1,35 @@
 # Next Steps — Content Checkout Funnel
 
-_Last updated: 2026-06-17. Written for future AI agents and maintainers. Keep items concrete and ordered._
+_Last updated: 2026-06-18. Written for future AI agents and maintainers. Keep items concrete and ordered._
 
 ## 1. Immediate next steps
 
-1. **Live-runtime verify PR #2.** Stand up Postgres (`docker-compose up`), seed an admin/team user, log into `/admin`, and confirm the enrichment UI renders end-to-end (Enrich button, enrichment summary panel, sales brief). This is the one gap not covered by unit tests/build. See `DEMO_FLOW.md`.
-2. **Review and merge PR #2** (`feature/prospect-enrichment-integration` → `main`). The branch is conflict-free, up to date with `main`, and passing tests/build.
-3. **After merge:** clean up the subsumed enrichment sub-feature worktrees/branches listed in `PROJECT_STATUS.md` (with confirmation).
+1. **Merge `feature/funding-program-v1` → `main`.** Funding Program V1 + real Stripe checkout, verified end-to-end on local Postgres (101/101 tests, build clean). See `PROJECT_STATUS.md`.
+2. **Remove the `project-worker-2` worktree** after the merge (its committed tip is in `main`; unique uncommitted work is ported + archived in `../worktree-rescue-20260617-2348/`).
+3. **Provide keys.** Add Stripe (`STRIPE_SECRET_KEY`, `STRIPE_WEBHOOK_SECRET`) and optionally OpenAI; rotate the four existing provider keys. See `API_KEYS.md`.
+4. **Deploy to `dgtlmag.com`.** Follow `DEPLOY_HOSTINGER.md` (note the **Team setup** requirement: `TEAM_SLUG=default`). Register the Stripe webhook endpoint `https://dgtlmag.com/api/webhooks/stripe`. Verify DNS/Traefik/TLS, then smoke the live URL.
 
-## 2. Sprint 1 remaining work
+## 2. Roadmap status (per `CLAUDE.md`)
 
-Tracks the roadmap in `CLAUDE.md`:
-
-1. ✅ Repo recovery and branch cleanup (in progress — worktree cleanup pending PR #2 merge).
-2. ⏳ Merge or close PR #2 (ready; awaiting review/merge).
-3. ✅ Stabilize admin shell/navigation (`AdminTabbedShell` on `main`).
-4. ✅ Build Funding Program module (Funded Growth Engine V2 + manual matching on `main`).
-5. ⏳ Connect funding opportunities to lead matching and outreach (matching exists; wire matched opportunities into the outreach queue/sequence).
-6. ⏳ Package the product into a sellable B2B offer (see Sprint 2).
+1. ✅ Repo recovery and branch cleanup (redundant enrichment worktrees/branches removed; archive retained).
+2. ✅ PR #2 (AI prospect enrichment) merged into `main`.
+3. ✅ Admin shell/navigation stable (`AdminTabbedShell`, now with the Funding tab).
+4. ✅ Funding Program module — V1 productized (admin tab, program matching, review checklist, outreach sequence, closer handoff, demo seed).
+5. ✅ Funding connected to outreach (funding outreach sequence + merge fields) and lead matching (opportunity dashboard).
+6. ⏳ Package into a sellable B2B offer — checkout is now real (Stripe); continue with onboarding + reporting (Sprint 2).
 
 ## 3. Sprint 2 productization roadmap
 
-- Multi-tenant onboarding flow (self-serve tenant/brand setup).
-- Billing + checkout for service packages.
-- Harden real provider integrations (Google/Hunter/Apollo/Resend): retries, rate limits, quota handling.
-- Outreach sending at scale via Resend (approved domains, suppression list, unsubscribe compliance).
-- Reporting/dashboards (pipeline conversion, outreach metrics, funding match outcomes).
-- Productize prospect enrichment (cost controls + guardrails for the optional LLM brief).
+- Multi-tenant self-serve onboarding (tenant/brand setup; resolve the built-in-tenant/team association so new teams own their tenants without the `team_default` workaround).
+- Stripe hardening: subscriptions for retainers, an admin payments/orders view (optional `orders` table), receipt/fulfillment emails.
+- Provider hardening (Google/Hunter/Apollo/Resend): retries, rate limits, quota handling.
+- Outreach sending at scale via Resend (approved domains, suppression, unsubscribe compliance).
+- Reporting/dashboards (pipeline conversion, outreach metrics, funding match + payment outcomes).
+- Funding opportunity ingestion (activate `lib/funding/ingestion.js`) with human-review gating.
 
 ## 4. Do not start yet
 
-- ❌ **Real outreach email sending at volume.** Requires an approved Resend domain plus a reviewed suppression/unsubscribe/compliance path. Keep sends gated until that review is done.
-- ❌ **Automated live funding-source ingestion.** Matching is intentionally manual/human-reviewed right now; do not wire automated ingestion without a data-quality plan.
-- ❌ **LLM sales brief in production without cost + guardrail review.** It works and falls back safely, but production usage needs a budget/guardrail decision.
-- ❌ **Deleting worktrees/branches before PR #2 merges.** They are still the integration sources; cleanup is post-merge and requires explicit confirmation.
-- ❌ **Any app-code refactor bundled into the PR #2 merge.** Keep the merge clean; do feature work in follow-up branches.
+- ❌ **Automated live funding-source ingestion** — matching is intentionally manual/human-reviewed; needs a data-quality plan first.
+- ❌ **Real outreach email sending at volume** — requires approved Resend domain + reviewed suppression/unsubscribe path.
+- ❌ **LLM sales brief in production** without a cost/guardrail decision (works + falls back safely).
+- ❌ **Stripe subscriptions** — current checkout handles one-time `payment`; subscription events (`invoice.paid`, `customer.subscription.*`) are a follow-up.

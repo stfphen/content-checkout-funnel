@@ -2,10 +2,15 @@ import assert from "node:assert/strict";
 import test from "node:test";
 import {
   FUNDING_LANES,
+  buildFundingOpportunityDashboard,
+  buildFundingProgramLeadMatches,
   manualFundingProgramCategories,
+  manualFundingPrograms,
   matchFundingPrograms,
+  matchFundingProgramsForInput,
   normalizeFundingOpportunity,
-  scoreFundingFit
+  scoreFundingFit,
+  validateManualFundingPrograms
 } from "../lib/funding/index.js";
 
 test("scores a sample Ontario business with stable funding fit output", () => {
@@ -120,4 +125,85 @@ test("keeps weak or missing-info profile as human-review-only", () => {
   assert.ok(result.gaps.includes("Confirm industry."));
   assert.ok(result.gaps.includes("Clarify the main growth goal."));
   assert.match(result.recommendedNextAction, /Collect missing scan details/);
+});
+
+test("builds funding opportunity dashboard with lead matches", () => {
+  const leads = [
+    {
+      id: "lead_export",
+      tenantId: "tenant_funded_growth",
+      businessName: "Ontario Growth Co",
+      category: "Manufacturing",
+      city: "Hamilton, Ontario",
+      country: "Canada",
+      notes: "Export marketing and market expansion into the US",
+      sourceType: "manual",
+      metadata: {}
+    }
+  ];
+
+  const dashboard = buildFundingOpportunityDashboard({
+    tenantId: "tenant_funded_growth",
+    leads
+  });
+  const canexport = dashboard.find((item) => item.program.id === "canexport-smes");
+
+  assert.ok(canexport);
+  assert.ok(canexport.leadMatches.length >= 1);
+  assert.equal(canexport.leadMatches[0].lead.id, "lead_export");
+  assert.ok(canexport.proposalChecklist.some((item) => item.includes("Confirm intake status")));
+});
+
+test("matches leads to a single funding opportunity", () => {
+  const program = manualFundingPrograms.find((item) => item.id === "ontario-dmap");
+  const matches = buildFundingProgramLeadMatches(program, [
+    {
+      id: "lead_digital",
+      businessName: "Retail Upgrade Co",
+      category: "Retail",
+      city: "Toronto, Ontario",
+      country: "Canada",
+      notes: "Needs ecommerce and digital adoption planning",
+      metadata: {}
+    }
+  ]);
+
+  assert.equal(matches[0].lead.id, "lead_digital");
+  assert.equal(matches[0].recommendedPackageId, "fundable-project-blueprint");
+  assert.match(matches[0].outreachAngle.subject, /Digital adoption/);
+});
+
+test("validates the manual funding program database", () => {
+  const result = validateManualFundingPrograms();
+
+  assert.equal(result.ok, true);
+  assert.equal(result.errors.length, 0);
+  assert.ok(manualFundingPrograms.length >= 8);
+});
+
+test("matches funding programs from fit inputs without live scraping", () => {
+  const input = {
+    province: "Ontario",
+    country: "Canada",
+    industry: "Retail ecommerce",
+    goals: ["Increase online sales", "Market expansion"],
+    channels: ["Shopify", "Paid ads", "Email"],
+    currentCapabilities: ["Website", "Basic CRM"],
+    annualRevenue: 250000,
+    employeeCount: 8,
+    sellsOnline: true,
+    exports: false,
+    hasTrainingNeed: true,
+    sellsToGovernment: false,
+    usesCleanTech: false
+  };
+
+  const matches = matchFundingProgramsForInput(input, { limit: 3 });
+
+  assert.equal(matches.length, 3);
+  assert.equal(matches[0].program.id, "ontario-dmap");
+  assert.equal(matches[0].confidence, "high");
+  assert.ok(matches[0].matchScore >= 75);
+  assert.ok(matches[0].matchedSignals.some((signal) => signal.includes("Best lane match")));
+  assert.ok(matches[0].reviewGaps.some((gap) => gap.includes("Verify current intake")));
 });

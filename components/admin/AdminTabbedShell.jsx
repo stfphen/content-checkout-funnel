@@ -6,6 +6,7 @@ const AdminTabsContext = createContext("pipeline");
 
 const navItems = [
   { id: "pipeline", label: "Pipeline", icon: <LeadIcon /> },
+  { id: "funding", label: "Funding", icon: <FundingIcon /> },
   { id: "prospecting", label: "Prospecting", icon: <SearchIcon /> },
   { id: "outreach", label: "Outreach", icon: <MailIcon /> },
   { id: "tenants", label: "Tenants", icon: <TenantIcon /> },
@@ -93,6 +94,16 @@ function SearchIcon() {
     <svg fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24" aria-hidden="true">
       <path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-5.2-5.2" />
       <circle cx="11" cy="11" r="7" />
+    </svg>
+  );
+}
+
+function FundingIcon() {
+  return (
+    <svg fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24" aria-hidden="true">
+      <path strokeLinecap="round" strokeLinejoin="round" d="M4 7h16M7 7V5a2 2 0 012-2h6a2 2 0 012 2v2" />
+      <path strokeLinecap="round" strokeLinejoin="round" d="M6 7v12a2 2 0 002 2h8a2 2 0 002-2V7" />
+      <path strokeLinecap="round" strokeLinejoin="round" d="M9 13h6M12 10v6" />
     </svg>
   );
 }
