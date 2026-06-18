@@ -1,8 +1,18 @@
 import { NextResponse } from "next/server";
 import { logAudit } from "../../../../../lib/audit";
+import {
+  buildGoogleImportNotice,
+  isAutoEnrichEnabled,
+  maybeAutoEnrichGoogleLead
+} from "../../../../../lib/enrichment/googleAutoEnrich.js";
 import { permissionDeniedResponse, requireRole } from "../../../../../lib/permissions";
 import { searchGooglePlaces } from "../../../../../lib/integrations/googlePlaces";
-import { createLead, getSessionTeamId, requireTenantAccess } from "../../../../../lib/store";
+import {
+  createLead,
+  getSessionTeamId,
+  requireTenantAccess,
+  updateLeadResearch
+} from "../../../../../lib/store";
 
 export async function POST(request) {
   let session;
@@ -21,8 +31,11 @@ export async function POST(request) {
     return permissionDeniedResponse(error, request);
   }
   const query = String(form.get("query") || "");
+  const autoEnrich = isAutoEnrichEnabled(form.get("autoEnrich"));
   const result = await searchGooglePlaces({ query });
 
+  let enrichedCount = 0;
+  let attemptedCount = 0;
   if (result.ok) {
     for (const prospect of result.prospects) {
       const lead = await createLead({
@@ -45,6 +58,16 @@ export async function POST(request) {
             businessName: lead.businessName
           }
         });
+
+        const autoEnrichResult = await maybeAutoEnrichGoogleLead({
+          autoEnrich,
+          lead,
+          attemptedCount,
+          updateLeadResearchImpl: updateLeadResearch
+        });
+
+        if (autoEnrichResult.attempted) attemptedCount += 1;
+        if (autoEnrichResult.enriched) enrichedCount += 1;
       }
     }
   }
@@ -52,7 +75,13 @@ export async function POST(request) {
   const url = new URL("/admin", request.url);
   if (!result.ok) url.searchParams.set("notice", result.reason);
   if (result.ok) {
-    url.searchParams.set("notice", `Imported ${result.prospects.length} Google Places prospects for "${query}".`);
+    url.searchParams.set(
+      "notice",
+      buildGoogleImportNotice({
+        importedCount: result.prospects.length,
+        enrichedCount
+      })
+    );
   }
   return NextResponse.redirect(url, 303);
 }
