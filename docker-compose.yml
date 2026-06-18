@@ -4,15 +4,16 @@ services:
     container_name: content-checkout-funnel
     restart: unless-stopped
     environment:
-      ADMIN_EMAIL: ${ADMIN_EMAIL:-admin@dgtlmag.com}
-      ADMIN_PASSWORD: ${ADMIN_PASSWORD:-change-this-password}
-      SESSION_SECRET: ${SESSION_SECRET:-replace-this-session-secret}
-      DATABASE_URL: postgres://content_funnel:content_funnel@content-funnel-postgres:5432/content_funnel
+      DATABASE_URL: "postgres://${POSTGRES_USER:?Set POSTGRES_USER in .env}:${POSTGRES_PASSWORD:?Set POSTGRES_PASSWORD in .env}@content-funnel-postgres:5432/${POSTGRES_DB:?Set POSTGRES_DB in .env}"
       PUBLIC_APP_URL: https://dgtlmag.com
       RESEND_API_KEY: ${RESEND_API_KEY:-}
       GOOGLE_PLACES_API_KEY: ${GOOGLE_PLACES_API_KEY:-}
       HUNTER_API_KEY: ${HUNTER_API_KEY:-}
       APOLLO_API_KEY: ${APOLLO_API_KEY:-}
+      OWNER_EMAIL: ${OWNER_EMAIL:-}
+      OWNER_NAME: ${OWNER_NAME:-}
+      TEAM_NAME: ${TEAM_NAME:-}
+      TEAM_SLUG: ${TEAM_SLUG:-}
     depends_on:
       - content-funnel-postgres
     networks:
@@ -33,9 +34,9 @@ services:
     container_name: content-funnel-postgres
     restart: unless-stopped
     environment:
-      POSTGRES_DB: content_funnel
-      POSTGRES_USER: content_funnel
-      POSTGRES_PASSWORD: content_funnel
+      POSTGRES_DB: "${POSTGRES_DB:?Set POSTGRES_DB in .env}"
+      POSTGRES_USER: "${POSTGRES_USER:?Set POSTGRES_USER in .env}"
+      POSTGRES_PASSWORD: "${POSTGRES_PASSWORD:?Set POSTGRES_PASSWORD in .env}"
     volumes:
       - content-funnel-postgres-data:/var/lib/postgresql/data
     networks:

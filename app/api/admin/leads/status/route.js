@@ -1,12 +1,27 @@
 import { NextResponse } from "next/server";
-import { getAdminSession } from "../../../../../lib/auth";
-import { updateLeadStatus } from "../../../../../lib/store";
+import { logAudit } from "../../../../../lib/audit";
+import { permissionDeniedResponse, requireRole } from "../../../../../lib/permissions";
+import { getSessionTeamId, updateLeadStatus } from "../../../../../lib/store";
 
 export async function POST(request) {
-  const session = await getAdminSession();
-  if (!session) return NextResponse.redirect(new URL("/admin/login", request.url), 303);
+  let session;
+  try {
+    session = await requireRole(["owner", "admin", "sales"]);
+  } catch (error) {
+    return permissionDeniedResponse(error, request);
+  }
 
   const form = await request.formData();
-  await updateLeadStatus(String(form.get("leadId")), String(form.get("status")));
+  const teamId = getSessionTeamId(session);
+  const leadId = String(form.get("leadId"));
+  const status = String(form.get("status"));
+  await updateLeadStatus(leadId, status, { teamId });
+  await logAudit({
+    userId: session.user?.id,
+    action: "lead.status_changed",
+    targetType: "lead",
+    targetId: leadId,
+    metadata: { teamId, status }
+  });
   return NextResponse.redirect(new URL("/admin", request.url), 303);
 }

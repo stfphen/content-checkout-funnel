@@ -1,15 +1,26 @@
 import { NextResponse } from "next/server";
-import { getAdminSession } from "../../../../../lib/auth";
+import { logAudit } from "../../../../../lib/audit";
+import { permissionDeniedResponse, requireRole } from "../../../../../lib/permissions";
 import { lookupHunterDomain } from "../../../../../lib/integrations/hunter";
-import { createLead } from "../../../../../lib/store";
+import { createLead, getSessionTeamId, requireTenantAccess } from "../../../../../lib/store";
 
 export async function POST(request) {
-  const session = await getAdminSession();
-  if (!session) return NextResponse.redirect(new URL("/admin/login", request.url), 303);
+  let session;
+  try {
+    session = await requireRole(["owner", "admin", "sales"]);
+  } catch (error) {
+    return permissionDeniedResponse(error, request);
+  }
 
   const form = await request.formData();
   const domain = String(form.get("domain") || "");
   const tenantId = String(form.get("tenantId") || "");
+  const teamId = getSessionTeamId(session);
+  try {
+    await requireTenantAccess(teamId, tenantId);
+  } catch (error) {
+    return permissionDeniedResponse(error, request);
+  }
   const result = await lookupHunterDomain(domain);
 
   const url = new URL("/admin", request.url);
@@ -19,7 +30,8 @@ export async function POST(request) {
   }
 
   for (const contact of result.contacts) {
-    await createLead({
+    const lead = await createLead({
+      teamId,
       tenantId,
       business: domain,
       name: contact.name,
@@ -30,6 +42,21 @@ export async function POST(request) {
       sourceType: "hunter",
       metadata: contact
     });
+    if (!lead.skippedDuplicate) {
+      await logAudit({
+        userId: session.user?.id,
+        action: "lead.imported",
+        targetType: "lead",
+        targetId: lead.id,
+        metadata: {
+          teamId,
+          tenantId,
+          provider: "hunter",
+          domain,
+          businessName: lead.businessName
+        }
+      });
+    }
   }
 
   url.searchParams.set("notice", `Imported ${result.contacts.length} Hunter contacts for ${domain}.`);
