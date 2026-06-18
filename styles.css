@@ -1396,6 +1396,26 @@ p {
   padding-left: 20px;
 }
 
+.funding-opportunity-grid {
+  display: grid;
+  gap: 16px;
+  margin-top: 16px;
+}
+
+.funding-opportunity-card {
+  display: grid;
+  gap: 16px;
+  padding: 16px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: var(--white);
+}
+
+.funding-opportunity-card > p {
+  margin: 0;
+  color: var(--muted);
+}
+
 .tenant-summary-card span {
   color: var(--muted);
   font-size: 13px;

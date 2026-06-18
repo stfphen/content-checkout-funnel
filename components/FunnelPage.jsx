@@ -210,6 +210,23 @@ export default function FunnelPage({ tenant }) {
           </div>
         </section>
 
+        {tenant.fundedOpportunity ? (
+          <section className="section">
+            <div className="section__inner split">
+              <div>
+                <p className="eyebrow">{tenant.fundedOpportunity.eyebrow}</p>
+                <h2>{tenant.fundedOpportunity.headline}</h2>
+                <p>{tenant.fundedOpportunity.body}</p>
+              </div>
+              <div className="problem__grid">
+                {tenant.fundedOpportunity.points.map((point) => (
+                  <p key={point}>{point}</p>
+                ))}
+              </div>
+            </div>
+          </section>
+        ) : null}
+
         <section id="packages" className="section packages">
           <div className="section__inner">
             <div className="section__header">

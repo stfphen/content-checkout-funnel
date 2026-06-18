@@ -39,7 +39,12 @@ import {
   suggestFollowUpDate
 } from "../../lib/outreachSequence";
 import { listTeamUsers, USER_ROLES } from "../../lib/users";
-import { fundingScanFromLead, isFundingScanLead, scoreFundingLead } from "../../lib/funding/admin";
+import {
+  buildFundingOpportunityDashboard,
+  fundingScanFromLead,
+  isFundingScanLead,
+  scoreFundingLead
+} from "../../lib/funding/admin";
 import { matchFundingPrograms } from "../../lib/funding/matching";
 
 export const dynamic = "force-dynamic";
@@ -226,7 +231,7 @@ export default async function AdminPage({ searchParams }) {
   const canManageTeamUsers = canManageUsers(session) && Boolean(teamId);
   const visibleTabs = [
     ...(session.role === "contractor" ? [] : ["pipeline"]),
-    ...(canManageLeadActions ? ["prospecting", "outreach"] : []),
+    ...(canManageLeadActions ? ["funding", "prospecting", "outreach"] : []),
     ...(canManageTenantActions ? ["tenants"] : []),
     ...(canManageTeamUsers || canManageContractorActions || session.role === "contractor" ? ["team"] : [])
   ];
@@ -303,6 +308,11 @@ export default async function AdminPage({ searchParams }) {
       score: scoreFundingLead(lead),
       opportunityMatches: matchFundingPrograms(fundingScanFromLead(lead)).topMatches.slice(0, 3)
     }));
+  const fundingTenant = tenants.find((tenant) => tenant.slug === "funded-growth") || tenants[0] || {};
+  const fundingDashboard = buildFundingOpportunityDashboard({
+    tenantId: fundingTenant.id,
+    leads: fundingScanLeads.map(({ lead }) => lead)
+  });
 
   return (
     <AdminTabbedShell notice={notice} visibleTabs={visibleTabs}>
@@ -383,6 +393,21 @@ export default async function AdminPage({ searchParams }) {
                 )}
               </div>
 
+              <div className="funding-gap-list">
+                <strong>Potential program matches</strong>
+                {score.programMatches?.length ? (
+                  <ul>
+                    {score.programMatches.map((match) => (
+                      <li key={match.program.id}>
+                        {match.program.name} ({match.matchScore}, {match.confidence})
+                      </li>
+                    ))}
+                  </ul>
+                ) : (
+                  <p>No program matches from the current scan inputs.</p>
+                )}
+              </div>
+
               {canManageLeadActions ? (
                 <form action="/api/admin/drafts" method="post" className="inline-form">
                   <input type="hidden" name="leadId" value={lead.id} />
@@ -397,6 +422,80 @@ export default async function AdminPage({ searchParams }) {
         </div>
       </section>
       </AdminTabPanel>
+
+      {canManageLeadActions ? (
+      <AdminTabPanel tabId="funding">
+      <section className="admin-panel admin-panel--wide">
+        <div className="pipeline-header">
+          <div>
+            <h2>Funding Opportunities</h2>
+            <p>Manual opportunity intelligence for grants, digital adoption programs, export funding, and funded-contract angles. Human review required before any client-facing claim.</p>
+          </div>
+          <span className="status-pill">{fundingDashboard.length} opportunities</span>
+        </div>
+
+        <div className="funding-opportunity-grid">
+          {fundingDashboard.map(({ program, leadMatches, proposalChecklist }) => (
+            <article className="funding-opportunity-card" key={program.id}>
+              <div className="funding-lead-card__header">
+                <div>
+                  <p className="eyebrow">{program.fundingType}</p>
+                  <h3>{program.name}</h3>
+                  <p>{program.provider} | {program.statusLabel}</p>
+                </div>
+                <span className="status-pill">{program.intakeStatus.replaceAll("_", " ")}</span>
+              </div>
+
+              <p>{program.fitNotes}</p>
+              <dl className="funding-lead-stats">
+                <div>
+                  <dt>Targets</dt>
+                  <dd>{program.targetBusinessLabels?.slice(0, 2).join(", ") || "Business fit review"}</dd>
+                </div>
+                <div>
+                  <dt>Projects</dt>
+                  <dd>{program.projectTypes?.slice(0, 2).join(", ")}</dd>
+                </div>
+                <div>
+                  <dt>Lead Matches</dt>
+                  <dd>{leadMatches.length}</dd>
+                </div>
+              </dl>
+
+              <div className="funding-gap-list">
+                <strong>Top matched leads</strong>
+                {leadMatches.length ? (
+                  <ul>
+                    {leadMatches.map(({ lead, matchScore, confidence, outreachAngle }) => (
+                      <li key={lead.id}>
+                        {lead.businessName || lead.business || "Unknown business"} ({matchScore}, {confidence}) - {outreachAngle.serviceAngle}
+                      </li>
+                    ))}
+                  </ul>
+                ) : (
+                  <p>No lead matches above the current threshold.</p>
+                )}
+              </div>
+
+              <div className="funding-gap-list">
+                <strong>Proposal support checklist</strong>
+                <ul>
+                  {proposalChecklist.slice(0, 4).map((item) => (
+                    <li key={item}>{item}</li>
+                  ))}
+                </ul>
+              </div>
+
+              <a className="button button--secondary" href={program.sourceUrl} target="_blank" rel="noreferrer">
+                Review Source
+              </a>
+            </article>
+          ))}
+          {!fundingDashboard.length ? <p>No funding opportunities configured yet.</p> : null}
+        </div>
+      </section>
+      </AdminTabPanel>
+      ) : null}
 
       {canManageLeadActions ? (
       <AdminTabPanel tabId="prospecting">
