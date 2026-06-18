@@ -1,10 +1,6 @@
 import { NextResponse } from "next/server";
 import { getAdminSession } from "../../../../../lib/auth";
-import {
-  buildLeadEnrichmentNotice,
-  buildLeadEnrichmentUpdateWithOptionalLlm
-} from "../../../../../lib/enrichment/lead.js";
-import { enrichWebsite } from "../../../../../lib/enrichment/website.js";
+import { runLeadEnrichmentWorkflow } from "../../../../../lib/enrichment/workflow.js";
 import { getLeadById, updateLeadResearch } from "../../../../../lib/store";
 
 export async function POST(request) {
@@ -26,22 +22,20 @@ export async function POST(request) {
     return NextResponse.redirect(redirectUrl, 303);
   }
 
-  const enrichmentResult = await enrichWebsite({
-    url: lead.websiteUrl,
-    business: lead.business
-  });
+  const result = await runLeadEnrichmentWorkflow({ lead });
 
-  const update = await buildLeadEnrichmentUpdateWithOptionalLlm(lead, enrichmentResult);
-  const updatedLead = await updateLeadResearch(lead.id, update);
+  if (!result.update) {
+    redirectUrl.searchParams.set("notice", result.notice || "Enrichment failed.");
+    return NextResponse.redirect(redirectUrl, 303);
+  }
+
+  const updatedLead = await updateLeadResearch(lead.id, result.update);
 
   if (!updatedLead) {
     redirectUrl.searchParams.set("notice", "Lead not found.");
     return NextResponse.redirect(redirectUrl, 303);
   }
 
-  redirectUrl.searchParams.set(
-    "notice",
-    buildLeadEnrichmentNotice(lead, enrichmentResult, update.enrichmentStatus)
-  );
+  redirectUrl.searchParams.set("notice", result.notice);
   return NextResponse.redirect(redirectUrl, 303);
 }
