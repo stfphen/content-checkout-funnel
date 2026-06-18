@@ -1,12 +1,14 @@
 "use client";
 
 import { useMemo, useState } from "react";
+import { getTenantTheme } from "../lib/branding";
 
 export default function FunnelPage({ tenant }) {
   const [selectedPackageId, setSelectedPackageId] = useState(tenant.defaultPackageId);
   const [formNote, setFormNote] = useState(tenant.checkout.disclaimer);
   const [toast, setToast] = useState("");
   const isFundingTenant = tenant.slug === "funded-growth";
+  const theme = useMemo(() => getTenantTheme(tenant.brand), [tenant.brand]);
 
   const selectedPackage = useMemo(
     () => tenant.packages.find((pkg) => pkg.id === selectedPackageId) || tenant.packages[0],
@@ -101,12 +103,20 @@ export default function FunnelPage({ tenant }) {
   }
 
   return (
-    <>
+    <div className="tenant-root" style={theme.vars} data-tenant={tenant.slug}>
       <main>
         <section className="hero" aria-label={`${tenant.brand.name} sales offer`}>
           <img className="hero__image" src={tenant.media.heroImage} alt={tenant.media.heroAlt} />
           <div className="hero__shade" />
           <div className="hero__content">
+            <div className="brandbar">
+              {tenant.brand.logo ? (
+                <img className="brandbar__logo" src={tenant.brand.logo} alt={`${tenant.brand.name} logo`} />
+              ) : (
+                <span className="brandbar__wordmark">{tenant.brand.logoText || tenant.brand.name}</span>
+              )}
+              {tenant.brand.tagline ? <span className="brandbar__tagline">{tenant.brand.tagline}</span> : null}
+            </div>
             <p className="eyebrow">{tenant.brand.eyebrow}</p>
             <h1>{tenant.hero.headline}</h1>
             <p className="hero__copy">{tenant.hero.subheadline}</p>
@@ -447,6 +457,6 @@ export default function FunnelPage({ tenant }) {
       <div className={`toast ${toast ? "is-visible" : ""}`} role="status" aria-live="polite">
         {toast}
       </div>
-    </>
+    </div>
   );
 }
