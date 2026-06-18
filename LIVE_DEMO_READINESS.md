@@ -1,5 +1,9 @@
 # Live Demo Readiness Audit
 
+_Last updated: 2026-06-18._
+
+> **Status note:** Prospect enrichment (formerly PR #2) is **merged into `main`** (merge commit `81f0489`). It is no longer in review. The enrichment routes and UI ship on the stable line. The remaining blocker is **live-runtime verification** (Docker/Postgres bring-up + browser QA), not code review.
+
 ## Current MVP Features Completed
 
 - Public tenant funnel pages rendered from tenant/domain configuration.
@@ -11,8 +15,8 @@
 
 ## What Is Tested/Passing
 
-- `npm test` passes: 22/22 tests.
-- `npm run build` passes with Next.js production compilation and route generation.
+- `npm test` passes: **76/76 tests** (verified 2026-06-18).
+- `npm run build` passes with Next.js production compilation and route generation (30 routes, compiled successfully).
 - Covered areas include tenant validation, CSV parsing/import mapping, Apollo request shape, lead scoring, duplicate detection, prospecting batch imports, outreach template rendering, queue eligibility, suppressions, send caps, Resend not-configured/success/failure responses, and follow-up date suggestions.
 
 ## Database Setup
@@ -58,6 +62,24 @@
 - Hunter: confirm API key and account permissions; run domain search enrichment against known-company leads; verify not-configured behavior when the key is missing.
 - Apollo: confirm API key and People API access; verify role keywords and company-domain searches; expect partial contact data because the current path may not return direct emails/phones.
 - Resend: verify sender/domain externally; with `RESEND_API_KEY` absent, confirm approved send reports not-configured; with it present, send one approved queue item and confirm status, `lastContactedAt`, follow-up date, and outreach history update.
+
+## Local Live-Runtime Verification — Results (2026-06-18)
+
+A full local pass was run against a real Postgres instance (migrations applied, owner seeded) with the production-style server. Results:
+
+- **Setup:** `npm run migrate` applied all 3 migrations; `npm run create-owner` seeded an owner; `npm test` = **76/76**; `npm run build` compiled (30 routes).
+- **Public flow:** `/` → 200, `/t/funded-growth` → 200 (renders "Funded Growth"), `/admin` unauthenticated → 307 redirect to `/admin/login`. Funding-scan lead capture (`POST /api/leads`) created a scored lead (score 40) — **works**.
+- **Admin flow (authenticated):** login → 303 to `/admin`; admin shell renders Dashboard/Pipeline/Prospecting/Outreach/Tenants. Funding-scan lead appears with computed **score**, **program matches**, **Generate Draft**, and **Enrich from Website** — **works**.
+- **Draft email:** `POST /api/admin/drafts` → 303, real personalized draft created (subject "Funding fit next step for Acme Bakery") — **works**.
+- **Prospecting (no keys):** Google/Hunter/Apollo all degrade gracefully (e.g. notice `GOOGLE_PLACES_API_KEY is not configured.`) — **works as designed**.
+- **Enrichment:** `POST /api/admin/leads/enrich` runs end-to-end and degrades gracefully when the website fetch is blocked (notice "Website enrichment failed… Fetch returned 403"). The pipeline executes; only the outbound fetch is unavailable in a locked-down egress sandbox — **works; needs open egress to fully demo**.
+- **Outreach:** `POST /api/admin/outreach/queue` queued 1 item ("Queued 1 outreach item."). Outreach events recorded were only `drafted` + `queued` — **no real email was sent** (no `RESEND_API_KEY`, send route not called).
+
+### Blockers/findings found during this pass
+
+- ⚠️ **Owner-team / tenant-team mismatch (demo-blocking if not handled).** The public funnels write leads to `team_default` (the team that owns the seeded `dgtlmag` tenant). `npm run create-owner` with a custom `TEAM_SLUG` creates a **separate** team, so that owner logs into an **empty** pipeline and will not see funnel/funding-scan leads. The session's active team is the owner's **earliest** membership (`team_memberships … order by created_at asc`), with no team switcher exercised here. **Fix for demo:** seed the demo owner onto the team that owns the public tenants (run `create-owner` with `TEAM_SLUG=default`, or whatever team owns the tenant being demoed).
+- ⚠️ **Only the `dgtlmag` tenant is seeded in the DB.** `/t/funded-growth` renders from code config, but stored leads carry `tenant_id="funded-growth"` with no matching `tenants` row. Confirm the intended tenant/team ownership for funnel leads before the demo.
+- ℹ️ **Production start command.** `npm run start` (`next start`) prints a warning under `output: standalone` and is not the production path. The Dockerfile correctly runs `node server.js` (standalone), which was verified serving `/` and `/t/funded-growth` at 200. Demo/prod should use the standalone server (Docker), not `npm run start`.
 
 ## Exact Blockers Before Live Demo
 

@@ -1,11 +1,11 @@
 # Project Status — Content Checkout Funnel
 
-_Last updated: 2026-06-17. This file is written for both humans and future AI agents. Keep it factual; update it whenever branch/PR state changes._
+_Last updated: 2026-06-18. This file is written for both humans and future AI agents. Keep it factual; update it whenever branch/PR state changes._
 
 ## 1. Current stable branch status
 
-- **`main` @ `395f0d7`** is the stable line (PR #3 merged: project stabilization + Funded Growth Engine V2).
-- `main` passes `npm test` and `npm run build`.
+- **`main` @ `81f0489`** is the stable line (PR #2 merged: AI prospect enrichment, on top of PR #3 project stabilization + Funded Growth Engine V2).
+- `main` passes `npm test` (**76/76 tests**) and `npm run build` (30 routes, compiled successfully).
 - `main` includes: team auth (Postgres-backed), permissions, audit logging, team-scoped store, tenant validation, funded growth tenant + engine, manual funding program/category matching, outreach queue, batch builder, and the current `AdminTabbedShell` admin navigation.
 
 ## 2. Open PRs and what they contain
@@ -13,9 +13,9 @@ _Last updated: 2026-06-17. This file is written for both humans and future AI ag
 | PR | Branch | Contents | State |
 |----|--------|----------|-------|
 | **#3** | `integration/project-stabilization` | Team auth, permissions, audit logging, team-scoped store, tenant validation, Funded Growth Engine V2, manual funding matching, admin shell, `CLAUDE.md` | **Merged into `main`** (`395f0d7`) |
-| **#2** | `feature/prospect-enrichment-integration` @ `8c874ad` | Prospect enrichment: website enrichment, social profile discovery, enrichment metadata helpers (`mergeLeadMetadata`, `updateLeadResearch`), deterministic sales-intelligence brief, optional LLM sales brief, single-lead enrich route (`/api/admin/leads/enrich`), batch enrich route (`/api/admin/leads/enrich-batch`), Google auto-enrich option, and enrichment UI (summaries + "Enrich from Website" buttons) integrated into the admin lead cards | **In review, not merged.** Latest `main` merged in cleanly (zero conflicts); validated: 76/76 tests pass, build passes; pushed to origin |
+| **#2** | `feature/prospect-enrichment-integration` @ `8d8f454` | Prospect enrichment: website enrichment, social profile discovery, enrichment metadata helpers (`mergeLeadMetadata`, `updateLeadResearch`), deterministic sales-intelligence brief, optional LLM sales brief, single-lead enrich route (`/api/admin/leads/enrich`), batch enrich route (`/api/admin/leads/enrich-batch`), Google auto-enrich option, and enrichment UI (summaries + "Enrich from Website" buttons) integrated into the admin lead cards | **Merged into `main`** (merge commit `81f0489`, merged 2026-06-18). Validated: 76/76 tests pass, build passes |
 
-> Note: PR #2 was brought up to date by merging `origin/main` into the feature branch. The merge was **conflict-free** (an earlier session had already reconciled enrichment vs. stabilization), so no manual conflict resolution was required this round.
+> Note: PR #2 is now merged. There are **no open PRs**. Enrichment shipped to `main` on top of the PR #3 stabilization line.
 
 ## 3. Stable features (on `main`)
 
@@ -31,12 +31,12 @@ _Last updated: 2026-06-17. This file is written for both humans and future AI ag
 
 ## 4. Features still draft / in review
 
-- **Prospect enrichment (PR #2)** — fully implemented and unit-tested, but not yet merged to `main`. This is the only feature set currently in review.
-  - Website enrichment, social profile discovery, deterministic sales brief, optional LLM brief, single-lead + batch enrich routes, Google auto-enrich, enrichment UI.
+- **None in review.** Prospect enrichment (formerly PR #2) is now **merged into `main`**: website enrichment, social profile discovery, deterministic sales brief, optional LLM brief, single-lead + batch enrich routes, Google auto-enrich, and enrichment UI are all on the stable line.
+- The remaining gap is **not code review** but **live-runtime verification** — see "Known risks" below and `NEXT_STEPS.md`.
 
 ## 5. Known risks
 
-- ⚠️ **Live admin runtime needs Postgres.** Auth is now database-backed (`getAdminSession` → `DATABASE_URL` + seeded `users`/`sessions`/`team_memberships`). The enrichment UI was confirmed via build + unit tests, but **end-to-end GUI rendering was not exercised this session** because no Postgres instance was available. Before merging PR #2, run a live pass against a DB-backed admin (see `DEMO_FLOW.md`).
+- ⚠️ **Live admin runtime needs Postgres (top open risk).** Auth is database-backed (`getAdminSession` → `DATABASE_URL` + seeded `users`/`sessions`/`team_memberships`). The enrichment UI is confirmed via build + unit tests, but **end-to-end GUI rendering has not yet been exercised** against a live DB-backed admin. This live-runtime verification (Docker/Postgres + browser QA) is the current top blocker before a controlled live demo — see `NEXT_STEPS.md` and `DEMO_FLOW.md`.
 - **External providers require keys.** Google/Hunter/Apollo/Resend and the optional LLM brief (`OPENAI_API_KEY`) return clear "not-configured" responses without keys; the LLM brief always falls back to the deterministic brief.
 - **Auto-enrich adds latency / external calls** during Google import; it is capped, but should be load-checked before heavy use.
 - **Funding ingestion is manual.** Program/category matching is human-reviewed; there is no automated live funding-source ingestion yet.
@@ -44,7 +44,7 @@ _Last updated: 2026-06-17. This file is written for both humans and future AI ag
 
 ## 6. Local worktree cleanup status
 
-Many worktrees exist. The following enrichment sub-feature branches (all at `0538b33`) are now **subsumed into `feature/prospect-enrichment-integration`** and are cleanup candidates **once PR #2 merges**:
+Many worktrees exist. Now that PR #2 is merged, the following enrichment sub-feature branches (all at `0538b33`) are **subsumed into `main`** and are cleanup candidates:
 
 - `feature/admin-enrichment-ui`, `feature/batch-enrichment`, `feature/enrichment-signal-interfaces`, `feature/google-auto-enrich-option`, `feature/lead-enrichment-api`, `feature/optional-llm-sales-brief`, `feature/prospect-enrichment-core`, `feature/sales-intelligence-brief`, `feature/social-profile-discovery`, `feature/website-enrichment`
 
