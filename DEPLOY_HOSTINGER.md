@@ -73,11 +73,19 @@ RESEND_API_KEY=
 GOOGLE_PLACES_API_KEY=
 HUNTER_API_KEY=
 APOLLO_API_KEY=
+OPENAI_API_KEY=
+STRIPE_SECRET_KEY=
+STRIPE_WEBHOOK_SECRET=
+STRIPE_PUBLISHABLE_KEY=
 EOF
 ```
 
 Use unique generated values before public launch. Do not reuse local
-placeholder passwords from `.env.example`. `docker-compose.yml` builds the
+placeholder passwords from `.env.example`. For Stripe, paste the live
+`sk_live_` secret key, then register a webhook endpoint at
+`https://dgtlmag.com/api/webhooks/stripe` in the Stripe Dashboard and paste its
+signing secret (`whsec_`) into `STRIPE_WEBHOOK_SECRET`. Leave the Stripe vars
+blank to keep checkout on Payment Links / lead capture. `docker-compose.yml` builds the
 container `DATABASE_URL` from `POSTGRES_DB`, `POSTGRES_USER`, and
 `POSTGRES_PASSWORD`, so the app always connects to the private Postgres service
 in this deployment.

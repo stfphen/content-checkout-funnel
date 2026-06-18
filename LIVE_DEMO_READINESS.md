@@ -7,11 +7,14 @@
 - Lead capture, CSV import, lead pipeline search/filter/sort/editing, duplicate indicators, scoring, and filtered CSV export.
 - Prospecting Batch Builder with Google Places preview/import and optional Hunter/Apollo enrichment paths.
 - Outreach Sequence V1 with templates, campaign records, queue preview, suppression list, approved Resend sending, follow-up dates, outreach events, and lightweight metrics.
+- AI prospect enrichment (PR #2): website/social/sales-brief enrichment with optional LLM brief and Google auto-enrich.
+- Funding Program V1: funded-growth tenant, deterministic funding fit scoring, program-database matching, admin Funding tab with opportunity dashboard, per-lead program matches, human review checklist (gated completion), funding outreach sequence, and closer handoff summary. Demo data via `npm run seed:funding-demo`.
+- Real Stripe Checkout + webhook fulfillment for checkout packages (falls back to Payment Links / lead capture when Stripe is not configured).
 - Dockerized Next.js app behind Traefik with a private Postgres service for VPS deployment.
 
 ## What Is Tested/Passing
 
-- `npm test` passes: 22/22 tests.
+- `npm test` passes: 101/101 tests.
 - `npm run build` passes with Next.js production compilation and route generation.
 - Covered areas include tenant validation, CSV parsing/import mapping, Apollo request shape, lead scoring, duplicate detection, prospecting batch imports, outreach template rendering, queue eligibility, suppressions, send caps, Resend not-configured/success/failure responses, and follow-up date suggestions.
 
@@ -32,6 +35,7 @@
 - `GOOGLE_PLACES_API_KEY` for Google Places prospecting.
 - `HUNTER_API_KEY` for Hunter enrichment.
 - `APOLLO_API_KEY` for Apollo enrichment.
+- `STRIPE_SECRET_KEY` + `STRIPE_WEBHOOK_SECRET` for real checkout (optional; without them, checkout packages fall back to Payment Links / lead capture). `STRIPE_PUBLISHABLE_KEY` optional.
 
 ## Likely Needed For dgtlmag.com To Work
 
@@ -58,6 +62,7 @@
 - Hunter: confirm API key and account permissions; run domain search enrichment against known-company leads; verify not-configured behavior when the key is missing.
 - Apollo: confirm API key and People API access; verify role keywords and company-domain searches; expect partial contact data because the current path may not return direct emails/phones.
 - Resend: verify sender/domain externally; with `RESEND_API_KEY` absent, confirm approved send reports not-configured; with it present, send one approved queue item and confirm status, `lastContactedAt`, follow-up date, and outreach history update.
+- Stripe: use test keys locally (`sk_test_`/`pk_test_`) and forward webhooks with `stripe listen --forward-to <url>/api/webhooks/stripe` (its `whsec_` goes in `STRIPE_WEBHOOK_SECRET`); in production register the dashboard endpoint `https://dgtlmag.com/api/webhooks/stripe` and use its `whsec_` (the dashboard secret differs from the CLI one). Verify: a checkout package redirects to Stripe, test card `4242 4242 4242 4242` completes, `checkout.session.completed` returns 200, the lead shows `metadata.order.status = paid`, a replayed event is a no-op, and with `STRIPE_SECRET_KEY` absent the funnel falls back to lead capture.
 
 ## Exact Blockers Before Live Demo
 
