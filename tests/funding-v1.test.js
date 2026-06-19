@@ -69,6 +69,12 @@ test("closer handoff assembles standalone summary and flags incomplete review", 
   assert.equal(handoff.requiresHumanReview, true);
   assert.equal(handoff.reviewIncomplete, true);
   assert.ok(handoff.nextStep.length > 0);
+  // Bug 2 regression: the next step must be program-specific, not the generic fallback.
+  assert.notEqual(
+    handoff.nextStep,
+    "Confirm the project scope, budget, and owner, then route to the right DGTL package."
+  );
+  assert.ok(handoff.topProgram, "a top program should be matched for the strong export lead");
 });
 
 test("funding merge fields only populate for funding-scan leads", () => {
