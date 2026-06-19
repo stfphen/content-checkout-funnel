@@ -1,23 +1,92 @@
 :root {
+  /* Core palette (unchanged token names — consumed across the whole app and
+     overridden per-tenant via lib/branding.js: --blue/--blue-dark/--accent). */
   --black: #050505;
   --near-black: #111114;
   --white: #ffffff;
-  --soft: #f5f5f7;
+  --soft: #f6f6f8;
   --soft-2: #e8e8ed;
   --muted: #6e6e73;
-  --line: rgba(0, 0, 0, 0.1);
+  --line: rgba(0, 0, 0, 0.09);
   --line-dark: rgba(255, 255, 255, 0.18);
   --blue: #0071e3;
   --blue-dark: #005bb5;
-  --radius: 8px;
+  --accent: #050505;
+
+  /* Brand aliases — readable names for new rules; never override the contract
+     tokens above so tenant theming keeps working. */
+  --brand: var(--blue);
+  --brand-strong: var(--blue-dark);
+
+  /* Semantic surface tokens. Light defaults mirror the current look; the admin
+     dark theme (see [data-theme="dark"]) only re-points these. */
+  --bg: var(--soft);
+  --surface: var(--white);
+  --surface-2: var(--soft);
+  --border: var(--line);
+  --fg: var(--black);
+  --fg-muted: var(--muted);
+
+  /* Radii */
+  --radius: 12px;
+  --radius-sm: 8px;
   --radius-lg: 20px;
   --radius-xl: 32px;
-  --shadow: 0 24px 70px rgba(0, 0, 0, 0.12);
-  --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.04);
+
+  /* Layered, premium elevation (replaces the old single-drop shadows). */
+  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.04), 0 2px 6px rgba(0, 0, 0, 0.05);
+  --shadow: 0 1px 2px rgba(0, 0, 0, 0.04), 0 10px 28px rgba(0, 0, 0, 0.08),
+    0 26px 64px rgba(0, 0, 0, 0.09);
+  --shadow-lg: 0 2px 4px rgba(0, 0, 0, 0.05), 0 18px 44px rgba(0, 0, 0, 0.12),
+    0 48px 110px rgba(0, 0, 0, 0.16);
+  --shadow-brand: 0 10px 30px color-mix(in srgb, var(--blue) 28%, transparent);
+
   --glass: rgba(255, 255, 255, 0.7);
   --glass-dark: rgba(255, 255, 255, 0.85);
-  font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "SF Pro Text",
-    "Helvetica Neue", Arial, sans-serif;
+
+  /* Type scale (editorial ramp). */
+  --text-xs: 12px;
+  --text-sm: 13px;
+  --text-base: 16px;
+  --text-lg: 18px;
+  --text-xl: 22px;
+  --text-2xl: 28px;
+  --text-3xl: 34px;
+  --text-4xl: 44px;
+  --text-5xl: 56px;
+  --text-6xl: 72px;
+  --text-7xl: 88px;
+
+  /* Spacing scale. */
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-5: 20px;
+  --space-6: 24px;
+  --space-8: 32px;
+  --space-12: 48px;
+  --space-16: 64px;
+  --space-24: 96px;
+
+  /* Motion tokens — shared by CSS transitions and Framer variants. */
+  --ease-out: cubic-bezier(0.22, 1, 0.36, 1);
+  --ease-spring: cubic-bezier(0.34, 1.56, 0.64, 1);
+  --dur-fast: 160ms;
+  --dur: 240ms;
+  --dur-slow: 420ms;
+
+  /* Typography. --font-sans / --font-mono are injected by next/font
+     (app/layout.jsx) on <html> — never redefine those two here or they'd clobber
+     the loaded webfonts. We use one calm family (Geist) for body AND headings,
+     so --font-display simply points at --font-sans. */
+  --font-display: var(--font-sans, -apple-system, BlinkMacSystemFont, "SF Pro Display",
+      "Helvetica Neue", Arial, sans-serif);
+  font-family: var(--font-sans, -apple-system, BlinkMacSystemFont, "SF Pro Text",
+      "Helvetica Neue", Arial, sans-serif);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
 }
 
 /* V2 Admin Styles - Apple Inspired */
@@ -31,7 +100,7 @@
 /* Mobile-First: Bottom Nav */
 .v2-nav-container {
   position: fixed;
-  bottom: 24px;
+  bottom: calc(24px + env(safe-area-inset-bottom));
   left: 50%;
   transform: translateX(-50%);
   z-index: 1000;
@@ -413,26 +482,36 @@ p {
   margin-top: 0;
 }
 
+h1,
+h2,
+h3 {
+  font-family: var(--font-display, var(--font-sans, -apple-system, BlinkMacSystemFont,
+        "SF Pro Display", "Helvetica Neue", Arial, sans-serif));
+}
+
 h1 {
-  width: min(800px, 100%);
+  width: min(820px, 100%);
   margin-bottom: 22px;
-  font-size: 88px;
-  line-height: 0.96;
-  letter-spacing: 0;
+  font-size: var(--text-7xl);
+  font-weight: 800;
+  line-height: 0.94;
+  letter-spacing: -0.03em;
 }
 
 h2 {
   margin-bottom: 18px;
-  font-size: 62px;
-  line-height: 1.02;
-  letter-spacing: 0;
+  font-size: var(--text-6xl);
+  font-weight: 800;
+  line-height: 1;
+  letter-spacing: -0.028em;
 }
 
 h3 {
   margin-bottom: 10px;
-  font-size: 22px;
+  font-size: var(--text-xl);
+  font-weight: 700;
   line-height: 1.15;
-  letter-spacing: 0;
+  letter-spacing: -0.01em;
 }
 
 p {
@@ -467,16 +546,24 @@ p {
   color: var(--black);
   background: var(--white);
   font-weight: 700;
+  letter-spacing: -0.01em;
   text-decoration: none;
-  transition: transform 180ms ease, background 180ms ease, color 180ms ease;
+  transition: transform var(--dur-fast) var(--ease-out),
+    box-shadow var(--dur) var(--ease-out), background var(--dur-fast) ease,
+    color var(--dur-fast) ease, filter var(--dur-fast) ease;
 }
 
 .button:hover {
-  transform: translateY(-1px);
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-sm);
+}
+
+.button:active {
+  transform: translateY(0) scale(0.985);
 }
 
 .button:focus-visible {
-  outline: 3px solid rgba(0, 113, 227, 0.38);
+  outline: 3px solid color-mix(in srgb, var(--blue) 42%, transparent);
   outline-offset: 3px;
 }
 
@@ -487,6 +574,7 @@ p {
 
 .button--primary:hover {
   background: var(--blue-dark);
+  box-shadow: var(--shadow-brand);
 }
 
 .button--secondary {
@@ -2070,7 +2158,7 @@ p {
   margin: 0;
   white-space: pre-wrap;
   color: var(--near-black);
-  font: 13px/1.45 ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace;
+  font: 13px/1.45 var(--font-mono, ui-monospace), SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace;
 }
 
 .outreach-performance-grid {
@@ -2238,6 +2326,29 @@ p {
   font-size: 14px;
 }
 
+.admin-hint {
+  margin: 4px 0 0;
+  color: var(--fg-muted, #6b7280);
+  font-size: 13px;
+}
+
+.lead-call-panel {
+  display: grid;
+  gap: 10px;
+  margin-bottom: 16px;
+}
+
+.lead-call-row {
+  display: grid;
+  gap: 4px;
+}
+
+.lead-call-outcome {
+  display: grid;
+  gap: 4px;
+  font-size: 13px;
+}
+
 .admin-list {
   display: grid;
   gap: 10px;
@@ -2274,7 +2385,7 @@ p {
   overflow-x: auto;
   white-space: pre-wrap;
   color: var(--near-black);
-  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  font-family: var(--font-mono, ui-monospace), SFMono-Regular, Menlo, Monaco, Consolas, monospace;
   font-size: 13px;
   line-height: 1.5;
 }
@@ -2491,4 +2602,593 @@ p {
   .repeatable-list__row {
     grid-template-columns: 1fr;
   }
+}
+
+/* ============================================================
+   REDESIGN LAYER — bold / editorial polish, motion, admin dark theme.
+   Appended last so these rules win the cascade over the base styles above.
+   Class names + DOM are unchanged; this is purely a new skin + motion.
+   ============================================================ */
+
+/* Editorial eyebrow — refined tracking */
+.eyebrow {
+  font-size: var(--text-sm);
+  letter-spacing: 0.14em;
+}
+
+/* Body copy weight tuning for the new typeface */
+.hero__copy {
+  letter-spacing: -0.01em;
+}
+
+/* --- Premium hover lift, consistent across card surfaces --- */
+.feature-row article,
+.package,
+.faq-grid article,
+.funding-lead-card,
+.funding-opportunity-card,
+.tenant-summary-card,
+.outreach-card,
+.api-provider-card,
+.preview-card,
+.lead-card,
+.admin-metrics article {
+  transition: transform var(--dur) var(--ease-out),
+    box-shadow var(--dur) var(--ease-out), border-color var(--dur) var(--ease-out);
+}
+
+.feature-row article:hover,
+.package:hover,
+.faq-grid article:hover,
+.funding-lead-card:hover,
+.funding-opportunity-card:hover,
+.tenant-summary-card:hover,
+.outreach-card:hover,
+.api-provider-card:hover,
+.preview-card:hover,
+.lead-card:hover {
+  transform: translateY(-4px);
+  box-shadow: var(--shadow);
+  border-color: color-mix(in srgb, var(--blue) 26%, var(--border));
+}
+
+/* Featured package — brand glow */
+.package--featured {
+  box-shadow: var(--shadow-lg);
+}
+.package--featured:hover {
+  box-shadow: var(--shadow-lg), var(--shadow-brand);
+}
+
+/* Metric pills — subtle interactive feedback */
+.v2-metric-pill {
+  transition: transform var(--dur) var(--ease-out), box-shadow var(--dur) var(--ease-out);
+}
+.v2-metric-pill:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-sm);
+}
+
+/* Admin nav item — smoother active/hover transitions */
+.v2-nav-item {
+  transition: color var(--dur-fast) var(--ease-out),
+    background var(--dur-fast) var(--ease-out), transform var(--dur-fast) var(--ease-out);
+}
+
+/* --- Theme toggle button (admin) --- */
+.theme-toggle {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 42px;
+  height: 42px;
+  flex: 0 0 auto;
+  border-radius: 999px;
+  border: 1px solid var(--border);
+  background: var(--surface);
+  color: var(--fg);
+  transition: transform var(--dur-fast) var(--ease-out),
+    background var(--dur-fast) ease, color var(--dur-fast) ease,
+    box-shadow var(--dur) var(--ease-out);
+}
+.theme-toggle:hover {
+  transform: translateY(-1px);
+  background: var(--surface-2);
+  box-shadow: var(--shadow-sm);
+}
+.theme-toggle:focus-visible {
+  outline: 3px solid color-mix(in srgb, var(--blue) 42%, transparent);
+  outline-offset: 3px;
+}
+.admin-header__actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+/* ============================================================
+   ADMIN DARK THEME — scoped to the admin shell only.
+   Re-points the palette + semantic tokens; brand tokens (--blue / --accent)
+   are intentionally left intact so tenant accents still pop. The public funnel
+   never has this ancestor, so it is completely unaffected.
+   ============================================================ */
+.v2-admin-shell[data-theme="dark"] {
+  --white: #1c1c1e;
+  --soft: #161618;
+  --soft-2: #2c2c2e;
+  --black: #f5f5f7;
+  --near-black: #e6e6eb;
+  --muted: #9b9ba3;
+  --line: rgba(255, 255, 255, 0.12);
+  --border: rgba(255, 255, 255, 0.12);
+  --bg: #0c0c0e;
+  --surface: #1c1c1e;
+  --surface-2: #161618;
+  --fg: #f5f5f7;
+  --fg-muted: #9b9ba3;
+  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.4);
+  --shadow: 0 1px 2px rgba(0, 0, 0, 0.45), 0 16px 40px rgba(0, 0, 0, 0.5);
+  --shadow-lg: 0 2px 4px rgba(0, 0, 0, 0.45), 0 28px 80px rgba(0, 0, 0, 0.6);
+  --glass-dark: rgba(28, 28, 30, 0.82);
+  background: #0c0c0e;
+  color: var(--black);
+}
+
+/* True-white text where elements sit on a colored fill (the palette swap would
+   otherwise render these dark-on-blue). */
+.v2-admin-shell[data-theme="dark"] .button--primary,
+.v2-admin-shell[data-theme="dark"] .button--dark,
+.v2-admin-shell[data-theme="dark"] .v2-action-button,
+.v2-admin-shell[data-theme="dark"] .tenant-builder__tabs button.is-active {
+  color: #fff;
+}
+
+/* Secondary button: base is rgba-white fill + dark text — invert for dark. */
+.v2-admin-shell[data-theme="dark"] .button--secondary {
+  color: var(--black);
+  background: rgba(255, 255, 255, 0.08);
+  border-color: rgba(255, 255, 255, 0.16);
+}
+
+/* Sidebar nav (desktop bg is a hardcoded #f5f5f7). */
+@media (min-width: 1024px) {
+  .v2-admin-shell[data-theme="dark"] .v2-nav-container {
+    background: #131315;
+    border-right-color: rgba(255, 255, 255, 0.08);
+  }
+}
+.v2-admin-shell[data-theme="dark"] .v2-nav-container {
+  border-color: rgba(255, 255, 255, 0.1);
+}
+.v2-admin-shell[data-theme="dark"] .v2-nav-item:hover {
+  background: rgba(255, 255, 255, 0.06);
+}
+.v2-admin-shell[data-theme="dark"] .v2-status-select {
+  background: #2c2c2e;
+  color: var(--black);
+}
+
+/* Inputs (hardcoded light borders). */
+.v2-admin-shell[data-theme="dark"] input,
+.v2-admin-shell[data-theme="dark"] select,
+.v2-admin-shell[data-theme="dark"] textarea {
+  border-color: rgba(255, 255, 255, 0.16);
+}
+
+/* Subtle "tinted" panels that used rgba(0,0,0,.0x) fills. */
+.v2-admin-shell[data-theme="dark"] .tenant-builder__topbar,
+.v2-admin-shell[data-theme="dark"] .tenant-builder__section,
+.v2-admin-shell[data-theme="dark"] .batch-builder__form,
+.v2-admin-shell[data-theme="dark"] .batch-history,
+.v2-admin-shell[data-theme="dark"] .batch-preview,
+.v2-admin-shell[data-theme="dark"] .outreach-metrics article,
+.v2-admin-shell[data-theme="dark"] .outreach-card,
+.v2-admin-shell[data-theme="dark"] .duplicate-review,
+.v2-admin-shell[data-theme="dark"] .metadata-preview {
+  background: rgba(255, 255, 255, 0.04);
+}
+
+/* Pills / chips on dark. */
+.v2-admin-shell[data-theme="dark"] .lead-score {
+  background: rgba(255, 255, 255, 0.08);
+}
+.v2-admin-shell[data-theme="dark"] .lead-enrichment__pill,
+.v2-admin-shell[data-theme="dark"] .lead-enrichment__score {
+  border-color: rgba(255, 255, 255, 0.12);
+}
+.v2-admin-shell[data-theme="dark"] .lead-enrichment__brief {
+  border-top-color: rgba(255, 255, 255, 0.1);
+}
+.v2-admin-shell[data-theme="dark"] .status-pill {
+  color: color-mix(in srgb, var(--blue) 55%, #ffffff);
+  background: color-mix(in srgb, var(--blue) 22%, transparent);
+}
+
+/* Row separators that used rgba(0,0,0,.0x). */
+.v2-admin-shell[data-theme="dark"] .v2-table td,
+.v2-admin-shell[data-theme="dark"] .outreach-lead-row,
+.v2-admin-shell[data-theme="dark"] .outreach-queue-row,
+.v2-admin-shell[data-theme="dark"] .outreach-list-row,
+.v2-admin-shell[data-theme="dark"] .team-users-table__row {
+  border-bottom-color: rgba(255, 255, 255, 0.08);
+}
+
+/* Avoid a hydration flash before the toggle resolves the stored theme. */
+.v2-admin-shell:not([data-theme]) {
+  visibility: hidden;
+}
+
+/* --- Respect reduced-motion preferences everywhere --- */
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+  }
+}
+
+/* --- Admin login: premium, elevated, subtle brand wash --- */
+.admin-login {
+  background:
+    radial-gradient(1100px 560px at 50% -12%, color-mix(in srgb, var(--blue) 12%, transparent), transparent 62%),
+    var(--soft);
+}
+.admin-login__panel {
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-lg);
+}
+
+/* --- Admin header: larger, more editorial title --- */
+.v2-view-header h1 {
+  font-size: var(--text-5xl);
+  letter-spacing: -0.03em;
+  line-height: 1;
+}
+@media (max-width: 880px) {
+  .v2-view-header h1 {
+    font-size: var(--text-4xl);
+  }
+}
+
+/* Admin metric numbers / pill counts pick up the display face */
+.v2-metric-count,
+.admin-metrics span,
+.outreach-metrics span,
+.price span,
+.hero__stats dt {
+  font-family: var(--font-display, var(--font-sans, inherit));
+  letter-spacing: -0.02em;
+}
+
+/* AI Deep Research */
+.lead-research {
+  margin-top: 14px;
+  padding: 14px 16px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: var(--soft);
+}
+
+.lead-research__bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 10px;
+}
+
+.research-dossier {
+  display: grid;
+  gap: 10px;
+}
+
+.research-summary {
+  margin: 0;
+}
+
+.research-group strong {
+  display: block;
+  color: var(--near-black);
+  margin-bottom: 4px;
+}
+
+.research-group ul,
+.research-group ol {
+  margin: 0;
+  padding-left: 18px;
+}
+
+.research-group a {
+  font-size: 13px;
+}
+
+.research-group--review {
+  padding: 8px 10px;
+  border-radius: var(--radius);
+  background: #fff7ed;
+  border: 1px solid #fed7aa;
+}
+
+.research-pill {
+  display: inline-block;
+  padding: 1px 7px;
+  border-radius: 999px;
+  font-size: 11px;
+  text-transform: capitalize;
+  border: 1px solid var(--line);
+  background: #fff;
+  color: var(--muted);
+}
+
+.research-pill--verified,
+.research-pill--high {
+  background: #ecfdf5;
+  border-color: #a7f3d0;
+  color: #047857;
+}
+
+.research-pill--medium {
+  background: #fefce8;
+  border-color: #fde68a;
+  color: #92400e;
+}
+
+.research-pill--low,
+.research-pill--unverified {
+  background: #fef2f2;
+  border-color: #fecaca;
+  color: #b91c1c;
+}
+
+/* ============================================================
+   ADMIN — REFINED SAAS NORMALIZATION (Phase 2)
+   Everything here is scoped to .v2-admin-shell so the public funnel is
+   untouched. Goal: ONE spacing scale, ONE card treatment, ONE header style,
+   and a calm Linear/Stripe/Vercel-style type hierarchy. Appended last so it
+   wins the cascade over the scattered legacy values.
+   ============================================================ */
+
+/* --- Container / scaffold: clear max-width + generous, consistent gutters --- */
+@media (min-width: 1024px) {
+  .v2-admin-shell .v2-dashboard-main.admin-shell {
+    width: 100%;
+    max-width: 1320px;
+    margin: 0 auto;
+    padding: 40px 48px 88px;
+  }
+}
+
+/* --- Calm type hierarchy (admin only; funnel keeps its editorial scale) --- */
+.v2-admin-shell .v2-view-header {
+  margin-bottom: var(--space-8);
+}
+.v2-admin-shell .v2-view-header h1 {
+  font-size: 28px;
+  font-weight: 600;
+  line-height: 1.15;
+  letter-spacing: -0.02em;
+}
+.v2-admin-shell .v2-view-header .eyebrow {
+  margin-bottom: 8px;
+  opacity: 0.7;
+}
+.v2-admin-shell .admin-header > div > p {
+  margin-top: 6px;
+  max-width: 60ch;
+  font-size: 14px;
+  color: var(--muted);
+}
+.v2-admin-shell .admin-panel h2,
+.v2-admin-shell .pipeline-header h2,
+.v2-admin-shell .batch-preview__header h2 {
+  font-size: 18px;
+  font-weight: 600;
+  line-height: 1.25;
+  letter-spacing: -0.01em;
+  margin-bottom: 4px;
+}
+.v2-admin-shell h3 {
+  font-size: 15px;
+  font-weight: 600;
+  letter-spacing: -0.005em;
+}
+.v2-admin-shell .pipeline-header p,
+.v2-admin-shell .batch-preview__header p {
+  font-size: 14px;
+  color: var(--muted);
+}
+
+/* --- ONE card treatment for every module --- */
+.v2-admin-shell .admin-panel,
+.v2-admin-shell .outreach-card,
+.v2-admin-shell .funding-lead-card,
+.v2-admin-shell .funding-opportunity-card,
+.v2-admin-shell .api-provider-card,
+.v2-admin-shell .batch-builder__form,
+.v2-admin-shell .batch-history,
+.v2-admin-shell .batch-preview,
+.v2-admin-shell .tenant-summary-card,
+.v2-admin-shell .lead-enrichment,
+.v2-admin-shell .metric-table,
+.v2-admin-shell .tenant-builder__section,
+.v2-admin-shell .tenant-builder__topbar {
+  padding: var(--space-5);
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow-sm);
+}
+@media (min-width: 1024px) {
+  .v2-admin-shell .admin-panel,
+  .v2-admin-shell .outreach-card,
+  .v2-admin-shell .funding-lead-card,
+  .v2-admin-shell .funding-opportunity-card,
+  .v2-admin-shell .api-provider-card,
+  .v2-admin-shell .batch-builder__form,
+  .v2-admin-shell .batch-history,
+  .v2-admin-shell .batch-preview {
+    padding: var(--space-6);
+  }
+}
+
+/* Inner tiles / sub-cards: one smaller, consistent step */
+.v2-admin-shell .funding-lead-stats div,
+.v2-admin-shell .lead-facts div,
+.v2-admin-shell .preview-card,
+.v2-admin-shell .funding-review,
+.v2-admin-shell .duplicate-review,
+.v2-admin-shell .metadata-preview,
+.v2-admin-shell .admin-list div {
+  padding: var(--space-4);
+  border-radius: var(--radius-sm);
+}
+
+/* --- Vertical rhythm: equal space between stacked modules --- */
+.v2-admin-shell .admin-panel,
+.v2-admin-shell .admin-grid,
+.v2-admin-shell .outreach-admin-grid,
+.v2-admin-shell .admin-metrics,
+.v2-admin-shell .outreach-metrics,
+.v2-admin-shell .outreach-card--wide,
+.v2-admin-shell .api-provider-stack {
+  margin-bottom: var(--space-6);
+}
+.v2-admin-shell .admin-tab-panel > *:last-child {
+  margin-bottom: 0;
+}
+
+/* --- Grid gaps: card grids breathe (20px), lists stay tight (12px) --- */
+.v2-admin-shell .admin-grid,
+.v2-admin-shell .outreach-admin-grid,
+.v2-admin-shell .api-provider-grid,
+.v2-admin-shell .funding-opportunity-grid,
+.v2-admin-shell .tenant-summary-grid {
+  gap: var(--space-5);
+}
+.v2-admin-shell .lead-control-list,
+.v2-admin-shell .funding-lead-list,
+.v2-admin-shell .outreach-list,
+.v2-admin-shell .admin-list,
+.v2-admin-shell .funding-lead-stats,
+.v2-admin-shell .lead-facts,
+.v2-admin-shell .outreach-performance-grid {
+  gap: var(--space-3);
+}
+
+/* --- Section header: consistent rhythm across the 3 legacy patterns --- */
+.v2-admin-shell .pipeline-header,
+.v2-admin-shell .batch-preview__header {
+  margin-bottom: var(--space-5);
+  align-items: center;
+}
+
+/* --- Unified stat / metric cards --- */
+.v2-admin-shell .admin-metrics article,
+.v2-admin-shell .outreach-metrics article,
+.v2-admin-shell .v2-metric-pill {
+  padding: var(--space-4);
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  box-shadow: none;
+}
+.v2-admin-shell .admin-metrics span,
+.v2-admin-shell .outreach-metrics span,
+.v2-admin-shell .v2-metric-count,
+.v2-admin-shell .funding-lead-stats dd {
+  font-weight: 600;
+  letter-spacing: -0.02em;
+  font-variant-numeric: tabular-nums;
+}
+.v2-admin-shell .admin-metrics span,
+.v2-admin-shell .outreach-metrics span,
+.v2-admin-shell .v2-metric-count {
+  font-size: 22px;
+}
+.v2-admin-shell .admin-metrics p,
+.v2-admin-shell .outreach-metrics p,
+.v2-admin-shell .v2-metric-label,
+.v2-admin-shell .funding-lead-stats dt {
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--muted);
+  text-transform: none;
+  letter-spacing: 0;
+}
+
+/* --- Forms: ONE input style + consistent gaps --- */
+.v2-admin-shell .admin-form,
+.v2-admin-shell .outreach-builder__form {
+  gap: var(--space-4);
+}
+.v2-admin-shell .admin-form label,
+.v2-admin-shell .outreach-builder__form label,
+.v2-admin-shell .lead-filters label,
+.v2-admin-shell .tenant-builder label,
+.v2-admin-shell .team-user-form label {
+  gap: 6px;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--fg);
+}
+.v2-admin-shell input,
+.v2-admin-shell select,
+.v2-admin-shell textarea {
+  padding: 11px 13px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  background: var(--surface);
+  color: var(--fg);
+}
+.v2-admin-shell input:focus,
+.v2-admin-shell select:focus,
+.v2-admin-shell textarea:focus {
+  border-color: var(--blue);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--blue) 18%, transparent);
+  outline: none;
+}
+
+/* --- Buttons: crisp rectangles in admin (funnel keeps pills) --- */
+.v2-admin-shell .button {
+  min-height: 40px;
+  padding: 9px 16px;
+  border-radius: var(--radius-sm);
+  font-weight: 600;
+  letter-spacing: -0.005em;
+}
+
+/* --- Tables: quiet uppercase headers, roomy rows --- */
+.v2-admin-shell .v2-table th,
+.v2-admin-shell .lead-table__head,
+.v2-admin-shell .team-users-table__row--head {
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+.v2-admin-shell .v2-table td {
+  padding: 14px 16px;
+}
+
+/* --- Pills / badges: consistent sizing --- */
+.v2-admin-shell .status-pill,
+.v2-admin-shell .lead-score,
+.v2-admin-shell .duplicate-pill {
+  padding: 5px 10px;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.01em;
+}
+
+/* --- Notice banner: align with the calmer system --- */
+.v2-admin-shell .admin-notice {
+  margin-bottom: var(--space-6);
+  border-radius: var(--radius);
+  font-weight: 600;
 }

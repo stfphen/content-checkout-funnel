@@ -1,0 +1,315 @@
+import assert from "node:assert/strict";
+import test from "node:test";
+import os from "node:os";
+import path from "node:path";
+import { rm } from "node:fs/promises";
+import twilio from "twilio";
+
+// Isolate the JSON fallback store in a temp file and force file-store mode BEFORE
+// importing the data layer. Pure telephony modules below import no store, so
+// their (hoisted) static imports are safe.
+const STORE_PATH = path.join(os.tmpdir(), `telephony-test-store-${process.pid}.json`);
+process.env.APP_STORE_PATH = STORE_PATH;
+delete process.env.DATABASE_URL;
+process.env.TWILIO_ACCOUNT_SID = "ACtest";
+process.env.TWILIO_AUTH_TOKEN = "telephony_test_token";
+process.env.TELEPHONY_WEBHOOK_BASE_URL = "https://test.example.com";
+
+import { decideRoute } from "../lib/telephony/routing.js";
+import { twilioProvider } from "../lib/telephony/twilioProvider.js";
+import { toE164US, isValidE164US } from "../lib/telephony/phone.js";
+import { normalizeTenantTelephony, defaultTenantTelephony } from "../lib/telephony/constants.js";
+import { checkOutboundLead } from "../lib/telephony/outboundGuards.js";
+
+// Note: the inbound/status routes use the standard web Response and load under
+// node --test. The outbound route imports next/server (NextResponse), which only
+// resolves inside the Next build, so its lead/tenant authorization is tested via
+// the pure checkOutboundLead guard it delegates to; session auth (requireRole)
+// is covered by the build + manual smoke.
+const store = await import("../lib/store.js");
+const { POST: inboundPOST } = await import("../app/api/telephony/inbound/route.js");
+const { POST: statusPOST } = await import("../app/api/telephony/status/route.js");
+
+const TEAM = "team_default";
+
+function webhookRequest(routePath, params) {
+  const url = `https://test.example.com${routePath}`;
+  const body = new URLSearchParams(params).toString();
+  const signature = twilio.getExpectedTwilioSignature(process.env.TWILIO_AUTH_TOKEN, url, params);
+  return new Request(url, {
+    method: "POST",
+    headers: { "content-type": "application/x-www-form-urlencoded", "x-twilio-signature": signature },
+    body
+  });
+}
+
+function unsignedRequest(routePath, params) {
+  const url = `https://test.example.com${routePath}`;
+  return new Request(url, {
+    method: "POST",
+    headers: { "content-type": "application/x-www-form-urlencoded" },
+    body: new URLSearchParams(params).toString()
+  });
+}
+
+test.after(async () => {
+  await rm(STORE_PATH, { force: true });
+});
+
+// --- Pure units --------------------------------------------------------------
+
+test("toE164US normalizes +1 numbers and rejects invalid", () => {
+  assert.equal(toE164US("4165550123"), "+14165550123");
+  assert.equal(toE164US("(416) 555-0123"), "+14165550123");
+  assert.equal(toE164US("14165550123"), "+14165550123");
+  assert.equal(toE164US("+14165550123"), "+14165550123");
+  assert.equal(toE164US("12345"), "");
+  assert.equal(toE164US(""), "");
+  assert.ok(isValidE164US("+14165550123"));
+  assert.ok(!isValidE164US("4165550123"));
+});
+
+test("normalizeTenantTelephony applies safe defaults (recording OFF)", () => {
+  const defaults = defaultTenantTelephony();
+  assert.equal(defaults.enabled, false);
+  assert.equal(defaults.recordingEnabled, false);
+  assert.equal(defaults.voicemailEnabled, true);
+  assert.equal(defaults.provider, "twilio");
+  assert.equal(defaults.routingMode, "single_rep");
+
+  const merged = normalizeTenantTelephony({ enabled: "true", provider: "telnyx", routingMode: "bogus" });
+  assert.equal(merged.enabled, true);
+  assert.equal(merged.provider, "telnyx");
+  assert.equal(merged.routingMode, "single_rep"); // invalid -> default
+});
+
+test("decideRoute: assigned owner -> single_rep default -> fallback -> voicemail/reject", () => {
+  const reps = [
+    { id: "u1", phoneNumber: "+14165550111" },
+    { id: "u2", phoneNumber: "+14165550222" }
+  ];
+  const tel = { routingMode: "single_rep", defaultRepId: "u2", fallbackNumber: "+14165559999", voicemailEnabled: true };
+
+  assert.deepEqual(decideRoute({ assignedToUserId: "u1" }, tel, reps), {
+    type: "rep",
+    destinationNumber: "+14165550111",
+    repId: "u1",
+    reason: "assigned_rep"
+  });
+  assert.equal(decideRoute({}, tel, reps).destinationNumber, "+14165550222");
+  assert.equal(decideRoute({}, { routingMode: "single_rep", fallbackNumber: "+14165559999" }, []).type, "fallback");
+  assert.equal(decideRoute({}, { routingMode: "single_rep", voicemailEnabled: true }, []).type, "voicemail");
+  assert.equal(decideRoute({}, { routingMode: "single_rep" }, []).type, "reject");
+});
+
+test("handleCallStatusUpdate maps Twilio statuses (no-answer -> missed)", () => {
+  assert.equal(twilioProvider.handleCallStatusUpdate({ CallStatus: "completed", CallDuration: "73" }).status, "completed");
+  assert.equal(twilioProvider.handleCallStatusUpdate({ CallStatus: "completed", CallDuration: "73" }).durationSeconds, 73);
+  assert.equal(twilioProvider.handleCallStatusUpdate({ CallStatus: "in-progress" }).status, "in_progress");
+  assert.equal(twilioProvider.handleCallStatusUpdate({ CallStatus: "no-answer" }).status, "missed");
+  assert.equal(twilioProvider.handleCallStatusUpdate({ CallStatus: "busy" }).status, "missed");
+  assert.ok(twilioProvider.handleCallStatusUpdate({ CallStatus: "completed" }).isTerminal);
+});
+
+test("buildInboundResponse renders Dial / Record / Hangup TwiML", async () => {
+  const dial = await twilioProvider.buildInboundResponse({
+    action: "dial",
+    destinationNumber: "+14165550111",
+    tenantNumber: "+14165550100"
+  });
+  assert.match(dial, /<Dial callerId="\+14165550100"/);
+  assert.match(dial, /<Number>\+14165550111<\/Number>/);
+
+  const vm = await twilioProvider.buildInboundResponse({ action: "voicemail" });
+  assert.match(vm, /<Record/);
+
+  const reject = await twilioProvider.buildInboundResponse({ action: "reject" });
+  assert.match(reject, /<Hangup\/>/);
+});
+
+test("verifyWebhook rejects invalid signature and accepts a valid one", async () => {
+  const url = "https://test.example.com/api/telephony/inbound";
+  const params = { To: "+14165550100", From: "+14165551234", CallSid: "CAverify" };
+  const valid = twilio.getExpectedTwilioSignature(process.env.TWILIO_AUTH_TOKEN, url, params);
+
+  assert.equal(await twilioProvider.verifyWebhook({ url, signature: "wrong", params }), false);
+  assert.equal(await twilioProvider.verifyWebhook({ url, signature: "", params }), false);
+  assert.equal(await twilioProvider.verifyWebhook({ url, signature: valid, params }), true);
+});
+
+test("createOutboundCall degrades gracefully without credentials", async () => {
+  const savedSid = process.env.TWILIO_ACCOUNT_SID;
+  const savedToken = process.env.TWILIO_AUTH_TOKEN;
+  delete process.env.TWILIO_ACCOUNT_SID;
+  delete process.env.TWILIO_AUTH_TOKEN;
+  try {
+    const result = await twilioProvider.createOutboundCall({
+      tenantNumber: "+14165550100",
+      repNumber: "+14165550111",
+      leadNumber: "+14165550123"
+    });
+    assert.equal(result.ok, false);
+    assert.equal(result.configured, false);
+  } finally {
+    process.env.TWILIO_ACCOUNT_SID = savedSid;
+    process.env.TWILIO_AUTH_TOKEN = savedToken;
+  }
+});
+
+// --- Store + tenant lookup ---------------------------------------------------
+
+test("tenant telephony settings persist and resolve by phone number", async () => {
+  const tenant = await store.getTenantByIdOrSlug("tenant_dgtlmag", { teamId: TEAM });
+  await store.upsertTenantConfig(
+    {
+      ...tenant,
+      telephony: normalizeTenantTelephony({
+        enabled: true,
+        phoneNumber: "+14165550100",
+        defaultRepId: "u1",
+        fallbackNumber: "+14165550199"
+      })
+    },
+    { teamId: TEAM }
+  );
+
+  const tel = await store.getTenantTelephony("tenant_dgtlmag");
+  assert.equal(tel.enabled, true);
+  assert.equal(tel.phoneNumber, "+14165550100");
+
+  const matched = await store.getTenantByPhoneNumber("+1 (416) 555-0100");
+  assert.equal(matched?.id, "tenant_dgtlmag");
+  const unknown = await store.getTenantByPhoneNumber("+19998887777");
+  assert.equal(unknown, null);
+});
+
+// --- Routes ------------------------------------------------------------------
+
+test("inbound webhook rejects invalid signature (403)", async () => {
+  const response = await inboundPOST(
+    unsignedRequest("/api/telephony/inbound", { To: "+14165550100", From: "+14165551234", CallSid: "CAx" })
+  );
+  assert.equal(response.status, 403);
+});
+
+test("inbound webhook with valid signature logs a Call and returns TwiML", async () => {
+  const params = { To: "+14165550100", From: "+14165551234", CallSid: "CAinbound1" };
+  const response = await inboundPOST(webhookRequest("/api/telephony/inbound", params));
+  assert.equal(response.status, 200);
+  assert.match(response.headers.get("content-type") || "", /xml/);
+  const body = await response.text();
+  assert.match(body, /<Response>/);
+
+  const call = await store.getCallByProviderId("CAinbound1");
+  assert.equal(call.direction, "inbound");
+  assert.equal(call.tenantId, "tenant_dgtlmag");
+
+  // Timeline entry was appended for the call.
+  const events = await store.listOutreachEvents({ teamId: TEAM });
+  assert.ok(events.some((event) => event.leadId === call.leadId && /Inbound call/.test(event.metadata?.summary || "")));
+});
+
+test("status webhook updates the matching Call (status + duration)", async () => {
+  // Seed a known call, then post a completed status for it.
+  const seeded = await store.createCall({
+    teamId: TEAM,
+    tenantId: "tenant_dgtlmag",
+    leadId: "",
+    direction: "outbound",
+    status: "ringing",
+    providerCallId: "CAstatus1"
+  });
+  const response = await statusPOST(
+    webhookRequest("/api/telephony/status", { CallSid: "CAstatus1", CallStatus: "completed", CallDuration: "85" })
+  );
+  assert.equal(response.status, 200);
+
+  const updated = await store.getCallById(seeded.id);
+  assert.equal(updated.status, "completed");
+  assert.equal(updated.durationSeconds, 85);
+  assert.ok(updated.endedAt);
+});
+
+test("missed inbound status creates an urgent callback task + timeline entry", async () => {
+  const lead = await store.createLead({
+    teamId: TEAM,
+    tenantId: "tenant_dgtlmag",
+    businessName: "Missed Inc",
+    phone: "+14165552222"
+  });
+  await store.createCall({
+    teamId: TEAM,
+    tenantId: "tenant_dgtlmag",
+    leadId: lead.id,
+    direction: "inbound",
+    status: "ringing",
+    providerCallId: "CAmissed1"
+  });
+
+  const response = await statusPOST(
+    webhookRequest("/api/telephony/status", { CallSid: "CAmissed1", CallStatus: "no-answer" })
+  );
+  assert.equal(response.status, 200);
+
+  const tasks = await store.listTasks({ teamId: TEAM, status: "open" });
+  const task = tasks.find((item) => item.leadId === lead.id);
+  assert.ok(task, "expected a callback task");
+  assert.equal(task.priority, "urgent");
+  assert.match(task.title, /Call back/);
+
+  const refreshed = await store.getLeadById(lead.id);
+  assert.equal(refreshed.callStatus, "missed");
+});
+
+test("outbound guard rejects do-not-call, foreign-team, and disabled tenants", () => {
+  const enabledTenant = { telephony: { enabled: true } };
+
+  // Happy path.
+  assert.equal(
+    checkOutboundLead({ lead: { teamId: TEAM }, teamId: TEAM, tenant: enabledTenant }).ok,
+    true
+  );
+  // do-not-call / do-not-contact.
+  assert.equal(
+    checkOutboundLead({ lead: { teamId: TEAM, doNotCall: true }, teamId: TEAM, tenant: enabledTenant }).status,
+    409
+  );
+  assert.equal(
+    checkOutboundLead({ lead: { teamId: TEAM, doNotContact: true }, teamId: TEAM, tenant: enabledTenant }).status,
+    409
+  );
+  // Lead from another team.
+  assert.equal(
+    checkOutboundLead({ lead: { teamId: "team_other" }, teamId: TEAM, tenant: enabledTenant }).status,
+    404
+  );
+  // Telephony disabled.
+  assert.equal(
+    checkOutboundLead({ lead: { teamId: TEAM }, teamId: TEAM, tenant: { telephony: { enabled: false } } }).status,
+    409
+  );
+});
+
+test("saving a 'do_not_call' outcome flips the lead flag", async () => {
+  const lead = await store.createLead({
+    teamId: TEAM,
+    tenantId: "tenant_dgtlmag",
+    businessName: "Outcome Inc",
+    phone: "+14165553333"
+  });
+  const call = await store.createCall({
+    teamId: TEAM,
+    tenantId: "tenant_dgtlmag",
+    leadId: lead.id,
+    direction: "outbound",
+    status: "completed"
+  });
+
+  await store.updateCall(call.id, { outcome: "do_not_call" });
+  await store.updateLead(lead.id, { doNotCall: true }, { teamId: TEAM });
+
+  const updatedCall = await store.getCallById(call.id);
+  const updatedLead = await store.getLeadById(lead.id);
+  assert.equal(updatedCall.outcome, "do_not_call");
+  assert.equal(updatedLead.doNotCall, true);
+});

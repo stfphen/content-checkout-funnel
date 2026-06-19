@@ -1,6 +1,13 @@
 import { redirect } from "next/navigation";
 import { AdminTabbedShell, AdminTabPanel } from "../../components/admin/AdminTabbedShell";
 import OutreachQueueBuilder from "../../components/admin/OutreachQueueBuilder";
+import TenantBuilder from "../../components/admin/TenantBuilder";
+import LeadDeepResearch from "../../components/admin/LeadDeepResearch";
+import FillMissingButton from "../../components/admin/FillMissingButton";
+import { missingFields } from "../../lib/leadResearch/leadFields";
+import ResearchFromQuery from "../../components/admin/ResearchFromQuery";
+import LeadCallPanel from "../../components/admin/LeadCallPanel";
+import TenantPhoneSettings from "../../components/admin/TenantPhoneSettings";
 import { getAdminSession } from "../../lib/auth";
 import { listAuditLogs } from "../../lib/audit";
 import {
@@ -21,7 +28,9 @@ import {
   listOutreachTemplates,
   listProspectingBatches,
   listTenants,
-  getSessionTeamId
+  getSessionTeamId,
+  getCalls,
+  listTasks
 } from "../../lib/store";
 import {
   enrichmentStatuses,
@@ -249,6 +258,8 @@ export default async function AdminPage({ searchParams }) {
     outreachQueue,
     outreachSuppressions,
     outreachEvents,
+    calls,
+    tasks,
     teamUsers,
     auditLogs
   ] = await Promise.all([
@@ -262,6 +273,8 @@ export default async function AdminPage({ searchParams }) {
     listOutreachQueue({ teamId }),
     listOutreachSuppressions({ teamId }),
     listOutreachEvents({ teamId }),
+    getCalls({ teamId }),
+    listTasks({ teamId, status: "open" }),
     canManageTeamUsers ? listTeamUsers(teamId) : Promise.resolve([]),
     canManageTeamUsers ? listAuditLogs({ teamId, limit: 75 }) : Promise.resolve([])
   ]);
@@ -298,6 +311,9 @@ export default async function AdminPage({ searchParams }) {
     : null;
   const queueByLead = groupBy(outreachQueue, "leadId");
   const eventsByLead = groupBy(outreachEvents, "leadId");
+  const callsByLead = groupBy(calls, "leadId");
+  const leadsById = new Map(leads.map((lead) => [lead.id, lead]));
+  const callbackTasks = (tasks || []).filter((task) => task.priority === "urgent");
   const dueFollowUps = leads.filter((lead) => {
     if (!lead.nextFollowUpAt) return false;
     return new Date(lead.nextFollowUpAt).getTime() <= Date.now();
@@ -310,7 +326,8 @@ export default async function AdminPage({ searchParams }) {
       score: scoreFundingLead(lead),
       opportunityMatches: matchFundingPrograms(fundingScanFromLead(lead)).topMatches.slice(0, 3),
       review: buildReviewState(lead),
-      handoff: buildCloserHandoff(lead)
+      handoff: buildCloserHandoff(lead),
+      survey: (lead.sourceMetadata || lead.metadata || {}).fundingSurvey || null
     }));
   const fundingTenant = tenants.find((tenant) => tenant.slug === "funded-growth") || tenants[0] || {};
   const fundingDashboard = buildFundingOpportunityDashboard({
@@ -331,6 +348,34 @@ export default async function AdminPage({ searchParams }) {
         </section>
       </AdminTabPanel>
 
+      {canManageLeadActions && callbackTasks.length ? (
+      <AdminTabPanel tabId="pipeline">
+      <section className="admin-panel">
+        <div className="pipeline-header">
+          <div>
+            <h2>Needs Callback</h2>
+            <p>Urgent missed-call follow-ups. Call the lead back, then mark an outcome.</p>
+          </div>
+          <span className="status-pill">{callbackTasks.length}</span>
+        </div>
+        <div className="outreach-list">
+          {callbackTasks.map((task) => {
+            const lead = leadsById.get(task.leadId);
+            return (
+              <div key={task.id} className="outreach-list-row">
+                <strong>{task.title}</strong>
+                <span>
+                  {lead?.phone || "no phone"}
+                  {task.dueAt ? ` | due ${new Date(task.dueAt).toLocaleDateString()}` : ""}
+                </span>
+              </div>
+            );
+          })}
+        </div>
+      </section>
+      </AdminTabPanel>
+      ) : null}
+
       <AdminTabPanel tabId="pipeline">
       <section className="admin-panel admin-panel--wide">
         <div className="pipeline-header">
@@ -342,7 +387,7 @@ export default async function AdminPage({ searchParams }) {
         </div>
 
         <div className="funding-lead-list">
-          {fundingScanLeads.map(({ lead, scan, score, opportunityMatches, review, handoff }) => (
+          {fundingScanLeads.map(({ lead, scan, score, opportunityMatches, review, handoff, survey }) => (
             <article className="funding-lead-card" key={lead.id}>
               <div className="funding-lead-card__header">
                 <div>
@@ -376,7 +421,11 @@ export default async function AdminPage({ searchParams }) {
               <div className="funding-gap-list">
                 <strong>Human review required</strong>
                 <p>This is a potential fit only. Do not confirm eligibility, funding amount, or approval without reviewing the specific funder or program administrator rules.</p>
-                <strong>Potential opportunity categories</strong>
+                <strong>
+                  {opportunityMatches[0]?.match?.label === "Potential fit"
+                    ? "Potential opportunity categories"
+                    : "Funding lanes to investigate — not enough information to estimate yet"}
+                </strong>
                 <ul>
                   {opportunityMatches.map((match) => (
                     <li key={match.id}>
@@ -411,6 +460,33 @@ export default async function AdminPage({ searchParams }) {
                   <p>No program matches from the current scan inputs.</p>
                 )}
               </div>
+
+              {survey?.result ? (
+                <div className="funding-gap-list funding-survey-result">
+                  <strong>Funding survey result — {survey.result.overallFit.replaceAll("_", " ")}</strong>
+                  {survey.result.estimatedFundingRange ? (
+                    <p>Estimated range: {survey.result.estimatedFundingRange.label}</p>
+                  ) : null}
+                  {survey.result.topProgramMatches?.length ? (
+                    <ul>
+                      {survey.result.topProgramMatches.map((match) => (
+                        <li key={match.programId}>
+                          <strong>{match.name}</strong> ({match.confidence})
+                          {match.estimatedRange?.label ? ` — ${match.estimatedRange.label}` : ""}
+                          {match.recommendedNextStep ? <span> · Next: {match.recommendedNextStep}</span> : null}
+                        </li>
+                      ))}
+                    </ul>
+                  ) : (
+                    <p>No program matches for the identified jurisdiction; confirm location and project details.</p>
+                  )}
+                  <p>
+                    Completed {survey.completedAt ? survey.completedAt.slice(0, 10) : "—"} · jurisdiction{" "}
+                    {survey.normalizedInput?.country || "unknown"}
+                    {survey.normalizedInput?.province ? `/${survey.normalizedInput.province}` : ""}
+                  </p>
+                </div>
+              ) : null}
 
               <div className="funding-review">
                 <div className="funding-review__header">
@@ -575,6 +651,7 @@ export default async function AdminPage({ searchParams }) {
 
       {canManageLeadActions ? (
       <AdminTabPanel tabId="prospecting">
+      <ResearchFromQuery />
       <section className="admin-panel">
         <h2>Prospecting Batch Builder</h2>
         <p>Create a search batch, preview Google Places results, then import selected prospects into the pipeline.</p>
@@ -958,6 +1035,8 @@ export default async function AdminPage({ searchParams }) {
           {filteredLeads.map((lead) => {
             const leadQueue = queueByLead.get(lead.id) || [];
             const leadEvents = eventsByLead.get(lead.id) || [];
+            const leadCalls = callsByLead.get(lead.id) || [];
+            const leadTenant = tenants.find((tenant) => tenant.id === lead.tenantId) || tenants[0];
             const enrichment = getLeadEnrichmentSummary(lead);
             return (
             <details className="lead-card" key={lead.id}>
@@ -984,6 +1063,7 @@ export default async function AdminPage({ searchParams }) {
                     <div><dt>Google</dt><dd>{lead.googleRating || 0} rating | {lead.googleReviewCount || 0} reviews</dd></div>
                     <div><dt>Last Contacted</dt><dd>{lead.lastContactedAt ? new Date(lead.lastContactedAt).toLocaleDateString() : "Never"}</dd></div>
                     <div><dt>Next Follow-up</dt><dd>{lead.nextFollowUpAt ? new Date(lead.nextFollowUpAt).toLocaleDateString() : "None"}</dd></div>
+                    <div><dt>Last Call</dt><dd>{lead.lastCallAt ? new Date(lead.lastCallAt).toLocaleDateString() : (leadCalls[0] ? `${leadCalls[0].status}${leadCalls[0].outcome ? ` · ${leadCalls[0].outcome.replaceAll("_", " ")}` : ""}` : "None")}</dd></div>
                   </dl>
 
                   {lead.possibleDuplicates?.length ? (
@@ -1036,11 +1116,26 @@ export default async function AdminPage({ searchParams }) {
                       {renderEnrichmentGroup("Angles", enrichment.salesBrief?.outreachAngles || [])}
                     </div>
                   ) : null}
+
+                  <LeadDeepResearch
+                    leadId={lead.id}
+                    initialDossier={lead?.metadata?.research?.dossier || null}
+                    initialReviewFlags={lead?.metadata?.research?.reviewQueue || []}
+                  />
+                  <FillMissingButton leadId={lead.id} missingCount={missingFields(lead).length} />
                 </section>
 
                 <section>
                   {canManageLeadActions ? (
                   <>
+                  <LeadCallPanel
+                    leadId={lead.id}
+                    leadPhone={lead.phone || ""}
+                    doNotCall={Boolean(lead.doNotCall)}
+                    doNotContact={Boolean(lead.doNotContact)}
+                    telephonyEnabled={Boolean(leadTenant?.telephony?.enabled)}
+                    calls={leadCalls}
+                  />
                   <h3>Edit Pipeline Fields</h3>
                   <form action="/api/admin/leads/update" method="post" className="admin-form">
                     <input type="hidden" name="leadId" value={lead.id} />
@@ -1193,7 +1288,7 @@ export default async function AdminPage({ searchParams }) {
                       ))}
                       {leadEvents.map((event) => (
                         <div key={event.id} className="outreach-list-row">
-                          <strong>{event.type}</strong>
+                          <strong>{event.metadata?.summary || event.type}</strong>
                           <span>{new Date(event.createdAt).toLocaleString()}</span>
                         </div>
                       ))}
@@ -1213,6 +1308,16 @@ export default async function AdminPage({ searchParams }) {
       {canManageTenantActions ? (
       <AdminTabPanel tabId="tenants">
       <section className="admin-grid">
+        <TenantBuilder />
+        <TenantPhoneSettings
+          tenants={tenants.map((tenant) => ({
+            id: tenant.id,
+            name: tenant.brand?.name || tenant.slug,
+            slug: tenant.slug,
+            telephony: tenant.telephony
+          }))}
+          reps={teamUsers.map((user) => ({ id: user.id, name: user.name, email: user.email }))}
+        />
         <article className="admin-panel admin-panel--wide">
           <h2>Tenants</h2>
           <p>Review configured white-label brands and open public previews.</p>

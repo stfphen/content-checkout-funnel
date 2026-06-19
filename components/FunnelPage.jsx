@@ -2,6 +2,9 @@
 
 import { useMemo, useState } from "react";
 import { getTenantTheme } from "../lib/branding";
+import FundingSurveyWidget from "./funding/FundingSurveyWidget";
+import Reveal from "./motion/Reveal";
+import { Stagger, StaggerItem } from "./motion/Stagger";
 
 export default function FunnelPage({ tenant }) {
   const [selectedPackageId, setSelectedPackageId] = useState(tenant.defaultPackageId);
@@ -138,19 +141,19 @@ export default function FunnelPage({ tenant }) {
         <section className="hero" aria-label={`${tenant.brand.name} sales offer`}>
           <img className="hero__image" src={tenant.media.heroImage} alt={tenant.media.heroAlt} />
           <div className="hero__shade" />
-          <div className="hero__content">
-            <div className="brandbar">
+          <Stagger className="hero__content" stagger={0.1} amount={0.1}>
+            <StaggerItem className="brandbar">
               {tenant.brand.logo ? (
                 <img className="brandbar__logo" src={tenant.brand.logo} alt={`${tenant.brand.name} logo`} />
               ) : (
                 <span className="brandbar__wordmark">{tenant.brand.logoText || tenant.brand.name}</span>
               )}
               {tenant.brand.tagline ? <span className="brandbar__tagline">{tenant.brand.tagline}</span> : null}
-            </div>
-            <p className="eyebrow">{tenant.brand.eyebrow}</p>
-            <h1>{tenant.hero.headline}</h1>
-            <p className="hero__copy">{tenant.hero.subheadline}</p>
-            <div className="hero__actions">
+            </StaggerItem>
+            <StaggerItem as="p" className="eyebrow">{tenant.brand.eyebrow}</StaggerItem>
+            <StaggerItem as="h1">{tenant.hero.headline}</StaggerItem>
+            <StaggerItem as="p" className="hero__copy">{tenant.hero.subheadline}</StaggerItem>
+            <StaggerItem className="hero__actions">
               <button className="button button--primary" onClick={() => selectPackage(tenant.defaultPackageId)}>
                 {tenant.hero.primaryCta}
               </button>
@@ -160,20 +163,20 @@ export default function FunnelPage({ tenant }) {
               >
                 {tenant.hero.secondaryCta}
               </button>
-            </div>
-            <dl className="hero__stats" aria-label="Content day highlights">
+            </StaggerItem>
+            <StaggerItem as="dl" className="hero__stats" aria-label="Content day highlights">
               {tenant.hero.stats.map((stat) => (
                 <div key={stat.label}>
                   <dt>{stat.value}</dt>
                   <dd>{stat.label}</dd>
                 </div>
               ))}
-            </dl>
-          </div>
+            </StaggerItem>
+          </Stagger>
         </section>
 
         <section className="problem section">
-          <div className="section__inner split">
+          <Reveal className="section__inner split">
             <div>
               <p className="eyebrow">{tenant.problem.eyebrow}</p>
               <h2>{tenant.problem.headline}</h2>
@@ -183,50 +186,50 @@ export default function FunnelPage({ tenant }) {
                 <p key={point}>{point}</p>
               ))}
             </div>
-          </div>
+          </Reveal>
         </section>
 
         <section className="section section--soft">
           <div className="section__inner">
-            <div className="section__header">
+            <Reveal className="section__header">
               <p className="eyebrow">{tenant.system.eyebrow}</p>
               <h2>{tenant.system.headline}</h2>
               <p>{tenant.system.body}</p>
-            </div>
-            <div className="feature-row" aria-label="Included services">
+            </Reveal>
+            <Stagger className="feature-row" aria-label="Included services">
               {tenant.system.features.map((feature, index) => (
-                <article key={feature.title}>
+                <StaggerItem as="article" key={feature.title}>
                   <span className="icon" aria-hidden="true">{String(index + 1).padStart(2, "0")}</span>
                   <h3>{feature.title}</h3>
                   <p>{feature.body}</p>
-                </article>
+                </StaggerItem>
               ))}
-            </div>
+            </Stagger>
           </div>
         </section>
 
         <section className="section">
           <div className="section__inner">
-            <div className="section__header section__header--compact">
+            <Reveal className="section__header section__header--compact">
               <p className="eyebrow">{tenant.process.eyebrow}</p>
               <h2>{tenant.process.headline}</h2>
-            </div>
-            <ol className="timeline">
+            </Reveal>
+            <Stagger as="ol" className="timeline" stagger={0.06}>
               {tenant.process.steps.map((step, index) => (
-                <li key={step.title}>
+                <StaggerItem as="li" key={step.title}>
                   <span>{String(index + 1).padStart(2, "0")}</span>
                   <div>
                     <h3>{step.title}</h3>
                     <p>{step.body}</p>
                   </div>
-                </li>
+                </StaggerItem>
               ))}
-            </ol>
+            </Stagger>
           </div>
         </section>
 
         <section className="section section--black" aria-label="Content examples">
-          <div className="section__inner split split--center">
+          <Reveal className="section__inner split split--center">
             <div>
               <p className="eyebrow">{tenant.output.eyebrow}</p>
               <h2>{tenant.output.headline}</h2>
@@ -237,12 +240,12 @@ export default function FunnelPage({ tenant }) {
                 <div key={tile}>{tile}</div>
               ))}
             </div>
-          </div>
+          </Reveal>
         </section>
 
         {tenant.fundedOpportunity ? (
           <section className="section">
-            <div className="section__inner split">
+            <Reveal className="section__inner split">
               <div>
                 <p className="eyebrow">{tenant.fundedOpportunity.eyebrow}</p>
                 <h2>{tenant.fundedOpportunity.headline}</h2>
@@ -253,21 +256,22 @@ export default function FunnelPage({ tenant }) {
                   <p key={point}>{point}</p>
                 ))}
               </div>
-            </div>
+            </Reveal>
           </section>
         ) : null}
 
         <section id="packages" className="section packages">
           <div className="section__inner">
-            <div className="section__header">
+            <Reveal className="section__header">
               <p className="eyebrow">{tenant.packageSection.eyebrow}</p>
               <h2>{tenant.packageSection.headline}</h2>
               <p>{tenant.packageSection.body}</p>
-            </div>
+            </Reveal>
 
-            <div className="package-grid">
+            <Stagger className="package-grid" stagger={0.1}>
               {tenant.packages.map((pkg) => (
-                <article
+                <StaggerItem
+                  as="article"
                   className={`package ${pkg.featured ? "package--featured" : ""} ${
                     pkg.id === selectedPackageId ? "is-selected" : ""
                   }`}
@@ -294,11 +298,11 @@ export default function FunnelPage({ tenant }) {
                   >
                     {pkg.cta}
                   </button>
-                </article>
+                </StaggerItem>
               ))}
-            </div>
+            </Stagger>
 
-            <div className="enterprise-band">
+            <Reveal className="enterprise-band">
               <div>
                 <p className="eyebrow">{tenant.enterprise.eyebrow}</p>
                 <h3>{tenant.enterprise.headline}</h3>
@@ -307,12 +311,19 @@ export default function FunnelPage({ tenant }) {
               <button className="button button--secondary" onClick={() => selectPackage(tenant.enterprise.packageId)}>
                 {tenant.enterprise.cta}
               </button>
-            </div>
+            </Reveal>
           </div>
         </section>
 
+        {isFundingTenant ? (
+        <section className="section section--soft checkout-section" id="funding-survey">
+          <Reveal className="section__inner" amount={0.1}>
+            <FundingSurveyWidget tenant={tenant} />
+          </Reveal>
+        </section>
+        ) : (
         <section className="section section--soft checkout-section">
-          <div className="section__inner checkout-layout">
+          <Reveal className="section__inner checkout-layout" amount={0.1}>
             <div>
               <p className="eyebrow">{tenant.checkout.eyebrow}</p>
               <h2>{tenant.checkout.headline}</h2>
@@ -457,35 +468,36 @@ export default function FunnelPage({ tenant }) {
               </div>
               <p className="form-note" id="formNote">{formNote}</p>
             </form>
-          </div>
+          </Reveal>
         </section>
+        )}
 
         <section className="section objections">
           <div className="section__inner">
-            <div className="section__header section__header--compact">
+            <Reveal className="section__header section__header--compact">
               <p className="eyebrow">{tenant.faq.eyebrow}</p>
               <h2>{tenant.faq.headline}</h2>
-            </div>
-            <div className="faq-grid">
+            </Reveal>
+            <Stagger className="faq-grid" stagger={0.07}>
               {tenant.faq.items.map((item) => (
-                <article key={item.question}>
+                <StaggerItem as="article" key={item.question}>
                   <h3>{item.question}</h3>
                   <p>{item.answer}</p>
-                </article>
+                </StaggerItem>
               ))}
-            </div>
+            </Stagger>
           </div>
         </section>
 
         <section className="final-cta">
-          <div className="final-cta__inner">
+          <Reveal className="final-cta__inner">
             <p className="eyebrow">{tenant.finalCta.eyebrow}</p>
             <h2>{tenant.finalCta.headline}</h2>
             <p>{tenant.finalCta.body}</p>
             <button className="button button--primary" onClick={() => selectPackage(tenant.defaultPackageId)}>
               {tenant.finalCta.cta}
             </button>
-          </div>
+          </Reveal>
         </section>
       </main>
 

@@ -1,0 +1,158 @@
+"use client";
+
+import { useState } from "react";
+import { useRouter } from "next/navigation";
+
+// Outcome labels (kept here so the client bundle doesn't pull the data layer).
+const OUTCOME_OPTIONS = [
+  { value: "", label: "— Select outcome —" },
+  { value: "booked_call", label: "Booked Call" },
+  { value: "connected_interested", label: "Interested – Follow Up" },
+  { value: "no_answer", label: "No Answer" },
+  { value: "left_voicemail", label: "Left Voicemail" },
+  { value: "connected_not_interested", label: "Not Interested" },
+  { value: "wrong_number", label: "Wrong Number" },
+  { value: "callback_requested", label: "Callback Requested" },
+  { value: "do_not_call", label: "Do Not Call" }
+];
+
+function formatDuration(seconds) {
+  if (seconds === null || seconds === undefined || seconds === "") return "—";
+  const total = Number(seconds) || 0;
+  const mins = Math.floor(total / 60);
+  const secs = total % 60;
+  return `${mins}m${String(secs).padStart(2, "0")}s`;
+}
+
+function formatWhen(value) {
+  if (!value) return "—";
+  const date = new Date(value);
+  return Number.isNaN(date.getTime()) ? "—" : date.toLocaleString();
+}
+
+export default function LeadCallPanel({
+  leadId,
+  leadPhone = "",
+  doNotCall = false,
+  doNotContact = false,
+  telephonyEnabled = false,
+  calls = []
+}) {
+  const router = useRouter();
+  const [status, setStatus] = useState("idle"); // idle | calling | placed | error
+  const [error, setError] = useState("");
+  const [savingId, setSavingId] = useState("");
+
+  const blockedReason = !telephonyEnabled
+    ? "Telephony is not enabled for this tenant."
+    : doNotCall
+      ? "Lead is marked do-not-call."
+      : doNotContact
+        ? "Lead is marked do-not-contact."
+        : !leadPhone
+          ? "Lead has no phone number."
+          : "";
+  const callDisabled = Boolean(blockedReason) || status === "calling";
+
+  async function placeCall() {
+    setStatus("calling");
+    setError("");
+    try {
+      const response = await fetch("/api/telephony/outbound", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ leadId })
+      });
+      const data = await response.json().catch(() => ({}));
+      if (!response.ok) {
+        setError(data?.error || `Call failed (${response.status}).`);
+        setStatus("error");
+        return;
+      }
+      setStatus("placed");
+      router.refresh();
+    } catch (err) {
+      setError(err?.message || "Network error.");
+      setStatus("error");
+    }
+  }
+
+  async function saveOutcome(callId, outcome) {
+    if (!outcome) return;
+    setSavingId(callId);
+    setError("");
+    try {
+      const response = await fetch("/api/admin/telephony/outcome", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ callId, outcome })
+      });
+      const data = await response.json().catch(() => ({}));
+      if (!response.ok) {
+        setError(data?.error || `Could not save outcome (${response.status}).`);
+        return;
+      }
+      router.refresh();
+    } catch (err) {
+      setError(err?.message || "Network error.");
+    } finally {
+      setSavingId("");
+    }
+  }
+
+  return (
+    <section className="lead-call-panel">
+      <h3>Call</h3>
+      <div className="lead-actions">
+        <button
+          type="button"
+          className="button button--primary"
+          onClick={placeCall}
+          disabled={callDisabled}
+          title={blockedReason || "Place an outbound call to this lead"}
+        >
+          {status === "calling" ? "Calling…" : "Call Lead"}
+        </button>
+        <span
+          className="button button--secondary button--disabled"
+          aria-disabled="true"
+          title="Coming soon"
+        >
+          Send SMS
+        </span>
+      </div>
+      {blockedReason ? <p className="admin-hint">{blockedReason}</p> : null}
+      {status === "placed" ? <p className="admin-hint">Call placed — your phone should ring first.</p> : null}
+      {error ? <p className="admin-error">{error}</p> : null}
+
+      <div className="outreach-list">
+        {calls.map((call) => (
+          <div key={call.id} className="outreach-list-row lead-call-row">
+            <strong>
+              {call.direction === "inbound" ? "Inbound" : "Outbound"} · {call.status}
+            </strong>
+            <span>
+              {formatWhen(call.startedAt || call.createdAt)} · {formatDuration(call.durationSeconds)}
+              {call.outcome ? ` · ${call.outcome.replaceAll("_", " ")}` : ""}
+            </span>
+            <label className="lead-call-outcome">
+              Outcome
+              <select
+                defaultValue={call.outcome || ""}
+                disabled={savingId === call.id}
+                onChange={(event) => saveOutcome(call.id, event.target.value)}
+              >
+                {OUTCOME_OPTIONS.map((option) => (
+                  <option key={option.value || "none"} value={option.value}>
+                    {option.label}
+                  </option>
+                ))}
+              </select>
+            </label>
+          </div>
+        ))}
+        {!calls.length ? <p>No calls logged yet.</p> : null}
+      </div>
+    </section>
+  );
+}

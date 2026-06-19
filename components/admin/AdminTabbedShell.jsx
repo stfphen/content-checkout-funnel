@@ -1,17 +1,81 @@
 "use client";
 
-import { createContext, useContext, useMemo, useState } from "react";
+import { createContext, useContext, useEffect, useMemo, useState } from "react";
+import { motion, useReducedMotion } from "framer-motion";
+import {
+  Users,
+  Landmark,
+  Search,
+  Mail,
+  Building2,
+  UsersRound,
+  LogOut,
+  Sun,
+  Moon,
+} from "lucide-react";
 
 const AdminTabsContext = createContext("pipeline");
 
+const ICON_PROPS = { size: 24, strokeWidth: 2, "aria-hidden": true };
+
 const navItems = [
-  { id: "pipeline", label: "Pipeline", icon: <LeadIcon /> },
-  { id: "funding", label: "Funding", icon: <FundingIcon /> },
-  { id: "prospecting", label: "Prospecting", icon: <SearchIcon /> },
-  { id: "outreach", label: "Outreach", icon: <MailIcon /> },
-  { id: "tenants", label: "Tenants", icon: <TenantIcon /> },
-  { id: "team", label: "Team", icon: <TeamIcon /> }
+  { id: "pipeline", label: "Pipeline", icon: <Users {...ICON_PROPS} /> },
+  { id: "funding", label: "Funding", icon: <Landmark {...ICON_PROPS} /> },
+  { id: "prospecting", label: "Prospecting", icon: <Search {...ICON_PROPS} /> },
+  { id: "outreach", label: "Outreach", icon: <Mail {...ICON_PROPS} /> },
+  { id: "tenants", label: "Tenants", icon: <Building2 {...ICON_PROPS} /> },
+  { id: "team", label: "Team", icon: <UsersRound {...ICON_PROPS} /> },
 ];
+
+// Light/dark theme for the admin shell only. Resolved after mount (so SSR markup
+// matches the first client render — no hydration mismatch), persisted to
+// localStorage, and defaulted from the OS preference. While unresolved the shell
+// is hidden via CSS (.v2-admin-shell:not([data-theme])) to avoid a flash.
+function useAdminTheme() {
+  const [theme, setTheme] = useState(null);
+
+  useEffect(() => {
+    let initial = null;
+    try {
+      initial = localStorage.getItem("admin-theme");
+    } catch {
+      initial = null;
+    }
+    if (initial !== "light" && initial !== "dark") {
+      initial = window.matchMedia?.("(prefers-color-scheme: dark)").matches
+        ? "dark"
+        : "light";
+    }
+    setTheme(initial);
+  }, []);
+
+  useEffect(() => {
+    if (!theme) return;
+    try {
+      localStorage.setItem("admin-theme", theme);
+    } catch {
+      /* ignore persistence failures (private mode, etc.) */
+    }
+  }, [theme]);
+
+  const toggle = () => setTheme((t) => (t === "dark" ? "light" : "dark"));
+  return [theme, toggle];
+}
+
+function ThemeToggle({ theme, onToggle }) {
+  const isDark = theme === "dark";
+  return (
+    <button
+      type="button"
+      className="theme-toggle"
+      onClick={onToggle}
+      aria-label={isDark ? "Switch to light mode" : "Switch to dark mode"}
+      title={isDark ? "Switch to light mode" : "Switch to dark mode"}
+    >
+      {isDark ? <Sun size={18} strokeWidth={2} /> : <Moon size={18} strokeWidth={2} />}
+    </button>
+  );
+}
 
 export function AdminTabbedShell({ notice, children, visibleTabs }) {
   const visibleNavItems = useMemo(() => {
@@ -19,6 +83,7 @@ export function AdminTabbedShell({ notice, children, visibleTabs }) {
     return navItems.filter((item) => visibleTabs.includes(item.id));
   }, [visibleTabs]);
   const [activeTab, setActiveTab] = useState(visibleNavItems[0]?.id || "pipeline");
+  const [theme, toggleTheme] = useAdminTheme();
   const activeItem = useMemo(
     () => visibleNavItems.find((item) => item.id === activeTab) || visibleNavItems[0] || navItems[0],
     [activeTab, visibleNavItems]
@@ -26,7 +91,7 @@ export function AdminTabbedShell({ notice, children, visibleTabs }) {
 
   return (
     <AdminTabsContext.Provider value={activeTab}>
-      <div className="v2-admin-shell" data-active-tab={activeTab}>
+      <div className="v2-admin-shell" data-active-tab={activeTab} data-theme={theme || undefined}>
         <nav className="v2-nav-container" aria-label="Admin navigation">
           {visibleNavItems.map((item) => (
             <button
@@ -43,7 +108,7 @@ export function AdminTabbedShell({ notice, children, visibleTabs }) {
           ))}
           <form action="/api/admin/logout" method="post" className="desktop-only v2-nav-logout">
             <button className="v2-nav-item v2-nav-item--danger" type="submit">
-              <LogoutIcon />
+              <LogOut {...ICON_PROPS} />
               <span>Logout</span>
             </button>
           </form>
@@ -56,9 +121,12 @@ export function AdminTabbedShell({ notice, children, visibleTabs }) {
               <h1>{activeItem.label}</h1>
               <p>Manage white-label funnels, prospects, leads, contractors, and outreach drafts from one place.</p>
             </div>
-            <form action="/api/admin/logout" method="post">
-              <button className="button button--secondary" type="submit">Logout</button>
-            </form>
+            <div className="admin-header__actions">
+              <ThemeToggle theme={theme} onToggle={toggleTheme} />
+              <form action="/api/admin/logout" method="post">
+                <button className="button button--secondary" type="submit">Logout</button>
+              </form>
+            </div>
           </header>
 
           {notice ? <div className="admin-notice">{notice}</div> : null}
@@ -71,76 +139,19 @@ export function AdminTabbedShell({ notice, children, visibleTabs }) {
 
 export function AdminTabPanel({ tabId, children }) {
   const activeTab = useContext(AdminTabsContext);
+  const reduceMotion = useReducedMotion();
   if (activeTab !== tabId) return null;
 
   return (
-    <div id={`admin-tab-${tabId}`} className="admin-tab-panel" data-tab-panel={tabId}>
+    <motion.div
+      id={`admin-tab-${tabId}`}
+      className="admin-tab-panel"
+      data-tab-panel={tabId}
+      initial={reduceMotion ? false : { opacity: 0, y: 12 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.32, ease: [0.22, 1, 0.36, 1] }}
+    >
       {children}
-    </div>
-  );
-}
-
-function LeadIcon() {
-  return (
-    <svg fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24" aria-hidden="true">
-      <path strokeLinecap="round" strokeLinejoin="round" d="M16 14a4 4 0 10-8 0v1H5a2 2 0 00-2 2v2h18v-2a2 2 0 00-2-2h-3v-1z" />
-      <path strokeLinecap="round" strokeLinejoin="round" d="M12 10a3 3 0 100-6 3 3 0 000 6z" />
-    </svg>
-  );
-}
-
-function SearchIcon() {
-  return (
-    <svg fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24" aria-hidden="true">
-      <path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-5.2-5.2" />
-      <circle cx="11" cy="11" r="7" />
-    </svg>
-  );
-}
-
-function FundingIcon() {
-  return (
-    <svg fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24" aria-hidden="true">
-      <path strokeLinecap="round" strokeLinejoin="round" d="M4 7h16M7 7V5a2 2 0 012-2h6a2 2 0 012 2v2" />
-      <path strokeLinecap="round" strokeLinejoin="round" d="M6 7v12a2 2 0 002 2h8a2 2 0 002-2V7" />
-      <path strokeLinecap="round" strokeLinejoin="round" d="M9 13h6M12 10v6" />
-    </svg>
-  );
-}
-
-function MailIcon() {
-  return (
-    <svg fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24" aria-hidden="true">
-      <path strokeLinecap="round" strokeLinejoin="round" d="M4 6h16v12H4z" />
-      <path strokeLinecap="round" strokeLinejoin="round" d="M4 7l8 6 8-6" />
-    </svg>
-  );
-}
-
-function TenantIcon() {
-  return (
-    <svg fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24" aria-hidden="true">
-      <path strokeLinecap="round" strokeLinejoin="round" d="M4 20V6a2 2 0 012-2h12a2 2 0 012 2v14" />
-      <path strokeLinecap="round" strokeLinejoin="round" d="M9 20v-6h6v6M8 8h.01M12 8h.01M16 8h.01M8 11h.01M16 11h.01" />
-    </svg>
-  );
-}
-
-function TeamIcon() {
-  return (
-    <svg fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24" aria-hidden="true">
-      <path strokeLinecap="round" strokeLinejoin="round" d="M17 20v-2a4 4 0 00-4-4H7a4 4 0 00-4 4v2" />
-      <circle cx="9" cy="7" r="4" />
-      <path strokeLinecap="round" strokeLinejoin="round" d="M23 20v-2a4 4 0 00-3-3.87M16 3.13a4 4 0 010 7.75" />
-    </svg>
-  );
-}
-
-function LogoutIcon() {
-  return (
-    <svg fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24" aria-hidden="true">
-      <path strokeLinecap="round" strokeLinejoin="round" d="M10 17l5-5-5-5M15 12H3" />
-      <path strokeLinecap="round" strokeLinejoin="round" d="M21 3v18" />
-    </svg>
+    </motion.div>
   );
 }
