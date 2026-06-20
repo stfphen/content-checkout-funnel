@@ -116,7 +116,7 @@
   border: 1px solid var(--line, rgba(0, 0, 0, 0.1));
   border-radius: var(--radius-lg, 20px);
   background: var(--white, #fff);
-  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.06);
+  box-shadow: var(--shadow, 0 12px 40px rgba(0, 0, 0, 0.06));
 }
 .resultHeader { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
 .fitBadge {
@@ -128,7 +128,7 @@
 .fit_medium { background: color-mix(in srgb, var(--blue, #0071e3) 16%, transparent); color: var(--blue, #0071e3); }
 .fit_exploratory { background: color-mix(in srgb, #b8860b 18%, transparent); color: #8a6d0b; }
 .fit_not_enough_information { background: var(--soft, #f2f2f4); color: var(--muted, #6e6e73); }
-.fitScore { font-size: 13px; color: var(--muted, #6e6e73); font-weight: 600; }
+.fitScore { font-size: 13px; color: var(--muted, #6e6e73); font-weight: 600; font-family: var(--font-mono, ui-monospace, monospace); font-variant-numeric: tabular-nums; }
 
 .resultLead { margin: 0; font-size: 16px; }
 .subtle { margin: 0; font-size: 13px; font-weight: 700; color: var(--muted, #6e6e73); text-transform: uppercase; letter-spacing: 0.04em; }
@@ -153,7 +153,7 @@
   background: color-mix(in srgb, var(--blue, #0071e3) 8%, transparent);
 }
 .rangeLabel { font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.04em; color: var(--muted, #6e6e73); }
-.rangeValue { font-size: 18px; }
+.rangeValue { font-size: 18px; font-family: var(--font-mono, ui-monospace, monospace); font-variant-numeric: tabular-nums; }
 
 .programs { display: grid; gap: 10px; }
 .program {

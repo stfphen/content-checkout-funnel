@@ -6,12 +6,16 @@
   --white: #ffffff;
   --soft: #f6f6f8;
   --soft-2: #e8e8ed;
-  --muted: #6e6e73;
+  --muted: #5d5d63;
   --line: rgba(0, 0, 0, 0.09);
   --line-dark: rgba(255, 255, 255, 0.18);
   --blue: #0071e3;
   --blue-dark: #005bb5;
   --accent: #050505;
+  /* Semantic status colors (Phase 5) — referenced instead of scattered hex. */
+  --danger: #ff3b30;
+  --success: #0b8a5a;
+  --warn: #b8860b;
 
   /* Brand aliases — readable names for new rules; never override the contract
      tokens above so tenant theming keeps working. */
@@ -129,7 +133,7 @@
   color: var(--muted);
   font-size: 10px;
   font-weight: 600;
-  transition: all 0.2s ease;
+  transition: all var(--dur-fast) var(--ease-out);
   flex: 1;
   height: 100%;
   text-decoration: none;
@@ -170,7 +174,7 @@
 }
 
 .v2-nav-item--danger {
-  color: #ff3b30;
+  color: var(--danger, #ff3b30);
 }
 
 .v2-view-header {
@@ -214,6 +218,8 @@
   font-size: 20px;
   font-weight: 700;
   margin-bottom: 2px;
+  font-family: var(--font-mono);
+  font-variant-numeric: tabular-nums;
 }
 
 .v2-metric-label {
@@ -288,7 +294,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  transition: transform 0.1s ease;
+  transition: transform var(--dur-fast) var(--ease-out);
 }
 
 .v2-action-button:active {
@@ -348,6 +354,7 @@
 
   .v2-nav-item.is-active {
     background: rgba(0, 113, 227, 0.1);
+    box-shadow: inset 3px 0 0 var(--blue);
   }
 
   .v2-dashboard-main {
@@ -978,7 +985,7 @@ p {
   opacity: 0;
   transform: translateY(12px);
   pointer-events: none;
-  transition: opacity 180ms ease, transform 180ms ease;
+  transition: opacity var(--dur) var(--ease-out), transform var(--dur) var(--ease-out);
 }
 
 .toast.is-visible {
@@ -1361,7 +1368,9 @@ p {
 .admin-metrics span {
   display: block;
   font-size: 28px;
-  font-weight: 850;
+  font-weight: 700;
+  font-family: var(--font-mono);
+  font-variant-numeric: tabular-nums;
 }
 
 .admin-metrics p {
@@ -1542,8 +1551,8 @@ p {
 }
 
 .status-pill--ok {
-  background: color-mix(in srgb, #0b8a5a 18%, transparent);
-  color: #0b8a5a;
+  background: color-mix(in srgb, var(--success, #0b8a5a) 18%, transparent);
+  color: var(--success, #0b8a5a);
 }
 
 .status-pill--warn {
@@ -3330,4 +3339,26 @@ p {
   .spinner {
     animation: none;
   }
+}
+
+/* ============================================================================
+   === Phase 5 — global :focus-visible fallback ===
+   Only .button and .theme-toggle had focus rings before. This closes the gap
+   for survey buttons, admin nav/cards, links, and every form control at once.
+   Low specificity, so the existing specific rings still win where defined.
+   ========================================================================== */
+a:focus-visible,
+button:focus-visible,
+select:focus-visible,
+input:focus-visible,
+textarea:focus-visible,
+summary:focus-visible,
+[tabindex]:not([tabindex="-1"]):focus-visible {
+  outline: 3px solid color-mix(in srgb, var(--blue) 42%, transparent);
+  outline-offset: 2px;
+}
+
+/* === Phase 4 — admin table row feedback === */
+.calls-table tbody tr:hover {
+  background: color-mix(in srgb, var(--blue) 6%, transparent);
 }

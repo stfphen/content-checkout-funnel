@@ -159,11 +159,15 @@ export default function FundingSurveyWidget({ tenant = {}, onLead }) {
         <div className={styles.step}>
           <FundingProgressBar current={safeStep} total={visibleQuestions.length} />
           <FundingQuestionStep question={currentQuestion} value={answers[currentQuestion?.id]} onChange={setAnswer} />
-          {error ? <p className={styles.error}>{error}</p> : null}
+          {error ? <p className={styles.error} role="alert" aria-live="polite">{error}</p> : null}
           <div className={styles.actions}>
             <button type="button" className={styles.ctaSecondary} onClick={back}>Back</button>
-            <button type="button" className={styles.ctaPrimary} onClick={next} disabled={submitting}>
-              {safeStep >= visibleQuestions.length - 1 ? (submitting ? "Scoring…" : "See my result") : "Next"}
+            <button type="button" className={styles.ctaPrimary} onClick={next} disabled={submitting} aria-busy={submitting}>
+              {safeStep >= visibleQuestions.length - 1
+                ? submitting
+                  ? (<><span className="spinner" aria-hidden="true" />Scoring…</>)
+                  : "See my result"
+                : "Next"}
             </button>
           </div>
         </div>
@@ -180,11 +184,11 @@ export default function FundingSurveyWidget({ tenant = {}, onLead }) {
           {CONTACT_QUESTIONS.map((q) => (
             <FundingQuestionStep key={q.id} question={q} value={answers[q.id]} onChange={setAnswer} />
           ))}
-          {error ? <p className={styles.error}>{error}</p> : null}
+          {error ? <p className={styles.error} role="alert" aria-live="polite">{error}</p> : null}
           <div className={styles.actions}>
             <button type="button" className={styles.ctaSecondary} onClick={back}>Back</button>
-            <button type="button" className={styles.ctaPrimary} onClick={handleUnlock} disabled={submitting}>
-              {submitting ? "Unlocking…" : "Unlock my full result"}
+            <button type="button" className={styles.ctaPrimary} onClick={handleUnlock} disabled={submitting} aria-busy={submitting}>
+              {submitting ? (<><span className="spinner" aria-hidden="true" />Unlocking…</>) : "Unlock my full result"}
             </button>
           </div>
           <FundingTrustNotice />
