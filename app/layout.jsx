@@ -1,9 +1,8 @@
 import { Geist, Geist_Mono } from "next/font/google";
 import "../styles.css";
 
-// Primary UI / display typeface — Geist: clean, technical-premium, the
-// "professional SaaS dashboard" standard. Used for both body and headings
-// (refined SaaS wants one calm family, not a separate quirky display face).
+// Primary UI / display typeface — Geist: clean, technical-premium, used for both
+// body and headings (one calm family, not a separate display face).
 const sans = Geist({
   subsets: ["latin"],
   display: "swap",
@@ -11,11 +10,13 @@ const sans = Geist({
   variable: "--font-sans",
 });
 
-// Monospace — Geist Mono for data, code, and email-preview blocks.
+// Monospace — Geist Mono for data, code, and email-preview blocks. Heavier
+// weights (600/700) let large figures (hero stats, prices) read as instrument
+// readouts without the browser synthesizing a faux-bold.
 const mono = Geist_Mono({
   subsets: ["latin"],
   display: "swap",
-  weight: ["400", "500"],
+  weight: ["400", "500", "600", "700"],
   variable: "--font-mono",
 });
 
@@ -45,7 +46,11 @@ export const metadata = {
 
 export default function RootLayout({ children }) {
   return (
-    <html lang="en" className={`${sans.variable} ${mono.variable}`} suppressHydrationWarning>
+    <html
+      lang="en"
+      className={`${sans.variable} ${mono.variable}`}
+      suppressHydrationWarning
+    >
       <body suppressHydrationWarning>{children}</body>
     </html>
   );

@@ -20,6 +20,7 @@ import { twilioProvider } from "../lib/telephony/twilioProvider.js";
 import { toE164US, isValidE164US } from "../lib/telephony/phone.js";
 import { normalizeTenantTelephony, defaultTenantTelephony } from "../lib/telephony/constants.js";
 import { checkOutboundLead } from "../lib/telephony/outboundGuards.js";
+import { buildCallMetrics, formatTalkTime } from "../lib/telephony/metrics.js";
 
 // Note: the inbound/status routes use the standard web Response and load under
 // node --test. The outbound route imports next/server (NextResponse), which only
@@ -154,6 +155,32 @@ test("createOutboundCall degrades gracefully without credentials", async () => {
     process.env.TWILIO_ACCOUNT_SID = savedSid;
     process.env.TWILIO_AUTH_TOKEN = savedToken;
   }
+});
+
+test("buildCallMetrics aggregates direction, status, outcomes, and talk time", () => {
+  const calls = [
+    { direction: "inbound", status: "completed", outcome: "connected_interested", durationSeconds: 90 },
+    { direction: "outbound", status: "completed", outcome: "booked_call", durationSeconds: 120 },
+    { direction: "outbound", status: "missed", outcome: "", durationSeconds: null },
+    { direction: "inbound", status: "completed", outcome: "no_answer", durationSeconds: 5 }
+  ];
+  const m = buildCallMetrics(calls);
+  assert.equal(m.total, 4);
+  assert.equal(m.inbound, 2);
+  assert.equal(m.outbound, 2);
+  assert.equal(m.completed, 3);
+  assert.equal(m.missed, 1);
+  assert.equal(m.booked, 1);
+  assert.equal(m.connected, 2); // connected_interested + booked_call
+  assert.equal(m.totalTalkTimeSeconds, 215);
+  assert.equal(m.byOutcome.booked_call, 1);
+  assert.equal(m.byOutcome.no_answer, 1);
+
+  // Empty + formatter edge cases.
+  assert.equal(buildCallMetrics([]).total, 0);
+  assert.equal(formatTalkTime(0), "0s");
+  assert.equal(formatTalkTime(75), "1m 15s");
+  assert.equal(formatTalkTime(3660), "1h 01m");
 });
 
 // --- Store + tenant lookup ---------------------------------------------------

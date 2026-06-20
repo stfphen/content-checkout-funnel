@@ -7,6 +7,7 @@ import {
   Landmark,
   Search,
   Mail,
+  Phone,
   Building2,
   UsersRound,
   LogOut,
@@ -23,6 +24,7 @@ const navItems = [
   { id: "funding", label: "Funding", icon: <Landmark {...ICON_PROPS} /> },
   { id: "prospecting", label: "Prospecting", icon: <Search {...ICON_PROPS} /> },
   { id: "outreach", label: "Outreach", icon: <Mail {...ICON_PROPS} /> },
+  { id: "calls", label: "Calls", icon: <Phone {...ICON_PROPS} /> },
   { id: "tenants", label: "Tenants", icon: <Building2 {...ICON_PROPS} /> },
   { id: "team", label: "Team", icon: <UsersRound {...ICON_PROPS} /> },
 ];

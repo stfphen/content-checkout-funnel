@@ -8,6 +8,8 @@ import { missingFields } from "../../lib/leadResearch/leadFields";
 import ResearchFromQuery from "../../components/admin/ResearchFromQuery";
 import LeadCallPanel from "../../components/admin/LeadCallPanel";
 import TenantPhoneSettings from "../../components/admin/TenantPhoneSettings";
+import CallsTable from "../../components/admin/CallsTable";
+import { buildCallMetrics, formatTalkTime } from "../../lib/telephony/metrics";
 import { getAdminSession } from "../../lib/auth";
 import { listAuditLogs } from "../../lib/audit";
 import {
@@ -242,7 +244,7 @@ export default async function AdminPage({ searchParams }) {
   const canManageTeamUsers = canManageUsers(session) && Boolean(teamId);
   const visibleTabs = [
     ...(session.role === "contractor" ? [] : ["pipeline"]),
-    ...(canManageLeadActions ? ["funding", "prospecting", "outreach"] : []),
+    ...(canManageLeadActions ? ["funding", "prospecting", "outreach", "calls"] : []),
     ...(canManageTenantActions ? ["tenants"] : []),
     ...(canManageTeamUsers || canManageContractorActions || session.role === "contractor" ? ["team"] : [])
   ];
@@ -314,6 +316,17 @@ export default async function AdminPage({ searchParams }) {
   const callsByLead = groupBy(calls, "leadId");
   const leadsById = new Map(leads.map((lead) => [lead.id, lead]));
   const callbackTasks = (tasks || []).filter((task) => task.priority === "urgent");
+  const usersById = new Map((teamUsers || []).map((user) => [user.id, user]));
+  const callMetrics = buildCallMetrics(calls);
+  const callsView = calls.map((call) => {
+    const lead = leadsById.get(call.leadId);
+    return {
+      ...call,
+      businessName: lead?.businessName || lead?.business || "",
+      leadPhone: lead?.phone || call.toNumber || call.fromNumber || "",
+      repName: usersById.get(call.assignedUserId)?.name || ""
+    };
+  });
   const dueFollowUps = leads.filter((lead) => {
     if (!lead.nextFollowUpAt) return false;
     return new Date(lead.nextFollowUpAt).getTime() <= Date.now();
@@ -373,6 +386,63 @@ export default async function AdminPage({ searchParams }) {
           })}
         </div>
       </section>
+      </AdminTabPanel>
+      ) : null}
+
+      {canManageLeadActions ? (
+      <AdminTabPanel tabId="calls">
+        <section className="admin-metrics v2-metrics-scroll" aria-label="Call summary">
+          {[
+            { label: "total calls", value: callMetrics.total },
+            { label: "inbound", value: callMetrics.inbound },
+            { label: "outbound", value: callMetrics.outbound },
+            { label: "completed", value: callMetrics.completed },
+            { label: "missed", value: callMetrics.missed },
+            { label: "talk time", value: formatTalkTime(callMetrics.totalTalkTimeSeconds) }
+          ].map((item) => (
+            <article key={item.label} className="v2-metric-pill">
+              <span className="v2-metric-count">{item.value}</span>
+              <p className="v2-metric-label">{item.label}</p>
+            </article>
+          ))}
+        </section>
+
+        {callbackTasks.length ? (
+          <section className="admin-panel">
+            <div className="pipeline-header">
+              <div>
+                <h2>Needs Callback</h2>
+                <p>Urgent missed-call follow-ups. Call the lead back, then mark an outcome.</p>
+              </div>
+              <span className="status-pill">{callbackTasks.length}</span>
+            </div>
+            <div className="outreach-list">
+              {callbackTasks.map((task) => {
+                const lead = leadsById.get(task.leadId);
+                return (
+                  <div key={task.id} className="outreach-list-row">
+                    <strong>{task.title}</strong>
+                    <span>
+                      {lead?.phone || "no phone"}
+                      {task.dueAt ? ` | due ${new Date(task.dueAt).toLocaleDateString()}` : ""}
+                    </span>
+                  </div>
+                );
+              })}
+            </div>
+          </section>
+        ) : null}
+
+        <section className="admin-panel admin-panel--wide">
+          <div className="pipeline-header">
+            <div>
+              <h2>Call Log</h2>
+              <p>Every inbound and outbound call across your team. Filter and set outcomes inline.</p>
+            </div>
+            <span className="status-pill">{calls.length} calls</span>
+          </div>
+          <CallsTable calls={callsView} />
+        </section>
       </AdminTabPanel>
       ) : null}
 

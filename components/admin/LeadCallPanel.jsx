@@ -2,19 +2,10 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import { callOutcomeOptions } from "../../lib/telephony/constants.js";
 
-// Outcome labels (kept here so the client bundle doesn't pull the data layer).
-const OUTCOME_OPTIONS = [
-  { value: "", label: "— Select outcome —" },
-  { value: "booked_call", label: "Booked Call" },
-  { value: "connected_interested", label: "Interested – Follow Up" },
-  { value: "no_answer", label: "No Answer" },
-  { value: "left_voicemail", label: "Left Voicemail" },
-  { value: "connected_not_interested", label: "Not Interested" },
-  { value: "wrong_number", label: "Wrong Number" },
-  { value: "callback_requested", label: "Callback Requested" },
-  { value: "do_not_call", label: "Do Not Call" }
-];
+// Editing select: a placeholder followed by the shared labeled outcomes.
+const OUTCOME_OPTIONS = [{ value: "", label: "— Select outcome —" }, ...callOutcomeOptions];
 
 function formatDuration(seconds) {
   if (seconds === null || seconds === undefined || seconds === "") return "—";

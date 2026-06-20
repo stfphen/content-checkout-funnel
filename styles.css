@@ -77,9 +77,9 @@
   --dur-slow: 420ms;
 
   /* Typography. --font-sans / --font-mono are injected by next/font
-     (app/layout.jsx) on <html> — never redefine those two here or they'd clobber
-     the loaded webfonts. We use one calm family (Geist) for body AND headings,
-     so --font-display simply points at --font-sans. */
+     (app/layout.jsx) on <html> — never redefine those here or they'd clobber
+     the loaded webfonts. One calm family (Geist) for body AND headings, so
+     --font-display simply points at --font-sans. */
   --font-display: var(--font-sans, -apple-system, BlinkMacSystemFont, "SF Pro Display",
       "Helvetica Neue", Arial, sans-serif);
   font-family: var(--font-sans, -apple-system, BlinkMacSystemFont, "SF Pro Text",
@@ -568,7 +568,7 @@ p {
 }
 
 .button--primary {
-  color: var(--white);
+  color: var(--on-blue, var(--white));
   background: var(--blue);
 }
 
@@ -709,16 +709,15 @@ p {
   font-size: 16px;
 }
 
+/* Feature anchor — an accent tick, not a numbered badge. The feature cards are
+   a set, not an ordered sequence, so they carry no index (unlike .timeline). */
 .icon {
-  width: 34px;
-  height: 34px;
-  margin-bottom: 28px;
-  display: inline-grid;
-  place-items: center;
-  border-radius: 50%;
-  color: var(--white);
-  background: var(--black);
-  font-size: 13px;
+  width: 32px;
+  height: 3px;
+  margin-bottom: 24px;
+  display: block;
+  border-radius: 999px;
+  background: var(--blue);
 }
 
 .timeline {
@@ -2349,6 +2348,67 @@ p {
   font-size: 13px;
 }
 
+/* Calls tab: filters + call log table */
+.calls-filters {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: center;
+  margin-bottom: 12px;
+}
+
+.calls-filters__count {
+  color: var(--fg-muted, #6b7280);
+  font-size: 13px;
+  margin-left: auto;
+}
+
+.calls-table-wrap {
+  overflow-x: auto;
+}
+
+.calls-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13px;
+}
+
+.calls-table th,
+.calls-table td {
+  text-align: left;
+  padding: 8px 10px;
+  border-bottom: 1px solid var(--border, #e5e7eb);
+  vertical-align: middle;
+  white-space: nowrap;
+}
+
+.calls-table th {
+  font-weight: 600;
+  color: var(--fg-muted, #6b7280);
+}
+
+.calls-table select {
+  font-size: 13px;
+}
+
+/* Call-status pill colors (mirrors the lead status-pill palette) */
+.status-pill--completed {
+  color: #1b7f3a;
+  background: rgba(27, 127, 58, 0.1);
+}
+
+.status-pill--missed,
+.status-pill--failed {
+  color: #b00020;
+  background: rgba(176, 0, 32, 0.08);
+}
+
+.status-pill--ringing,
+.status-pill--in_progress {
+  color: #0a5bd3;
+  background: rgba(10, 91, 211, 0.1);
+}
+
 .admin-list {
   display: grid;
   gap: 10px;
@@ -3191,4 +3251,83 @@ p {
   margin-bottom: var(--space-6);
   border-radius: var(--radius);
   font-weight: 600;
+}
+
+/* ============================================================================
+   === Phase 2 — funnel premium pass ===
+   Appended last (like the redesign layer above) so it wins the cascade and
+   stays easy to A/B or revert. Signature: numbers typeset as data (Geist Mono,
+   tabular), tenant accent used as a single precise marker. No tenant tokens
+   are redefined here — theming via --blue/--accent stays intact.
+   ========================================================================== */
+
+/* 1. Hero stats — instrument readouts with an accent gauge tick per cell. */
+.hero__stats div {
+  border-top: 2px solid var(--blue);
+}
+.hero__stats dt {
+  font-family: var(--font-mono);
+  font-variant-numeric: tabular-nums;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+}
+
+/* 2. Numbers as data — prices and the (genuine) process-sequence index. */
+.price span {
+  font-family: var(--font-mono);
+  font-variant-numeric: tabular-nums;
+  font-weight: 700;
+}
+.timeline span {
+  font-family: var(--font-mono);
+  font-variant-numeric: tabular-nums;
+  color: var(--blue);
+}
+
+/* 3. Featured pricing tier — accent "popular" marker (elevation already set by
+   the redesign layer's .package--featured rule). */
+.package {
+  position: relative;
+}
+.package__badge {
+  position: absolute;
+  top: -11px;
+  left: 28px;
+  padding: 4px 12px;
+  border-radius: 999px;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--on-blue, var(--white));
+  background: var(--blue);
+  box-shadow: var(--shadow-sm);
+}
+
+/* 4. Checkout submit — disabled + spinner loading state. */
+.button:disabled {
+  opacity: 0.62;
+  cursor: not-allowed;
+  transform: none;
+}
+.spinner {
+  width: 15px;
+  height: 15px;
+  margin-right: 9px;
+  flex: 0 0 auto;
+  border-radius: 50%;
+  border: 2px solid color-mix(in srgb, currentColor 30%, transparent);
+  border-top-color: currentColor;
+  animation: btn-spin 0.7s linear infinite;
+}
+@keyframes btn-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .spinner {
+    animation: none;
+  }
 }

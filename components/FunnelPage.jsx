@@ -10,6 +10,7 @@ export default function FunnelPage({ tenant }) {
   const [selectedPackageId, setSelectedPackageId] = useState(tenant.defaultPackageId);
   const [formNote, setFormNote] = useState(tenant.checkout.disclaimer);
   const [toast, setToast] = useState("");
+  const [submitting, setSubmitting] = useState(false);
   const isFundingTenant = tenant.slug === "funded-growth";
   const theme = useMemo(() => getTenantTheme(tenant.brand), [tenant.brand]);
 
@@ -33,6 +34,8 @@ export default function FunnelPage({ tenant }) {
 
   async function submitLead(event) {
     event.preventDefault();
+    if (submitting) return;
+    setSubmitting(true);
     setFormNote("Preparing checkout...");
 
     const form = new FormData(event.currentTarget);
@@ -77,62 +80,69 @@ export default function FunnelPage({ tenant }) {
         : {})
     };
 
-    // Stripe Checkout path: /api/checkout captures the lead AND creates the
-    // session server-side (price resolved from the tenant config, not here).
-    if (selectedPackage.action === "checkout" && !selectedPackage.paymentLink) {
-      const checkoutResponse = await fetch("/api/checkout", {
+    try {
+      // Stripe Checkout path: /api/checkout captures the lead AND creates the
+      // session server-side (price resolved from the tenant config, not here).
+      if (selectedPackage.action === "checkout" && !selectedPackage.paymentLink) {
+        const checkoutResponse = await fetch("/api/checkout", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(payload)
+        });
+        const checkout = await checkoutResponse.json().catch(() => ({}));
+
+        if (checkoutResponse.ok && checkout.url) {
+          window.location.href = checkout.url;
+          return;
+        }
+        if (checkoutResponse.ok && checkout.redirect) {
+          window.location.href = checkout.redirect;
+          return;
+        }
+        if (checkoutResponse.ok) {
+          setFormNote(
+            `${selectedPackage.name} selected. We captured your request and will follow up with next steps.`
+          );
+          showToast("Request captured.");
+          return;
+        }
+        setFormNote("Checkout could not start. We saved your details and will follow up.");
+        showToast("Checkout failed.");
+        return;
+      }
+
+      const response = await fetch("/api/leads", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(payload)
       });
-      const checkout = await checkoutResponse.json().catch(() => ({}));
 
-      if (checkoutResponse.ok && checkout.url) {
-        window.location.href = checkout.url;
+      if (!response.ok) {
+        setFormNote("Lead capture failed. Please try again or contact us directly.");
+        showToast("Lead capture failed.");
         return;
       }
-      if (checkoutResponse.ok && checkout.redirect) {
-        window.location.href = checkout.redirect;
+
+      if (selectedPackage.action === "checkout" && selectedPackage.paymentLink) {
+        window.location.href = selectedPackage.paymentLink;
         return;
       }
-      if (checkoutResponse.ok) {
-        setFormNote(
-          `${selectedPackage.name} selected. We captured your request and will follow up with next steps.`
-        );
-        showToast("Request captured.");
+
+      if (selectedPackage.bookingLink) {
+        window.location.href = selectedPackage.bookingLink;
         return;
       }
-      setFormNote("Checkout could not start. We saved your details and will follow up.");
-      showToast("Checkout failed.");
-      return;
+
+      setFormNote(
+        `${selectedPackage.name} selected. We captured your request and will follow up with next steps.`
+      );
+      showToast("Request captured.");
+    } catch {
+      setFormNote("Something went wrong. Please try again.");
+      showToast("Something went wrong.");
+    } finally {
+      setSubmitting(false);
     }
-
-    const response = await fetch("/api/leads", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(payload)
-    });
-
-    if (!response.ok) {
-      setFormNote("Lead capture failed. Please try again or contact us directly.");
-      showToast("Lead capture failed.");
-      return;
-    }
-
-    if (selectedPackage.action === "checkout" && selectedPackage.paymentLink) {
-      window.location.href = selectedPackage.paymentLink;
-      return;
-    }
-
-    if (selectedPackage.bookingLink) {
-      window.location.href = selectedPackage.bookingLink;
-      return;
-    }
-
-    setFormNote(
-      `${selectedPackage.name} selected. We captured your request and will follow up with next steps.`
-    );
-    showToast("Request captured.");
   }
 
   return (
@@ -202,9 +212,9 @@ export default function FunnelPage({ tenant }) {
               <p>{tenant.system.body}</p>
             </Reveal>
             <Stagger className="feature-row" aria-label="Included services">
-              {tenant.system.features.map((feature, index) => (
+              {tenant.system.features.map((feature) => (
                 <StaggerItem as="article" key={feature.title}>
-                  <span className="icon" aria-hidden="true">{String(index + 1).padStart(2, "0")}</span>
+                  <span className="icon" aria-hidden="true" />
                   <h3>{feature.title}</h3>
                   <p>{feature.body}</p>
                 </StaggerItem>
@@ -283,6 +293,7 @@ export default function FunnelPage({ tenant }) {
                   data-package-card={pkg.id}
                   key={pkg.id}
                 >
+                  {pkg.featured ? <span className="package__badge">Most popular</span> : null}
                   <div className="package__top">
                     <h3>{pkg.name}</h3>
                     <p>{pkg.summary}</p>
@@ -371,117 +382,29 @@ export default function FunnelPage({ tenant }) {
                 Phone <span>optional</span>
                 <input name="phone" type="tel" autoComplete="tel" />
               </label>
-              {isFundingTenant ? (
-                <>
-                  <label>
-                    Company website
-                    <input name="companyWebsite" autoComplete="url" placeholder="https://" />
-                  </label>
-                  <label>
-                    Industry
-                    <input name="industry" required />
-                  </label>
-                  <label>
-                    Location
-                    <input name="location" autoComplete="address-level2" placeholder="City, province" required />
-                  </label>
-                  <label>
-                    Employee count
-                    <input name="employeeCount" type="number" min="0" inputMode="numeric" required />
-                  </label>
-                  <label>
-                    Revenue range
-                    <select name="revenueRange" required>
-                      <option value="">Select range</option>
-                      <option value="pre_revenue">Pre-revenue</option>
-                      <option value="under_100k">Under $100k</option>
-                      <option value="100k_500k">$100k-$500k</option>
-                      <option value="500k_1m">$500k-$1M</option>
-                      <option value="1m_5m">$1M-$5M</option>
-                      <option value="5m_plus">$5M+</option>
-                    </select>
-                  </label>
-                  <label>
-                    Years operating
-                    <select name="yearsOperating" required>
-                      <option value="">Select range</option>
-                      <option value="under_1">Under 1 year</option>
-                      <option value="1_2">1-2 years</option>
-                      <option value="3_5">3-5 years</option>
-                      <option value="6_10">6-10 years</option>
-                      <option value="10_plus">10+ years</option>
-                    </select>
-                  </label>
-                  <label>
-                    Incorporated
-                    <select name="incorporated" required>
-                      <option value="">Select status</option>
-                      <option value="yes">Yes</option>
-                      <option value="no">No</option>
-                      <option value="in_progress">In progress</option>
-                      <option value="unsure">Unsure</option>
-                    </select>
-                  </label>
-                  <label>
-                    Currently exporting
-                    <select name="currentlyExporting" required>
-                      <option value="">Select status</option>
-                      <option value="yes">Yes</option>
-                      <option value="no">No</option>
-                    </select>
-                  </label>
-                  <label>
-                    Interested in exporting
-                    <select name="interestedInExporting" required>
-                      <option value="">Select status</option>
-                      <option value="yes">Yes</option>
-                      <option value="no">No</option>
-                      <option value="unsure">Unsure</option>
-                    </select>
-                  </label>
-                  <label>
-                    Digital needs
-                    <textarea name="digitalNeeds" rows="3" required />
-                  </label>
-                  <label>
-                    E-commerce needs
-                    <textarea name="ecommerceNeeds" rows="3" required />
-                  </label>
-                  <label>
-                    CRM or automation needs
-                    <textarea name="crmAutomationNeeds" rows="3" required />
-                  </label>
-                  <label>
-                    Available project budget
-                    <select name="availableProjectBudget" required>
-                      <option value="">Select budget</option>
-                      <option value="under_5k">Under $5k</option>
-                      <option value="5k_15k">$5k-$15k</option>
-                      <option value="15k_50k">$15k-$50k</option>
-                      <option value="50k_100k">$50k-$100k</option>
-                      <option value="100k_plus">$100k+</option>
-                    </select>
-                  </label>
-                  <label>
-                    Main growth goal
-                    <textarea name="mainGrowthGoal" rows="4" required />
-                  </label>
-                </>
-              ) : (
-                <>
-                  <label>
-                    Website or Instagram
-                    <input name="url" autoComplete="url" placeholder="https://" />
-                  </label>
-                  <label>
-                    What do you need content for?
-                    <textarea name="notes" rows="4" />
-                  </label>
-                </>
-              )}
+              <label>
+                Website or Instagram
+                <input name="url" autoComplete="url" placeholder="https://" />
+              </label>
+              <label>
+                What do you need content for?
+                <textarea name="notes" rows="4" />
+              </label>
               <div className="form-actions">
-                <button className="button button--primary" type="submit">
-                  {tenant.checkout.submitCta}
+                <button
+                  className="button button--primary"
+                  type="submit"
+                  disabled={submitting}
+                  aria-busy={submitting}
+                >
+                  {submitting ? (
+                    <>
+                      <span className="spinner" aria-hidden="true" />
+                      Working…
+                    </>
+                  ) : (
+                    tenant.checkout.submitCta
+                  )}
                 </button>
               </div>
               <p className="form-note" id="formNote">{formNote}</p>
