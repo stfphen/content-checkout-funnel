@@ -310,7 +310,8 @@ export default async function AdminPage({ searchParams }) {
       score: scoreFundingLead(lead),
       opportunityMatches: matchFundingPrograms(fundingScanFromLead(lead)).topMatches.slice(0, 3),
       review: buildReviewState(lead),
-      handoff: buildCloserHandoff(lead)
+      handoff: buildCloserHandoff(lead),
+      survey: (lead.sourceMetadata || lead.metadata || {}).fundingSurvey || null
     }));
   const fundingTenant = tenants.find((tenant) => tenant.slug === "funded-growth") || tenants[0] || {};
   const fundingDashboard = buildFundingOpportunityDashboard({
@@ -342,7 +343,7 @@ export default async function AdminPage({ searchParams }) {
         </div>
 
         <div className="funding-lead-list">
-          {fundingScanLeads.map(({ lead, scan, score, opportunityMatches, review, handoff }) => (
+          {fundingScanLeads.map(({ lead, scan, score, opportunityMatches, review, handoff, survey }) => (
             <article className="funding-lead-card" key={lead.id}>
               <div className="funding-lead-card__header">
                 <div>
@@ -376,7 +377,11 @@ export default async function AdminPage({ searchParams }) {
               <div className="funding-gap-list">
                 <strong>Human review required</strong>
                 <p>This is a potential fit only. Do not confirm eligibility, funding amount, or approval without reviewing the specific funder or program administrator rules.</p>
-                <strong>Potential opportunity categories</strong>
+                <strong>
+                  {opportunityMatches[0]?.match?.label === "Potential fit"
+                    ? "Potential opportunity categories"
+                    : "Funding lanes to investigate — not enough information to estimate yet"}
+                </strong>
                 <ul>
                   {opportunityMatches.map((match) => (
                     <li key={match.id}>
@@ -411,6 +416,33 @@ export default async function AdminPage({ searchParams }) {
                   <p>No program matches from the current scan inputs.</p>
                 )}
               </div>
+
+              {survey?.result ? (
+                <div className="funding-gap-list funding-survey-result">
+                  <strong>Funding survey result — {survey.result.overallFit.replaceAll("_", " ")}</strong>
+                  {survey.result.estimatedFundingRange ? (
+                    <p>Estimated range: {survey.result.estimatedFundingRange.label}</p>
+                  ) : null}
+                  {survey.result.topProgramMatches?.length ? (
+                    <ul>
+                      {survey.result.topProgramMatches.map((match) => (
+                        <li key={match.programId}>
+                          <strong>{match.name}</strong> ({match.confidence})
+                          {match.estimatedRange?.label ? ` — ${match.estimatedRange.label}` : ""}
+                          {match.recommendedNextStep ? <span> · Next: {match.recommendedNextStep}</span> : null}
+                        </li>
+                      ))}
+                    </ul>
+                  ) : (
+                    <p>No program matches for the identified jurisdiction; confirm location and project details.</p>
+                  )}
+                  <p>
+                    Completed {survey.completedAt ? survey.completedAt.slice(0, 10) : "—"} · jurisdiction{" "}
+                    {survey.normalizedInput?.country || "unknown"}
+                    {survey.normalizedInput?.province ? `/${survey.normalizedInput.province}` : ""}
+                  </p>
+                </div>
+              ) : null}
 
               <div className="funding-review">
                 <div className="funding-review__header">

@@ -2,6 +2,7 @@
 
 import { useMemo, useState } from "react";
 import { getTenantTheme } from "../lib/branding";
+import FundingSurveyWidget from "./funding/FundingSurveyWidget";
 
 export default function FunnelPage({ tenant }) {
   const [selectedPackageId, setSelectedPackageId] = useState(tenant.defaultPackageId);
@@ -311,6 +312,13 @@ export default function FunnelPage({ tenant }) {
           </div>
         </section>
 
+        {isFundingTenant ? (
+        <section className="section section--soft checkout-section" id="funding-survey">
+          <div className="section__inner">
+            <FundingSurveyWidget tenant={tenant} />
+          </div>
+        </section>
+        ) : (
         <section className="section section--soft checkout-section">
           <div className="section__inner checkout-layout">
             <div>
@@ -459,6 +467,7 @@ export default function FunnelPage({ tenant }) {
             </form>
           </div>
         </section>
+        )}
 
         <section className="section objections">
           <div className="section__inner">
