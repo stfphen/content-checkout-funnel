@@ -18,9 +18,26 @@ publishes the app through the existing `traefik-public` network.
 In Hostinger DNS for `dgtlmag.com`, set:
 
 ```text
-A     @      62.72.16.32
-A     www    62.72.16.32
+A     @          62.72.16.32
+A     www        62.72.16.32
+A     funding    62.72.16.32
+A     grants     62.72.16.32
 ```
+
+The `funding` / `grants` records serve the **Funding Survey** funnel: the
+built-in `funded-growth` tenant is configured for `funding.dgtlmag.com` and
+`grants.dgtlmag.com` (`lib/funding/tenant.js`), and `getTenantForHost`
+(`lib/store.js`) resolves those hosts to it. The same Traefik router that
+serves `dgtlmag.com` already matches subdomains via the `traefik-public`
+network, so no extra Traefik rule is needed beyond confirming the host is
+routed to the app container (verify with
+`curl -I -H "Host: funding.dgtlmag.com" http://127.0.0.1:8088/`). TLS for the
+subdomains is issued by the existing LetsEncrypt resolver on first request.
+
+> **Deploy source:** the Funding Survey lives on the survey/feature branches —
+> `main` does not contain it. Deploy from a branch that has it (e.g. the current
+> feature branch), or merge that branch into `main` first; otherwise the survey,
+> CTA, and subdomain routing will not be present in the build.
 
 ## 2. Prepare the Local Bundle
 

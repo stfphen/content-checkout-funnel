@@ -163,6 +163,11 @@ export default function FunnelPage({ tenant }) {
               >
                 {tenant.hero.secondaryCta}
               </button>
+              {!isFundingTenant && tenant.fundingPromo?.enabled ? (
+                <a className="button button--secondary" href={tenant.fundingPromo.link}>
+                  {tenant.fundingPromo.cta}
+                </a>
+              ) : null}
             </StaggerItem>
             <StaggerItem as="dl" className="hero__stats" aria-label="Content day highlights">
               {tenant.hero.stats.map((stat) => (
@@ -314,6 +319,19 @@ export default function FunnelPage({ tenant }) {
             </Reveal>
           </div>
         </section>
+
+        {!isFundingTenant && tenant.fundingPromo?.enabled ? (
+          <section className="section section--soft" id="funding-survey" aria-label="Funding eligibility survey">
+            <Reveal className="section__inner" amount={0.1}>
+              <div className="section__header">
+                <p className="eyebrow">{tenant.fundingPromo.eyebrow}</p>
+                <h2>{tenant.fundingPromo.headline}</h2>
+                <p>{tenant.fundingPromo.body}</p>
+              </div>
+              <FundingSurveyWidget tenant={tenant} />
+            </Reveal>
+          </section>
+        ) : null}
 
         {isFundingTenant ? (
         <section className="section section--soft checkout-section" id="funding-survey">
