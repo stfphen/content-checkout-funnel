@@ -66,5 +66,5 @@ export async function POST(request) {
     });
   }
 
-  return NextResponse.redirect(new URL("/admin", request.url), 303);
+  return NextResponse.redirect(new URL("/admin", process.env.PUBLIC_APP_URL || request.url), 303);
 }

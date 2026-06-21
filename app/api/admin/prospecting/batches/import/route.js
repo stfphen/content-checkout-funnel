@@ -25,7 +25,7 @@ export async function POST(request) {
   const form = await request.formData();
   const batchId = String(form.get("batchId") || "");
   const batch = await getProspectingBatch(batchId, { teamId });
-  const url = new URL("/admin", request.url);
+  const url = new URL("/admin", process.env.PUBLIC_APP_URL || request.url);
   url.searchParams.set("batchId", batchId);
 
   if (!batch) {

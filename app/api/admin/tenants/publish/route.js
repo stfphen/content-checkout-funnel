@@ -6,7 +6,7 @@ import { getSessionTeamId, publishTenantConfig } from "../../../../../lib/store"
 export const dynamic = "force-dynamic";
 
 function redirectAdmin(request, notice) {
-  const url = new URL("/admin", request.url);
+  const url = new URL("/admin", process.env.PUBLIC_APP_URL || request.url);
   url.searchParams.set("tab", "tenants");
   url.searchParams.set("notice", notice);
   return NextResponse.redirect(url, 303);

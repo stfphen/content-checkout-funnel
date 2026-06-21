@@ -8,10 +8,10 @@ export async function POST(request) {
 
   const session = await createAdminSession(email, password);
   if (!session) {
-    return NextResponse.redirect(new URL("/admin/login?error=1", request.url), 303);
+    return NextResponse.redirect(new URL("/admin/login?error=1", process.env.PUBLIC_APP_URL || request.url), 303);
   }
 
-  const response = NextResponse.redirect(new URL("/admin", request.url), 303);
+  const response = NextResponse.redirect(new URL("/admin", process.env.PUBLIC_APP_URL || request.url), 303);
   const cookie = adminCookie(session.token);
   response.cookies.set(cookie.name, cookie.value, cookie.options);
   return response;

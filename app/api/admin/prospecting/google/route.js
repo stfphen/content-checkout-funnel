@@ -72,7 +72,7 @@ export async function POST(request) {
     }
   }
 
-  const url = new URL("/admin", request.url);
+  const url = new URL("/admin", process.env.PUBLIC_APP_URL || request.url);
   if (!result.ok) url.searchParams.set("notice", result.reason);
   if (result.ok) {
     url.searchParams.set(

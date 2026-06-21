@@ -14,7 +14,7 @@ import {
 } from "../../../../../lib/store";
 
 function redirectAdmin(request, notice) {
-  const url = new URL("/admin", request.url);
+  const url = new URL("/admin", process.env.PUBLIC_APP_URL || request.url);
   if (notice) url.searchParams.set("notice", notice);
   return NextResponse.redirect(url, 303);
 }

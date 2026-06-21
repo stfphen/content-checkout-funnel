@@ -27,7 +27,7 @@ export async function POST(request) {
     await updateLead(leadId, { metadata }, { teamId });
   }
 
-  const url = new URL(redirectTo, request.url);
+  const url = new URL(redirectTo, process.env.PUBLIC_APP_URL || request.url);
   url.searchParams.set("notice", lead ? "Funding review saved." : "Lead not found.");
   return NextResponse.redirect(url, 303);
 }

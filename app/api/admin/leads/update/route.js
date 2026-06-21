@@ -31,7 +31,7 @@ export async function POST(request) {
     campaignId: String(form.get("campaignId") || "")
   }, { teamId: getSessionTeamId(session) });
 
-  const url = new URL(redirectTo, request.url);
+  const url = new URL(redirectTo, process.env.PUBLIC_APP_URL || request.url);
   url.searchParams.set("notice", "Lead updated.");
   return NextResponse.redirect(url, 303);
 }

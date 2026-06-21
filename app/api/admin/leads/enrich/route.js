@@ -5,9 +5,9 @@ import { getLeadById, updateLeadResearch } from "../../../../../lib/store";
 
 export async function POST(request) {
   const session = await getAdminSession();
-  if (!session) return NextResponse.redirect(new URL("/admin/login", request.url), 303);
+  if (!session) return NextResponse.redirect(new URL("/admin/login", process.env.PUBLIC_APP_URL || request.url), 303);
 
-  const redirectUrl = new URL("/admin", request.url);
+  const redirectUrl = new URL("/admin", process.env.PUBLIC_APP_URL || request.url);
   const form = await request.formData();
   const leadId = String(form.get("leadId") || "");
   const lead = await getLeadById(leadId);

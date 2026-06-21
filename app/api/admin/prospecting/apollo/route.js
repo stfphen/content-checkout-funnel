@@ -27,7 +27,7 @@ export async function POST(request) {
     .filter(Boolean);
   const result = await searchApolloPeople({ domain, titles });
 
-  const url = new URL("/admin", request.url);
+  const url = new URL("/admin", process.env.PUBLIC_APP_URL || request.url);
   if (!result.ok) {
     url.searchParams.set("notice", result.reason);
     return NextResponse.redirect(url, 303);

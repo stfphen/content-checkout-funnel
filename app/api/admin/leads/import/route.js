@@ -44,7 +44,7 @@ export async function POST(request) {
     }
   }
 
-  const url = new URL("/admin", request.url);
+  const url = new URL("/admin", process.env.PUBLIC_APP_URL || request.url);
   url.searchParams.set("notice", `Imported ${imported} CSV leads. Skipped ${skippedDuplicates} duplicates.`);
   return NextResponse.redirect(url, 303);
 }

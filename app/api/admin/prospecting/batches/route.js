@@ -48,7 +48,7 @@ export async function POST(request) {
     targetRoles: defaultApolloRoles
   });
 
-  const url = new URL("/admin", request.url);
+  const url = new URL("/admin", process.env.PUBLIC_APP_URL || request.url);
   url.searchParams.set("batchId", batch.id);
 
   const result = await searchGooglePlaces({ query, maxResults });
