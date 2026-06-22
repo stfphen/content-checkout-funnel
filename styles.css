@@ -3391,11 +3391,26 @@ summary:focus-visible,
   .v2-admin-shell .funding-lead-stats { grid-template-columns: 1fr; }
 }
 
-/* Bottom fixed nav: ensure content clears it (nav ~96px incl. gap + safe area) */
+/* Mobile/tablet gutters: the legacy `.admin-shell { padding: 40px 0 72px }`
+   rule (declared later in source) was overriding the intended horizontal
+   padding to 0, so KPI metric strips and tab title sections bled to the
+   screen edges. Restore consistent side gutters below the desktop breakpoint.
+   Also ensure content clears the fixed bottom nav (~96px incl. gap + safe area). */
 @media (max-width: 1023px) {
   .v2-admin-shell .v2-dashboard-main,
   .v2-admin-shell .v2-dashboard-main.admin-shell {
+    padding-top: 24px;
+    padding-right: 20px;
+    padding-left: 20px;
     padding-bottom: calc(132px + env(safe-area-inset-bottom));
+  }
+}
+
+@media (max-width: 560px) {
+  .v2-admin-shell .v2-dashboard-main,
+  .v2-admin-shell .v2-dashboard-main.admin-shell {
+    padding-right: 16px;
+    padding-left: 16px;
   }
 }
 
