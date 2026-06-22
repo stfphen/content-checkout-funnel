@@ -3411,3 +3411,127 @@ summary:focus-visible,
 @media (max-width: 1023px) {
   .v2-admin-shell, .v2-admin-shell .v2-dashboard-main { overflow-x: hidden; }
 }
+
+/* Simplified mobile lead-detail: essentials + collapsible sections */
+.v2-admin-shell .lead-detail-grid--stacked {
+  display: block;
+  padding: 0 var(--space-4) var(--space-4);
+}
+
+.v2-admin-shell .lead-detail-grid--stacked > section {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+.v2-admin-shell .lead-detail-grid--stacked > section + section {
+  margin-top: var(--space-3);
+}
+
+/* Essentials contact record */
+.v2-admin-shell .lead-contact-record {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  margin: 0 0 var(--space-2);
+  border: 0.5px solid var(--line);
+  border-radius: var(--radius);
+  background: var(--white);
+  overflow: hidden;
+}
+
+.v2-admin-shell .lead-contact-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-4);
+  min-height: 44px;
+  padding: var(--space-2) var(--space-4);
+}
+
+.v2-admin-shell .lead-contact-row + .lead-contact-row {
+  border-top: 0.5px solid var(--line);
+}
+
+.v2-admin-shell .lead-contact-row dt {
+  flex: 0 0 auto;
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.02em;
+}
+
+.v2-admin-shell .lead-contact-row dd {
+  margin: 0;
+  text-align: right;
+  overflow-wrap: anywhere;
+}
+
+.v2-admin-shell .lead-contact-row dd a {
+  display: inline-block;
+  min-height: 44px;
+  line-height: 44px;
+}
+
+/* Collapsible sections */
+.v2-admin-shell .lead-section {
+  border: 0.5px solid var(--line);
+  border-radius: var(--radius);
+  background: var(--white);
+}
+
+.v2-admin-shell .lead-section > summary {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+  min-height: 44px;
+  padding: var(--space-3) var(--space-4);
+  cursor: pointer;
+  list-style: none;
+  font-weight: 800;
+}
+
+.v2-admin-shell .lead-section > summary::-webkit-details-marker {
+  display: none;
+}
+
+.v2-admin-shell .lead-section > summary::after {
+  content: "";
+  flex: 0 0 auto;
+  width: 9px;
+  height: 9px;
+  border-right: 2px solid var(--muted);
+  border-bottom: 2px solid var(--muted);
+  transform: rotate(45deg);
+  transition: transform 0.18s ease;
+}
+
+.v2-admin-shell .lead-section[open] > summary::after {
+  transform: rotate(225deg);
+}
+
+.v2-admin-shell .lead-section__body {
+  padding: 0 var(--space-4) var(--space-4);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+.v2-admin-shell .lead-section__body > .lead-actions {
+  margin-top: var(--space-1);
+}
+
+@media (min-width: 1024px) {
+  .v2-admin-shell .lead-detail-grid--stacked {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(300px, 0.9fr);
+    gap: var(--space-5);
+    align-items: start;
+  }
+
+  .v2-admin-shell .lead-detail-grid--stacked > section + section {
+    margin-top: 0;
+  }
+}

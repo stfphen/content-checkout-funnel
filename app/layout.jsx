@@ -34,13 +34,17 @@ export const metadata = {
   title: "Content Day",
   description:
     "A configurable white-label content creation funnel and lead generation dashboard.",
+  // Per-tenant PWA manifest (Android/Chrome) resolved by host at request time.
+  manifest: "/manifest.webmanifest",
   icons: {
     icon: [
       { url: "/icon.svg", type: "image/svg+xml" },
       { url: "/favicon.svg", type: "image/svg+xml" },
     ],
     shortcut: "/favicon.svg",
-    apple: "/icon.svg",
+    // iOS home-screen icon: served per-tenant from the host, falling back to
+    // the bundled SVG when a tenant hasn't set a custom icon.
+    apple: "/branding/icon",
   },
 };
 

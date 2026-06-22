@@ -8,6 +8,7 @@ import { missingFields } from "../../lib/leadResearch/leadFields";
 import ResearchFromQuery from "../../components/admin/ResearchFromQuery";
 import LeadCallPanel from "../../components/admin/LeadCallPanel";
 import TenantPhoneSettings from "../../components/admin/TenantPhoneSettings";
+import TenantBrandingSettings from "../../components/admin/TenantBrandingSettings";
 import CallsTable from "../../components/admin/CallsTable";
 import { buildCallMetrics, formatTalkTime } from "../../lib/telephony/metrics";
 import { getAdminSession } from "../../lib/auth";
@@ -1120,92 +1121,129 @@ export default async function AdminPage({ searchParams }) {
                 {lead.possibleDuplicates?.length ? <span className="duplicate-pill">Possible duplicate</span> : null}
               </summary>
 
-              <div className="lead-detail-grid">
+              <div className="lead-detail-grid lead-detail-grid--stacked">
                 <section>
-                  <h3>Lead Detail</h3>
-                  <dl className="lead-facts">
-                    <div><dt>Contact</dt><dd>{lead.contactName || "None"} {lead.contactTitle ? `| ${lead.contactTitle}` : ""}</dd></div>
-                    <div><dt>Email</dt><dd>{lead.email || "None"}</dd></div>
-                    <div><dt>Phone</dt><dd>{lead.phone || "None"}</dd></div>
-                    <div><dt>Website</dt><dd>{lead.websiteUrl || "None"}</dd></div>
-                    <div><dt>Address</dt><dd>{lead.address || "None"}</dd></div>
-                    <div><dt>Batch</dt><dd>{lead.batchId || "None"}</dd></div>
-                    <div><dt>Google</dt><dd>{lead.googleRating || 0} rating | {lead.googleReviewCount || 0} reviews</dd></div>
-                    <div><dt>Last Contacted</dt><dd>{lead.lastContactedAt ? new Date(lead.lastContactedAt).toLocaleDateString() : "Never"}</dd></div>
-                    <div><dt>Next Follow-up</dt><dd>{lead.nextFollowUpAt ? new Date(lead.nextFollowUpAt).toLocaleDateString() : "None"}</dd></div>
-                    <div><dt>Last Call</dt><dd>{lead.lastCallAt ? new Date(lead.lastCallAt).toLocaleDateString() : (leadCalls[0] ? `${leadCalls[0].status}${leadCalls[0].outcome ? ` · ${leadCalls[0].outcome.replaceAll("_", " ")}` : ""}` : "None")}</dd></div>
+                  <dl className="lead-contact-record">
+                    <div className="lead-contact-row">
+                      <dt>Contact</dt>
+                      <dd>{lead.contactName || "None"}{lead.contactTitle ? ` | ${lead.contactTitle}` : ""}</dd>
+                    </div>
+                    <div className="lead-contact-row">
+                      <dt>Phone</dt>
+                      <dd>{lead.phone ? <a href={`tel:${lead.phone}`}>{lead.phone}</a> : "None"}</dd>
+                    </div>
+                    <div className="lead-contact-row">
+                      <dt>Website</dt>
+                      <dd>{lead.websiteUrl ? <a href={lead.websiteUrl} target="_blank" rel="noreferrer">{lead.websiteUrl}</a> : "None"}</dd>
+                    </div>
+                    <div className="lead-contact-row">
+                      <dt>Address</dt>
+                      <dd>{lead.address || "None"}</dd>
+                    </div>
                   </dl>
 
-                  {lead.possibleDuplicates?.length ? (
-                    <div className="duplicate-review">
-                      <strong>Possible duplicates</strong>
-                      {lead.possibleDuplicates.map((duplicate) => (
-                        <p key={duplicate.id}>{duplicate.businessName}: {duplicate.reasons.join(", ")}</p>
-                      ))}
-                    </div>
-                  ) : null}
+                  <details className="lead-section">
+                    <summary>Lead detail</summary>
+                    <div className="lead-section__body">
+                      <dl className="lead-facts">
+                        <div><dt>Contact</dt><dd>{lead.contactName || "None"} {lead.contactTitle ? `| ${lead.contactTitle}` : ""}</dd></div>
+                        <div><dt>Email</dt><dd>{lead.email || "None"}</dd></div>
+                        <div><dt>Phone</dt><dd>{lead.phone || "None"}</dd></div>
+                        <div><dt>Website</dt><dd>{lead.websiteUrl || "None"}</dd></div>
+                        <div><dt>Address</dt><dd>{lead.address || "None"}</dd></div>
+                        <div><dt>Batch</dt><dd>{lead.batchId || "None"}</dd></div>
+                        <div><dt>Google</dt><dd>{lead.googleRating || 0} rating | {lead.googleReviewCount || 0} reviews</dd></div>
+                        <div><dt>Last Contacted</dt><dd>{lead.lastContactedAt ? new Date(lead.lastContactedAt).toLocaleDateString() : "Never"}</dd></div>
+                        <div><dt>Next Follow-up</dt><dd>{lead.nextFollowUpAt ? new Date(lead.nextFollowUpAt).toLocaleDateString() : "None"}</dd></div>
+                        <div><dt>Last Call</dt><dd>{lead.lastCallAt ? new Date(lead.lastCallAt).toLocaleDateString() : (leadCalls[0] ? `${leadCalls[0].status}${leadCalls[0].outcome ? ` · ${leadCalls[0].outcome.replaceAll("_", " ")}` : ""}` : "None")}</dd></div>
+                      </dl>
 
-                  <h3>Source Metadata</h3>
-                  <pre className="metadata-preview">{JSON.stringify(lead.sourceMetadata || lead.metadata || {}, null, 2)}</pre>
-
-                  {enrichment ? (
-                    <div className="lead-enrichment">
-                      <div className="lead-enrichment__meta">
-                        <strong>Website enrichment</strong>
-                        <span>Status: {enrichment.status}</span>
-                        {enrichment.lastEnrichedAt ? <span>Last enriched: {enrichment.lastEnrichedAt}</span> : null}
-                        {enrichment.title ? <span>Title: {enrichment.title}</span> : null}
-                      </div>
-                      {renderEnrichmentGroup("Social", enrichment.socialProfiles)}
-                      {renderEnrichmentGroup("Emails", enrichment.emails)}
-                      {renderEnrichmentGroup("Phones", enrichment.phones)}
-                      {renderEnrichmentGroup("Headings", enrichment.headings)}
-                      {renderEnrichmentGroup("Signals", enrichment.signals)}
-                      {enrichment.salesBrief?.summary ? (
-                        <div className="lead-enrichment__brief">
-                          <strong>Sales brief</strong>
-                          <p>{enrichment.salesBrief.summary}</p>
-                          {enrichment.salesBrief.suggestedOffer ? (
-                            <p><span>Offer:</span> {enrichment.salesBrief.suggestedOffer}</p>
-                          ) : null}
-                          {enrichment.salesBrief.callerOpeningLine ? (
-                            <p><span>Caller opener:</span> {enrichment.salesBrief.callerOpeningLine}</p>
-                          ) : null}
-                          <div className="lead-enrichment__scores">
-                            {enrichment.salesBrief.fitScore !== null ? (
-                              <span className="lead-enrichment__score">Fit {enrichment.salesBrief.fitScore}</span>
-                            ) : null}
-                            {enrichment.salesBrief.confidenceScore !== null ? (
-                              <span className="lead-enrichment__score">
-                                Confidence {enrichment.salesBrief.confidenceScore}
-                              </span>
-                            ) : null}
-                          </div>
+                      {lead.possibleDuplicates?.length ? (
+                        <div className="duplicate-review">
+                          <strong>Possible duplicates</strong>
+                          {lead.possibleDuplicates.map((duplicate) => (
+                            <p key={duplicate.id}>{duplicate.businessName}: {duplicate.reasons.join(", ")}</p>
+                          ))}
                         </div>
                       ) : null}
-                      {renderEnrichmentGroup("Angles", enrichment.salesBrief?.outreachAngles || [])}
                     </div>
-                  ) : null}
+                  </details>
 
-                  <LeadDeepResearch
-                    leadId={lead.id}
-                    initialDossier={lead?.metadata?.research?.dossier || null}
-                    initialReviewFlags={lead?.metadata?.research?.reviewQueue || []}
-                  />
-                  <FillMissingButton leadId={lead.id} missingCount={missingFields(lead).length} />
+                  <details className="lead-section">
+                    <summary>Call &amp; SMS</summary>
+                    <div className="lead-section__body">
+                      {canManageLeadActions ? (
+                        <LeadCallPanel
+                          leadId={lead.id}
+                          leadPhone={lead.phone || ""}
+                          doNotCall={Boolean(lead.doNotCall)}
+                          doNotContact={Boolean(lead.doNotContact)}
+                          telephonyEnabled={Boolean(leadTenant?.telephony?.enabled)}
+                          calls={leadCalls}
+                        />
+                      ) : (
+                        <p>You do not have permission to manage call actions.</p>
+                      )}
+                    </div>
+                  </details>
+
+                  <details className="lead-section">
+                    <summary>AI research &amp; sales brief</summary>
+                    <div className="lead-section__body">
+                      {enrichment ? (
+                        <div className="lead-enrichment">
+                          <div className="lead-enrichment__meta">
+                            <strong>Website enrichment</strong>
+                            <span>Status: {enrichment.status}</span>
+                            {enrichment.lastEnrichedAt ? <span>Last enriched: {enrichment.lastEnrichedAt}</span> : null}
+                            {enrichment.title ? <span>Title: {enrichment.title}</span> : null}
+                          </div>
+                          {renderEnrichmentGroup("Social", enrichment.socialProfiles)}
+                          {renderEnrichmentGroup("Emails", enrichment.emails)}
+                          {renderEnrichmentGroup("Phones", enrichment.phones)}
+                          {renderEnrichmentGroup("Headings", enrichment.headings)}
+                          {renderEnrichmentGroup("Signals", enrichment.signals)}
+                          {enrichment.salesBrief?.summary ? (
+                            <div className="lead-enrichment__brief">
+                              <strong>Sales brief</strong>
+                              <p>{enrichment.salesBrief.summary}</p>
+                              {enrichment.salesBrief.suggestedOffer ? (
+                                <p><span>Offer:</span> {enrichment.salesBrief.suggestedOffer}</p>
+                              ) : null}
+                              {enrichment.salesBrief.callerOpeningLine ? (
+                                <p><span>Caller opener:</span> {enrichment.salesBrief.callerOpeningLine}</p>
+                              ) : null}
+                              <div className="lead-enrichment__scores">
+                                {enrichment.salesBrief.fitScore !== null ? (
+                                  <span className="lead-enrichment__score">Fit {enrichment.salesBrief.fitScore}</span>
+                                ) : null}
+                                {enrichment.salesBrief.confidenceScore !== null ? (
+                                  <span className="lead-enrichment__score">
+                                    Confidence {enrichment.salesBrief.confidenceScore}
+                                  </span>
+                                ) : null}
+                              </div>
+                            </div>
+                          ) : null}
+                          {renderEnrichmentGroup("Angles", enrichment.salesBrief?.outreachAngles || [])}
+                        </div>
+                      ) : null}
+
+                      <LeadDeepResearch
+                        leadId={lead.id}
+                        initialDossier={lead?.metadata?.research?.dossier || null}
+                        initialReviewFlags={lead?.metadata?.research?.reviewQueue || []}
+                      />
+                      <FillMissingButton leadId={lead.id} missingCount={missingFields(lead).length} />
+                    </div>
+                  </details>
                 </section>
 
                 <section>
                   {canManageLeadActions ? (
-                  <>
-                  <LeadCallPanel
-                    leadId={lead.id}
-                    leadPhone={lead.phone || ""}
-                    doNotCall={Boolean(lead.doNotCall)}
-                    doNotContact={Boolean(lead.doNotContact)}
-                    telephonyEnabled={Boolean(leadTenant?.telephony?.enabled)}
-                    calls={leadCalls}
-                  />
+                  <details className="lead-section">
+                    <summary>Edit &amp; status</summary>
+                    <div className="lead-section__body">
                   <h3>Edit Pipeline Fields</h3>
                   <form action="/api/admin/leads/update" method="post" className="admin-form">
                     <input type="hidden" name="leadId" value={lead.id} />
@@ -1344,11 +1382,14 @@ export default async function AdminPage({ searchParams }) {
                     <input name="scheduledFor" type="hidden" value={lead.nextFollowUpAt || ""} />
                     <button className="button button--secondary" type="submit">Queue Follow-up</button>
                   </form>
-                  </>
+                    </div>
+                  </details>
                   ) : null}
 
+                  <details className="lead-section">
+                    <summary>Outreach history</summary>
+                    <div className="lead-section__body">
                   <section className="outreach-history">
-                    <h3>Outreach History</h3>
                     <div className="outreach-list">
                       {leadQueue.map((item) => (
                         <div key={item.id} className="outreach-list-row">
@@ -1365,6 +1406,23 @@ export default async function AdminPage({ searchParams }) {
                       {!leadQueue.length && !leadEvents.length ? <p>No outreach history yet.</p> : null}
                     </div>
                   </section>
+                    </div>
+                  </details>
+
+                  <details className="lead-section">
+                    <summary>Raw source data</summary>
+                    <div className="lead-section__body">
+                      <pre className="metadata-preview">{JSON.stringify(lead.sourceMetadata || lead.metadata || {}, null, 2)}</pre>
+                      {lead.possibleDuplicates?.length ? (
+                        <div className="duplicate-review">
+                          <strong>Possible duplicates</strong>
+                          {lead.possibleDuplicates.map((duplicate) => (
+                            <p key={`raw-${duplicate.id}`}>{duplicate.businessName}: {duplicate.reasons.join(", ")}</p>
+                          ))}
+                        </div>
+                      ) : null}
+                    </div>
+                  </details>
                 </section>
               </div>
             </details>
@@ -1387,6 +1445,14 @@ export default async function AdminPage({ searchParams }) {
             telephony: tenant.telephony
           }))}
           reps={teamUsers.map((user) => ({ id: user.id, name: user.name, email: user.email }))}
+        />
+        <TenantBrandingSettings
+          tenants={tenants.map((tenant) => ({
+            id: tenant.id,
+            name: tenant.brand?.name || tenant.slug,
+            slug: tenant.slug,
+            appIcon: tenant.brand?.appIcon || ""
+          }))}
         />
         <article className="admin-panel admin-panel--wide">
           <h2>Tenants</h2>
