@@ -3362,3 +3362,52 @@ summary:focus-visible,
 .calls-table tbody tr:hover {
   background: color-mix(in srgb, var(--blue) 6%, transparent);
 }
+
+/* ============================================================
+   MOBILE ADMIN UI FIXES — anomaly pass (2026-06-22)
+   All rules scoped to .v2-admin-shell so the public funnel is untouched.
+   ============================================================ */
+
+/* Lead row: truncate long business name + meta instead of overflowing */
+.v2-admin-shell .lead-card summary > span:first-child { min-width: 0; overflow: hidden; }
+.v2-admin-shell .lead-card summary strong {
+  display: block; min-width: 0;
+  overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+}
+.v2-admin-shell .lead-card small {
+  display: block; max-width: 100%;
+  overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+}
+
+/* Raw JSON metadata: wrap long tokens, never force horizontal page scroll */
+.v2-admin-shell .metadata-preview { word-break: break-word; overflow-wrap: anywhere; }
+
+/* Funding stat cards: no mid-word breaks; sane column counts on phones */
+.v2-admin-shell .funding-lead-stats dd { overflow-wrap: anywhere; hyphens: none; }
+@media (max-width: 880px) {
+  .v2-admin-shell .funding-lead-stats { grid-template-columns: 1fr 1fr; }
+}
+@media (max-width: 560px) {
+  .v2-admin-shell .funding-lead-stats { grid-template-columns: 1fr; }
+}
+
+/* Bottom fixed nav: ensure content clears it (nav ~96px incl. gap + safe area) */
+@media (max-width: 1023px) {
+  .v2-admin-shell .v2-dashboard-main,
+  .v2-admin-shell .v2-dashboard-main.admin-shell {
+    padding-bottom: calc(132px + env(safe-area-inset-bottom));
+  }
+}
+
+/* Action rows + tap targets on small screens */
+@media (max-width: 560px) {
+  .v2-admin-shell .lead-actions { flex-direction: column; align-items: stretch; }
+  .v2-admin-shell .lead-actions .button,
+  .v2-admin-shell .lead-actions form,
+  .v2-admin-shell .lead-actions form .button { width: 100%; }
+}
+
+/* Guard: nothing in the admin should cause sideways scrolling */
+@media (max-width: 1023px) {
+  .v2-admin-shell, .v2-admin-shell .v2-dashboard-main { overflow-x: hidden; }
+}
