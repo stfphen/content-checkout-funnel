@@ -28,5 +28,12 @@ COPY lib ./lib
 COPY migrations ./migrations
 COPY scripts ./scripts
 
+# Run as the non-root `node` user. The Claude Agent SDK's CLI refuses to run in
+# bypassPermissions mode as root, which the AI features require. HOME must point
+# at a writable dir the CLI can use for its config. See docs/CLAUDE_AI_SETUP.md.
+ENV HOME=/home/node
+RUN mkdir -p /home/node/.claude && chown -R node:node /home/node
+USER node
+
 EXPOSE 3000
 CMD ["node", "server.js"]
