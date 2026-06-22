@@ -125,7 +125,18 @@ export default function LeadCallPanel({
             <span>
               {formatWhen(call.startedAt || call.createdAt)} · {formatDuration(call.durationSeconds)}
               {call.outcome ? ` · ${call.outcome.replaceAll("_", " ")}` : ""}
+              {call.recordingUrl ? " · recorded" : ""}
             </span>
+            {call.recordingUrl ? (
+              <audio
+                className="lead-call-recording"
+                controls
+                preload="none"
+                src={call.recordingUrl}
+              >
+                Your browser does not support audio playback.
+              </audio>
+            ) : null}
             <label className="lead-call-outcome">
               Outcome
               <select

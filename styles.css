@@ -3538,6 +3538,23 @@ summary:focus-visible,
   margin-top: var(--space-1);
 }
 
+/* Call recording players — keep compact and never overflow the row/table. */
+.lead-call-recording {
+  width: 100%;
+  max-width: 320px;
+  height: 36px;
+  margin-top: 6px;
+}
+
+.calls-table__recording {
+  height: 32px;
+  max-width: 220px;
+}
+
+.calls-table__no-recording {
+  color: var(--muted);
+}
+
 @media (min-width: 1024px) {
   .v2-admin-shell .lead-detail-grid--stacked {
     display: grid;

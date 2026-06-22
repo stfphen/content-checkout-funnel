@@ -117,6 +117,7 @@ export default function CallsTable({ calls = [] }) {
               <th>When</th>
               <th>Duration</th>
               <th>Status</th>
+              <th>Recording</th>
               <th>Outcome</th>
             </tr>
           </thead>
@@ -138,6 +139,15 @@ export default function CallsTable({ calls = [] }) {
                   <span className={`status-pill status-pill--${call.status}`}>
                     {String(call.status || "").replaceAll("_", " ")}
                   </span>
+                </td>
+                <td>
+                  {call.recordingUrl ? (
+                    <audio className="calls-table__recording" controls preload="none" src={call.recordingUrl}>
+                      Your browser does not support audio playback.
+                    </audio>
+                  ) : (
+                    <span className="calls-table__no-recording">—</span>
+                  )}
                 </td>
                 <td>
                   <select

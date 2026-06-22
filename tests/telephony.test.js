@@ -21,6 +21,8 @@ import { toE164US, isValidE164US } from "../lib/telephony/phone.js";
 import { normalizeTenantTelephony, defaultTenantTelephony } from "../lib/telephony/constants.js";
 import { checkOutboundLead } from "../lib/telephony/outboundGuards.js";
 import { buildCallMetrics, formatTalkTime } from "../lib/telephony/metrics.js";
+import { mockProvider, MOCK_RECORDING_URL } from "../lib/telephony/mockProvider.js";
+import { runMockCallLifecycle } from "../lib/telephony/mockSimulator.js";
 
 // Note: the inbound/status routes use the standard web Response and load under
 // node --test. The outbound route imports next/server (NextResponse), which only
@@ -30,6 +32,7 @@ import { buildCallMetrics, formatTalkTime } from "../lib/telephony/metrics.js";
 const store = await import("../lib/store.js");
 const { POST: inboundPOST } = await import("../app/api/telephony/inbound/route.js");
 const { POST: statusPOST } = await import("../app/api/telephony/status/route.js");
+const { POST: recordingPOST } = await import("../app/api/telephony/recording/route.js");
 
 const TEAM = "team_default";
 
@@ -155,6 +158,125 @@ test("createOutboundCall degrades gracefully without credentials", async () => {
     process.env.TWILIO_ACCOUNT_SID = savedSid;
     process.env.TWILIO_AUTH_TOKEN = savedToken;
   }
+});
+
+test("buildOutboundResponse records when enabled; announces only for two-party modes", async () => {
+  const oneParty = await twilioProvider.buildOutboundResponse({
+    tenantNumber: "+14165550100",
+    leadNumber: "+14165550123",
+    recording: { enabled: true, consentMode: "one_party" },
+    recordingStatusCallbackUrl: "https://test.example.com/api/telephony/recording"
+  });
+  assert.match(oneParty, /record="record-from-answer-dual"/);
+  assert.match(oneParty, /recordingStatusCallback="https:\/\/test\.example\.com\/api\/telephony\/recording"/);
+  assert.doesNotMatch(oneParty, /<Say>/); // one-party (Canada) = no announcement
+  assert.match(oneParty, /<Number>\+14165550123<\/Number>/);
+
+  const disclaimer = await twilioProvider.buildOutboundResponse({
+    tenantNumber: "+14165550100",
+    leadNumber: "+14165550123",
+    recording: { enabled: true, consentMode: "play_disclaimer" }
+  });
+  assert.match(disclaimer, /<Say>This call may be recorded/);
+
+  const off = await twilioProvider.buildOutboundResponse({
+    tenantNumber: "+14165550100",
+    leadNumber: "+14165550123",
+    recording: { enabled: false }
+  });
+  assert.doesNotMatch(off, /record=/);
+  assert.doesNotMatch(off, /<Say>/);
+});
+
+test("mock provider places a simulated call (no creds) and logs a recorded, completed call", async () => {
+  // Mock provider needs no credentials.
+  const placed = mockProvider.createOutboundCall({
+    tenantNumber: "+14165550100",
+    repNumber: "+14165550111",
+    leadNumber: "+14165550123"
+  });
+  assert.equal(placed.ok, true);
+  assert.equal(placed.configured, true);
+  assert.match(placed.data.providerCallId, /^mock_/);
+
+  // Tenant with recording enabled (one-party) so the simulator attaches a recording.
+  const tenant = await store.getTenantByIdOrSlug("tenant_dgtlmag", { teamId: TEAM });
+  await store.upsertTenantConfig(
+    {
+      ...tenant,
+      telephony: normalizeTenantTelephony({
+        enabled: true,
+        phoneNumber: "+14165550100",
+        recordingEnabled: true,
+        recordingConsentMode: "one_party"
+      })
+    },
+    { teamId: TEAM }
+  );
+
+  const lead = await store.createLead({
+    teamId: TEAM,
+    tenantId: "tenant_dgtlmag",
+    businessName: "Mock Co",
+    phone: "+14165550123"
+  });
+  const call = await store.createCall({
+    teamId: TEAM,
+    tenantId: "tenant_dgtlmag",
+    leadId: lead.id,
+    direction: "outbound",
+    status: "ringing",
+    provider: "mock",
+    providerCallId: placed.data.providerCallId
+  });
+
+  await runMockCallLifecycle(call, { durationSeconds: 60 });
+
+  const done = await store.getCallById(call.id);
+  assert.equal(done.status, "completed");
+  assert.equal(done.durationSeconds, 60);
+  assert.equal(done.recordingUrl, MOCK_RECORDING_URL);
+  assert.ok(done.startedAt);
+  assert.ok(done.endedAt);
+
+  const refreshedLead = await store.getLeadById(lead.id);
+  assert.equal(refreshedLead.callStatus, "completed");
+});
+
+test("recording webhook stores the recording URL when the tenant has recording enabled", async () => {
+  const tenant = await store.getTenantByIdOrSlug("tenant_dgtlmag", { teamId: TEAM });
+  await store.upsertTenantConfig(
+    { ...tenant, telephony: normalizeTenantTelephony({ enabled: true, phoneNumber: "+14165550100", recordingEnabled: true }) },
+    { teamId: TEAM }
+  );
+
+  const seeded = await store.createCall({
+    teamId: TEAM,
+    tenantId: "tenant_dgtlmag",
+    direction: "outbound",
+    status: "completed",
+    providerCallId: "CArec1"
+  });
+  const response = await recordingPOST(
+    webhookRequest("/api/telephony/recording", {
+      CallSid: "CArec1",
+      RecordingUrl: "https://api.twilio.com/2010-04-01/Recordings/RE123",
+      RecordingDuration: "42",
+      RecordingSid: "RE123"
+    })
+  );
+  assert.equal(response.status, 200);
+
+  const updated = await store.getCallById(seeded.id);
+  assert.match(updated.recordingUrl, /RE123\.mp3$/);
+  assert.equal(updated.durationSeconds, 42);
+});
+
+test("recording webhook rejects an unsigned request (403)", async () => {
+  const response = await recordingPOST(
+    unsignedRequest("/api/telephony/recording", { CallSid: "CArec1", RecordingUrl: "https://x/REC" })
+  );
+  assert.equal(response.status, 403);
 });
 
 test("buildCallMetrics aggregates direction, status, outcomes, and talk time", () => {

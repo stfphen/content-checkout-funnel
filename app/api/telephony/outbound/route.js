@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { permissionDeniedResponse, requireRole } from "../../../../lib/permissions.js";
-import { createOutboundCall } from "../../../../lib/telephony/index.js";
+import { createOutboundCall, maybeSimulateCall } from "../../../../lib/telephony/index.js";
 import { webhookUrl } from "../../../../lib/telephony/webhookUrl.js";
 import { toE164US } from "../../../../lib/telephony/phone.js";
 import { checkOutboundLead } from "../../../../lib/telephony/outboundGuards.js";
@@ -78,7 +78,18 @@ export async function POST(request) {
   }
 
   const statusCallbackUrl = webhookUrl("/api/telephony/status");
-  const result = await createOutboundCall({ tenantNumber, repNumber, leadNumber, statusCallbackUrl });
+  const recordingStatusCallbackUrl = webhookUrl("/api/telephony/recording");
+  const result = await createOutboundCall({
+    tenantNumber,
+    repNumber,
+    leadNumber,
+    statusCallbackUrl,
+    recording: {
+      enabled: Boolean(tel.recordingEnabled),
+      consentMode: tel.recordingConsentMode || "disabled"
+    },
+    recordingStatusCallbackUrl
+  });
   if (!result.ok) {
     const status = result.configured === false ? 503 : 502;
     return NextResponse.json({ error: result.error || "Failed to place call." }, { status });
@@ -104,11 +115,17 @@ export async function POST(request) {
     leadId: lead.id,
     type: "call",
     metadata: {
-      summary: `Outbound call started by ${session.user?.name || session.email || "rep"}`,
+      summary: `Outbound call started by ${session.user?.name || session.email || "rep"}${
+        tel.recordingEnabled ? ` · recording on (${tel.recordingConsentMode || "consent"})` : ""
+      }`,
       callId: call.id,
       direction: "outbound"
     }
   });
+
+  // Mock provider only: advance the logged call through its simulated lifecycle.
+  // No-op under real providers (their lifecycle arrives via webhooks).
+  await maybeSimulateCall(call);
 
   return NextResponse.json({
     ok: true,
