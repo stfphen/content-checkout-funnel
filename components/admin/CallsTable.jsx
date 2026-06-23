@@ -148,6 +148,14 @@ export default function CallsTable({ calls = [] }) {
                   ) : (
                     <span className="calls-table__no-recording">—</span>
                   )}
+                  {call.transcript ? (
+                    <span
+                      className="calls-table__transcript-flag"
+                      title={call.aiSummary || "Transcript available"}
+                    >
+                      📝 transcript
+                    </span>
+                  ) : null}
                 </td>
                 <td>
                   <select

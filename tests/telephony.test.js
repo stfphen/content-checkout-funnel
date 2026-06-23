@@ -33,6 +33,7 @@ const store = await import("../lib/store.js");
 const { POST: inboundPOST } = await import("../app/api/telephony/inbound/route.js");
 const { POST: statusPOST } = await import("../app/api/telephony/status/route.js");
 const { POST: recordingPOST } = await import("../app/api/telephony/recording/route.js");
+const { POST: transcriptionPOST } = await import("../app/api/telephony/transcription/route.js");
 
 const TEAM = "team_default";
 
@@ -276,6 +277,75 @@ test("recording webhook rejects an unsigned request (403)", async () => {
   const response = await recordingPOST(
     unsignedRequest("/api/telephony/recording", { CallSid: "CArec1", RecordingUrl: "https://x/REC" })
   );
+  assert.equal(response.status, 403);
+});
+
+test("createRecordingTranscript reports not-configured without an Intelligence Service SID", async () => {
+  const saved = process.env.TWILIO_INTELLIGENCE_SERVICE_SID;
+  delete process.env.TWILIO_INTELLIGENCE_SERVICE_SID;
+  try {
+    const result = await twilioProvider.createRecordingTranscript({ recordingSid: "RE123", customerKey: "CAx" });
+    assert.equal(result.ok, false);
+    assert.equal(result.configured, false);
+  } finally {
+    if (saved !== undefined) process.env.TWILIO_INTELLIGENCE_SERVICE_SID = saved;
+  }
+});
+
+test("mock simulator attaches a transcript + AI summary when transcription is enabled", async () => {
+  const tenant = await store.getTenantByIdOrSlug("tenant_dgtlmag", { teamId: TEAM });
+  await store.upsertTenantConfig(
+    {
+      ...tenant,
+      telephony: normalizeTenantTelephony({
+        enabled: true,
+        phoneNumber: "+14165550100",
+        recordingEnabled: true,
+        transcriptionEnabled: true
+      })
+    },
+    { teamId: TEAM }
+  );
+  const lead = await store.createLead({
+    teamId: TEAM,
+    tenantId: "tenant_dgtlmag",
+    businessName: "Transcribe Co",
+    phone: "+14165550123"
+  });
+  const call = await store.createCall({
+    teamId: TEAM,
+    tenantId: "tenant_dgtlmag",
+    leadId: lead.id,
+    direction: "outbound",
+    status: "ringing",
+    provider: "mock"
+  });
+  await runMockCallLifecycle(call, { durationSeconds: 45 });
+  const done = await store.getCallById(call.id);
+  assert.equal(done.status, "completed");
+  assert.ok(done.transcript && done.transcript.length > 0, "expected a transcript");
+  assert.ok(done.aiSummary && /Next step/.test(done.aiSummary), "expected an AI summary");
+});
+
+test("transcription webhook ignores unmatched customer_key (200, no write)", async () => {
+  const response = await transcriptionPOST(
+    webhookRequest("/api/telephony/transcription", {
+      event_type: "voice_intelligence_transcript_available",
+      transcript_sid: "GT999",
+      customer_key: "CA_does_not_exist"
+    })
+  );
+  assert.equal(response.status, 200);
+});
+
+test("transcription webhook rejects a bad signature when one is supplied (403)", async () => {
+  const url = "https://test.example.com/api/telephony/transcription";
+  const request = new Request(url, {
+    method: "POST",
+    headers: { "content-type": "application/x-www-form-urlencoded", "x-twilio-signature": "wrong" },
+    body: new URLSearchParams({ transcript_sid: "GT1", customer_key: "CAx" }).toString()
+  });
+  const response = await transcriptionPOST(request);
   assert.equal(response.status, 403);
 });
 

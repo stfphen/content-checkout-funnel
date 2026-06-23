@@ -1,4 +1,5 @@
 import { parseTwilioWebhook } from "../../../../lib/telephony/webhookRequest.js";
+import { createRecordingTranscript } from "../../../../lib/telephony/index.js";
 import {
   addCallEvent,
   getCallByProviderId,
@@ -49,6 +50,19 @@ export async function POST(request) {
     recordingSid: params.RecordingSid || "",
     callSid
   });
+
+  // Post-call transcription: tag the transcript with our CallSid (customerKey) so
+  // the CI completion webhook can match it back to this call. Best-effort.
+  const recordingSid = params.RecordingSid || params.recordingSid || "";
+  if (tel.transcriptionEnabled && recordingSid) {
+    const t = await createRecordingTranscript({ recordingSid, customerKey: callSid });
+    await addCallEvent(call.id, "transcription_requested", {
+      ok: Boolean(t?.ok),
+      transcriptSid: t?.data?.transcriptSid || "",
+      error: t?.ok ? "" : t?.error || "",
+      recordingSid
+    });
+  }
 
   return new Response("", { status: 200 });
 }

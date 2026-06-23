@@ -137,6 +137,18 @@ export default function LeadCallPanel({
                 Your browser does not support audio playback.
               </audio>
             ) : null}
+            {call.aiSummary ? (
+              <details className="lead-call-summary">
+                <summary>AI summary</summary>
+                <p>{call.aiSummary}</p>
+              </details>
+            ) : null}
+            {call.transcript ? (
+              <details className="lead-call-transcript">
+                <summary>Transcript</summary>
+                <pre>{call.transcript}</pre>
+              </details>
+            ) : null}
             <label className="lead-call-outcome">
               Outcome
               <select
