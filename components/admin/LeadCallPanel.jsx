@@ -42,6 +42,29 @@ export default function LeadCallPanel({
   const [status, setStatus] = useState("idle"); // idle | calling | placed | error
   const [error, setError] = useState("");
   const [savingId, setSavingId] = useState("");
+  const [transcribingId, setTranscribingId] = useState("");
+
+  async function transcribeCall(callId) {
+    setTranscribingId(callId);
+    setError("");
+    try {
+      const response = await fetch("/api/admin/telephony/transcribe", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ callId })
+      });
+      const data = await response.json().catch(() => ({}));
+      if (!response.ok) {
+        setError(data?.error || `Transcription failed (${response.status}).`);
+        return;
+      }
+      router.refresh();
+    } catch (err) {
+      setError(err?.message || "Network error.");
+    } finally {
+      setTranscribingId("");
+    }
+  }
 
   const blockedReason = !telephonyEnabled
     ? "Telephony is not enabled for this tenant."
@@ -157,6 +180,15 @@ export default function LeadCallPanel({
                 <summary>Transcript</summary>
                 <pre>{call.transcript}</pre>
               </details>
+            ) : call.recordingUrl ? (
+              <button
+                type="button"
+                className="button button--secondary lead-call-transcribe"
+                onClick={() => transcribeCall(call.id)}
+                disabled={transcribingId === call.id}
+              >
+                {transcribingId === call.id ? "Transcribing…" : "Transcribe"}
+              </button>
             ) : null}
             <label className="lead-call-outcome">
               Outcome

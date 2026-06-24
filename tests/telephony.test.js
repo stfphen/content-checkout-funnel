@@ -23,6 +23,7 @@ import { checkOutboundLead } from "../lib/telephony/outboundGuards.js";
 import { buildCallMetrics, formatTalkTime } from "../lib/telephony/metrics.js";
 import { mockProvider, MOCK_RECORDING_URL } from "../lib/telephony/mockProvider.js";
 import { runMockCallLifecycle } from "../lib/telephony/mockSimulator.js";
+import { inAppTranscriptionAvailable, transcribeAudio } from "../lib/telephony/transcribeRecording.js";
 
 // Note: the inbound/status routes use the standard web Response and load under
 // node --test. The outbound route imports next/server (NextResponse), which only
@@ -325,6 +326,24 @@ test("mock simulator attaches a transcript + AI summary when transcription is en
   assert.equal(done.status, "completed");
   assert.ok(done.transcript && done.transcript.length > 0, "expected a transcript");
   assert.ok(done.aiSummary && /Next step/.test(done.aiSummary), "expected an AI summary");
+});
+
+test("in-app transcription is gated on a transcription key (Deepgram or OpenAI)", async () => {
+  const savedDg = process.env.DEEPGRAM_API_KEY;
+  const savedOai = process.env.OPENAI_API_KEY;
+  delete process.env.DEEPGRAM_API_KEY;
+  delete process.env.OPENAI_API_KEY;
+  try {
+    assert.equal(inAppTranscriptionAvailable(), false);
+    assert.equal(await transcribeAudio("https://api.twilio.com/REC.mp3"), "");
+    process.env.DEEPGRAM_API_KEY = "dg-test";
+    assert.equal(inAppTranscriptionAvailable(), true);
+  } finally {
+    if (savedDg === undefined) delete process.env.DEEPGRAM_API_KEY;
+    else process.env.DEEPGRAM_API_KEY = savedDg;
+    if (savedOai === undefined) delete process.env.OPENAI_API_KEY;
+    else process.env.OPENAI_API_KEY = savedOai;
+  }
 });
 
 test("transcription webhook ignores unmatched customer_key (200, no write)", async () => {

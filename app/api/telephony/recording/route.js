@@ -1,6 +1,10 @@
 import { parseTwilioWebhook } from "../../../../lib/telephony/webhookRequest.js";
 import { createRecordingTranscript } from "../../../../lib/telephony/index.js";
 import {
+  inAppTranscriptionAvailable,
+  transcribeAndSummarizeCall
+} from "../../../../lib/telephony/transcribeRecording.js";
+import {
   addCallEvent,
   getCallByProviderId,
   getTenantTelephony,
@@ -51,17 +55,26 @@ export async function POST(request) {
     callSid
   });
 
-  // Post-call transcription: tag the transcript with our CallSid (customerKey) so
-  // the CI completion webhook can match it back to this call. Best-effort.
+  // Post-call transcription. Prefer in-app transcription (OpenAI Whisper +
+  // Claude summary) — it only needs the recording audio, so it works on a Twilio
+  // trial. Fall back to Twilio Conversational Intelligence when an Intelligence
+  // Service is configured but no OpenAI key is set.
   const recordingSid = params.RecordingSid || params.recordingSid || "";
-  if (tel.transcriptionEnabled && recordingSid) {
-    const t = await createRecordingTranscript({ recordingSid, customerKey: callSid });
-    await addCallEvent(call.id, "transcription_requested", {
-      ok: Boolean(t?.ok),
-      transcriptSid: t?.data?.transcriptSid || "",
-      error: t?.ok ? "" : t?.error || "",
-      recordingSid
-    });
+  if (tel.transcriptionEnabled && recordingUrl) {
+    if (inAppTranscriptionAvailable()) {
+      // Fire-and-forget: ack Twilio fast; the long-lived server finishes the work.
+      transcribeAndSummarizeCall({ ...call, recordingUrl }).catch(() => {});
+      await addCallEvent(call.id, "transcription_requested", { engine: "openai", recordingSid });
+    } else if (recordingSid) {
+      const t = await createRecordingTranscript({ recordingSid, customerKey: callSid });
+      await addCallEvent(call.id, "transcription_requested", {
+        engine: "twilio_ci",
+        ok: Boolean(t?.ok),
+        transcriptSid: t?.data?.transcriptSid || "",
+        error: t?.ok ? "" : t?.error || "",
+        recordingSid
+      });
+    }
   }
 
   return new Response("", { status: 200 });
