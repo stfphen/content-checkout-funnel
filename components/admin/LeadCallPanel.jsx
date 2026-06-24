@@ -21,6 +21,15 @@ function formatWhen(value) {
   return Number.isNaN(date.getTime()) ? "—" : date.toLocaleString();
 }
 
+// Twilio recording URLs need account auth, so play them through the app proxy.
+// Mock/sample assets (and any non-Twilio URL) play directly.
+function recordingSrc(call) {
+  if (!call?.recordingUrl) return "";
+  return call.recordingUrl.includes("api.twilio.com")
+    ? `/api/telephony/recordings/${call.id}`
+    : call.recordingUrl;
+}
+
 export default function LeadCallPanel({
   leadId,
   leadPhone = "",
@@ -132,7 +141,7 @@ export default function LeadCallPanel({
                 className="lead-call-recording"
                 controls
                 preload="none"
-                src={call.recordingUrl}
+                src={recordingSrc(call)}
               >
                 Your browser does not support audio playback.
               </audio>

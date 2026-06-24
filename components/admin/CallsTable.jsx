@@ -21,6 +21,15 @@ function formatWhen(value) {
   return Number.isNaN(date.getTime()) ? "—" : date.toLocaleString();
 }
 
+// Twilio recording URLs need account auth — play via the app proxy. Mock/sample
+// assets play directly.
+function recordingSrc(call) {
+  if (!call?.recordingUrl) return "";
+  return call.recordingUrl.includes("api.twilio.com")
+    ? `/api/telephony/recordings/${call.id}`
+    : call.recordingUrl;
+}
+
 export default function CallsTable({ calls = [] }) {
   const router = useRouter();
   const [direction, setDirection] = useState("");
@@ -142,7 +151,7 @@ export default function CallsTable({ calls = [] }) {
                 </td>
                 <td>
                   {call.recordingUrl ? (
-                    <audio className="calls-table__recording" controls preload="none" src={call.recordingUrl}>
+                    <audio className="calls-table__recording" controls preload="none" src={recordingSrc(call)}>
                       Your browser does not support audio playback.
                     </audio>
                   ) : (
