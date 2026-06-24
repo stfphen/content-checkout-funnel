@@ -159,6 +159,7 @@ export default function FunnelPage({ tenant }) {
                 <span className="brandbar__wordmark">{tenant.brand.logoText || tenant.brand.name}</span>
               )}
               {tenant.brand.tagline ? <span className="brandbar__tagline">{tenant.brand.tagline}</span> : null}
+              <a className="button button--secondary brandbar__login" href="/admin">Log in</a>
             </StaggerItem>
             <StaggerItem as="p" className="eyebrow">{tenant.brand.eyebrow}</StaggerItem>
             <StaggerItem as="h1">{tenant.hero.headline}</StaggerItem>
