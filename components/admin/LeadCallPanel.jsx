@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { callOutcomeOptions } from "../../lib/telephony/constants.js";
+import RecordingButton from "./RecordingButton.jsx";
 
 // Editing select: a placeholder followed by the shared labeled outcomes.
 const OUTCOME_OPTIONS = [{ value: "", label: "— Select outcome —" }, ...callOutcomeOptions];
@@ -159,16 +160,7 @@ export default function LeadCallPanel({
               {call.outcome ? ` · ${call.outcome.replaceAll("_", " ")}` : ""}
               {call.recordingUrl ? " · recorded" : ""}
             </span>
-            {call.recordingUrl ? (
-              <audio
-                className="lead-call-recording"
-                controls
-                preload="none"
-                src={recordingSrc(call)}
-              >
-                Your browser does not support audio playback.
-              </audio>
-            ) : null}
+            {call.recordingUrl ? <RecordingButton src={recordingSrc(call)} /> : null}
             {call.aiSummary ? (
               <details className="lead-call-summary">
                 <summary>AI summary</summary>

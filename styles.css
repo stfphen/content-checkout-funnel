@@ -438,6 +438,15 @@ button {
   margin-bottom: 28px;
 }
 
+/* Push the login button to the far right of the top brand row. */
+.brandbar__login {
+  margin-left: auto;
+  min-height: 38px;
+  padding: 8px 18px;
+  font-size: 14px;
+  flex: 0 0 auto;
+}
+
 .brandbar__wordmark {
   position: relative;
   display: inline-flex;
@@ -3539,16 +3548,43 @@ summary:focus-visible,
 }
 
 /* Call recording players — keep compact and never overflow the row/table. */
-.lead-call-recording {
-  width: 100%;
-  max-width: 320px;
-  height: 36px;
-  margin-top: 6px;
+/* Compact play/pause recording control (no scrubber) */
+.rec-player {
+  display: inline-flex;
+  align-items: center;
 }
 
-.calls-table__recording {
-  height: 32px;
-  max-width: 220px;
+.rec-player__btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 30px;
+  height: 30px;
+  flex: 0 0 auto;
+  padding: 0;
+  border-radius: 999px;
+  border: 1px solid var(--line, rgba(0, 0, 0, 0.14));
+  background: var(--white, #fff);
+  color: var(--blue, #0071e3);
+  cursor: pointer;
+  transition: transform 0.12s ease, box-shadow 0.12s ease;
+}
+
+.rec-player__btn:hover {
+  box-shadow: 0 1px 6px rgba(0, 0, 0, 0.12);
+  transform: translateY(-1px);
+}
+
+.calls-table__rec-cell {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.calls-table__transcribe {
+  padding: 4px 10px;
+  font-size: 12px;
+  min-height: 0;
 }
 
 .calls-table__no-recording {
@@ -3556,9 +3592,7 @@ summary:focus-visible,
 }
 
 .calls-table__transcript-flag {
-  display: inline-block;
-  margin-top: 4px;
-  font-size: 12px;
+  font-size: 14px;
   color: var(--muted);
   cursor: help;
 }

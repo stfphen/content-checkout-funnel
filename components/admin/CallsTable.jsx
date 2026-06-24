@@ -3,6 +3,7 @@
 import { useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { callDirections, callOutcomeOptions, callStatuses } from "../../lib/telephony/constants.js";
+import RecordingButton from "./RecordingButton.jsx";
 
 const OUTCOME_EDIT_OPTIONS = [{ value: "", label: "— Set outcome —" }, ...callOutcomeOptions];
 const OUTCOME_LABEL = new Map(callOutcomeOptions.map((option) => [option.value, option.label]));
@@ -37,7 +38,30 @@ export default function CallsTable({ calls = [] }) {
   const [outcome, setOutcome] = useState("");
   const [query, setQuery] = useState("");
   const [savingId, setSavingId] = useState("");
+  const [transcribingId, setTranscribingId] = useState("");
   const [error, setError] = useState("");
+
+  async function transcribeCall(callId) {
+    setTranscribingId(callId);
+    setError("");
+    try {
+      const response = await fetch("/api/admin/telephony/transcribe", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ callId })
+      });
+      const data = await response.json().catch(() => ({}));
+      if (!response.ok) {
+        setError(data?.error || `Transcription failed (${response.status}).`);
+        return;
+      }
+      router.refresh();
+    } catch (err) {
+      setError(err?.message || "Network error.");
+    } finally {
+      setTranscribingId("");
+    }
+  }
 
   const filtered = useMemo(() => {
     const q = query.trim().toLowerCase();
@@ -150,21 +174,30 @@ export default function CallsTable({ calls = [] }) {
                   </span>
                 </td>
                 <td>
-                  {call.recordingUrl ? (
-                    <audio className="calls-table__recording" controls preload="none" src={recordingSrc(call)}>
-                      Your browser does not support audio playback.
-                    </audio>
-                  ) : (
-                    <span className="calls-table__no-recording">—</span>
-                  )}
-                  {call.transcript ? (
-                    <span
-                      className="calls-table__transcript-flag"
-                      title={call.aiSummary || "Transcript available"}
-                    >
-                      📝 transcript
-                    </span>
-                  ) : null}
+                  <div className="calls-table__rec-cell">
+                    {call.recordingUrl ? (
+                      <RecordingButton src={recordingSrc(call)} />
+                    ) : (
+                      <span className="calls-table__no-recording">—</span>
+                    )}
+                    {call.transcript ? (
+                      <span
+                        className="calls-table__transcript-flag"
+                        title={call.aiSummary || "Transcript available"}
+                      >
+                        📝
+                      </span>
+                    ) : call.recordingUrl ? (
+                      <button
+                        type="button"
+                        className="button button--secondary calls-table__transcribe"
+                        onClick={() => transcribeCall(call.id)}
+                        disabled={transcribingId === call.id}
+                      >
+                        {transcribingId === call.id ? "Transcribing…" : "Transcribe"}
+                      </button>
+                    ) : null}
+                  </div>
                 </td>
                 <td>
                   <select
