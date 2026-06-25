@@ -321,6 +321,13 @@ export default async function AdminPage({ searchParams }) {
   const callbackTasks = (tasks || []).filter((task) => task.priority === "urgent");
   const usersById = new Map((teamUsers || []).map((user) => [user.id, user]));
   const callMetrics = buildCallMetrics(calls);
+  const dialTenants = tenants
+    .filter((tenant) => tenant?.telephony?.enabled && tenant?.telephony?.phoneNumber)
+    .map((tenant) => ({
+      id: tenant.id,
+      name: tenant.name || tenant.slug || tenant.id,
+      phoneNumber: tenant.telephony.phoneNumber
+    }));
   const callsView = calls.map((call) => {
     const lead = leadsById.get(call.leadId);
     return {
@@ -444,7 +451,7 @@ export default async function AdminPage({ searchParams }) {
             </div>
             <span className="status-pill">{calls.length} calls</span>
           </div>
-          <CallsTable calls={callsView} canDelete={canDeleteCallRecords} />
+          <CallsTable calls={callsView} canDelete={canDeleteCallRecords} dialTenants={dialTenants} />
         </section>
       </AdminTabPanel>
       ) : null}

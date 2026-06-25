@@ -3597,6 +3597,137 @@ summary:focus-visible,
   cursor: help;
 }
 
+/* Dialpad (Calls tab) */
+.dialpad {
+  margin-bottom: 16px;
+}
+
+.dialpad__panel {
+  margin-top: 12px;
+  padding: 16px;
+  max-width: 320px;
+  border: 1px solid var(--line, rgba(0, 0, 0, 0.14));
+  border-radius: var(--radius, 14px);
+  background: var(--white, #fff);
+  box-shadow: var(--shadow-sm, 0 4px 16px rgba(0, 0, 0, 0.08));
+}
+
+.dialpad__from {
+  margin: 0 0 10px;
+  font-size: 13px;
+  color: var(--muted);
+}
+
+.dialpad__tenant {
+  display: block;
+  margin-bottom: 10px;
+  font-size: 13px;
+}
+
+.dialpad__tenant select {
+  display: block;
+  width: 100%;
+  margin-top: 4px;
+}
+
+.dialpad__display {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+
+.dialpad__display input {
+  flex: 1;
+  min-width: 0;
+  padding: 10px 12px;
+  font-size: 20px;
+  font-variant-numeric: tabular-nums;
+  text-align: center;
+  border: 1px solid var(--line, rgba(0, 0, 0, 0.14));
+  border-radius: 10px;
+}
+
+.dialpad__back {
+  flex: 0 0 auto;
+  width: 40px;
+  height: 40px;
+  font-size: 18px;
+  background: transparent;
+  border: 1px solid var(--line, rgba(0, 0, 0, 0.14));
+  border-radius: 10px;
+  cursor: pointer;
+}
+
+.dialpad__keys {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+  margin-bottom: 12px;
+}
+
+.dialpad__key {
+  height: 52px;
+  font-size: 22px;
+  font-weight: 600;
+  background: var(--soft, #f5f5f7);
+  border: 1px solid var(--line, rgba(0, 0, 0, 0.1));
+  border-radius: 12px;
+  cursor: pointer;
+  transition: background 0.12s ease, transform 0.06s ease;
+}
+
+.dialpad__key:hover {
+  background: color-mix(in srgb, var(--blue, #0071e3) 8%, var(--soft, #f5f5f7));
+}
+
+.dialpad__key:active {
+  transform: scale(0.96);
+}
+
+.dialpad__actions {
+  display: grid;
+  grid-template-columns: 52px 1fr auto;
+  gap: 8px;
+  align-items: center;
+}
+
+.dialpad__plus {
+  height: 48px;
+  font-size: 22px;
+  font-weight: 700;
+  background: var(--soft, #f5f5f7);
+  border: 1px solid var(--line, rgba(0, 0, 0, 0.1));
+  border-radius: 12px;
+  cursor: pointer;
+}
+
+.dialpad__call {
+  height: 48px;
+  font-size: 16px;
+  font-weight: 700;
+  color: #fff;
+  background: #34c759;
+  border: 1px solid #2faa4d;
+  border-radius: 12px;
+  cursor: pointer;
+}
+
+.dialpad__call:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.dialpad__clear {
+  height: 48px;
+  padding: 0 12px;
+  font-size: 14px;
+  background: transparent;
+  border: 1px solid var(--line, rgba(0, 0, 0, 0.14));
+  border-radius: 12px;
+  cursor: pointer;
+}
+
 /* Owner-only destructive controls (call delete) */
 .calls-table__delete,
 .lead-call-delete {

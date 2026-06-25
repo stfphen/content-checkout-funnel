@@ -4,6 +4,7 @@ import { useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { callDirections, callOutcomeOptions, callStatuses } from "../../lib/telephony/constants.js";
 import RecordingButton from "./RecordingButton.jsx";
+import DialPad from "./DialPad.jsx";
 
 const OUTCOME_EDIT_OPTIONS = [{ value: "", label: "— Set outcome —" }, ...callOutcomeOptions];
 const OUTCOME_LABEL = new Map(callOutcomeOptions.map((option) => [option.value, option.label]));
@@ -31,7 +32,7 @@ function recordingSrc(call) {
     : call.recordingUrl;
 }
 
-export default function CallsTable({ calls = [], canDelete = false }) {
+export default function CallsTable({ calls = [], canDelete = false, dialTenants = [] }) {
   const router = useRouter();
   const [direction, setDirection] = useState("");
   const [status, setStatus] = useState("");
@@ -136,6 +137,8 @@ export default function CallsTable({ calls = [], canDelete = false }) {
 
   return (
     <div className="calls-log">
+      <DialPad tenants={dialTenants} />
+
       <form className="calls-filters" onSubmit={(event) => event.preventDefault()}>
         <input
           placeholder="Search business, rep, number"
