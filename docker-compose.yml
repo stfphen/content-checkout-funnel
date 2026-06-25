@@ -16,6 +16,9 @@ services:
       APOLLO_API_KEY: ${APOLLO_API_KEY:-}
       OPENAI_API_KEY: ${OPENAI_API_KEY:-}
       OPENAI_MODEL: ${OPENAI_MODEL:-}
+      # --- Call transcription (Deepgram primary, OpenAI Whisper fallback) ---
+      DEEPGRAM_API_KEY: ${DEEPGRAM_API_KEY:-}
+      DEEPGRAM_MODEL: ${DEEPGRAM_MODEL:-}
       # --- Claude / AI (subscription token preferred; API key is fallback) ---
       CLAUDE_CODE_OAUTH_TOKEN: ${CLAUDE_CODE_OAUTH_TOKEN:-}
       ANTHROPIC_API_KEY: ${ANTHROPIC_API_KEY:-}

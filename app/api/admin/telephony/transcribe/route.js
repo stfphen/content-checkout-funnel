@@ -19,7 +19,7 @@ export async function POST(request) {
 
   if (!inAppTranscriptionAvailable()) {
     return NextResponse.json(
-      { error: "Transcription is not configured. Set DEEPGRAM_API_KEY." },
+      { error: "Transcription is not configured. Set DEEPGRAM_API_KEY (or OPENAI_API_KEY) in the server environment." },
       { status: 503 }
     );
   }
