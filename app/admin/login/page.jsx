@@ -11,7 +11,7 @@ export default async function LoginPage({ searchParams }) {
         <form action="/api/admin/login" method="post" className="admin-form">
           <label>
             Email
-            <input name="email" type="email" defaultValue="admin@dgtlmag.com" required />
+            <input name="email" type="email" placeholder="you@example.com" autoComplete="email" required />
           </label>
           <label>
             Password
