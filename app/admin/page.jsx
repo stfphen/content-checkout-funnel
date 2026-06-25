@@ -1,5 +1,6 @@
 import { redirect } from "next/navigation";
 import { AdminTabbedShell, AdminTabPanel } from "../../components/admin/AdminTabbedShell";
+import { FundingReviewBanner } from "../../components/admin/FundingReviewBanner";
 import OutreachQueueBuilder from "../../components/admin/OutreachQueueBuilder";
 import TenantBuilder from "../../components/admin/TenantBuilder";
 import LeadDeepResearch from "../../components/admin/LeadDeepResearch";
@@ -352,6 +353,7 @@ export default async function AdminPage({ searchParams }) {
       handoff: buildCloserHandoff(lead),
       survey: (lead.sourceMetadata || lead.metadata || {}).fundingSurvey || null
     }));
+  const fundingReviewPending = fundingScanLeads.filter(({ review }) => !review.isComplete).length;
   const fundingTenant = tenants.find((tenant) => tenant.slug === "funded-growth") || tenants[0] || {};
   const fundingDashboard = buildFundingOpportunityDashboard({
     tenantId: fundingTenant.id,
@@ -361,6 +363,7 @@ export default async function AdminPage({ searchParams }) {
   return (
     <AdminTabbedShell notice={notice} visibleTabs={visibleTabs}>
       <AdminTabPanel tabId="pipeline">
+        <FundingReviewBanner count={fundingReviewPending} />
         <section className="admin-metrics v2-metrics-scroll" aria-label="Lead pipeline summary">
         {leadCounts.map((item) => (
           <article key={item.status} className="v2-metric-pill">
@@ -457,7 +460,7 @@ export default async function AdminPage({ searchParams }) {
       ) : null}
 
       <AdminTabPanel tabId="pipeline">
-      <section className="admin-panel admin-panel--wide">
+      <section className="admin-panel admin-panel--wide" id="funding-scan-leads">
         <div className="pipeline-header">
           <div>
             <h2>Funding Scan Leads</h2>
@@ -568,13 +571,13 @@ export default async function AdminPage({ searchParams }) {
                 </div>
               ) : null}
 
-              <div className="funding-review">
-                <div className="funding-review__header">
+              <details className="funding-review">
+                <summary className="funding-review__header">
                   <strong>Human review checklist</strong>
                   <span className={`status-pill status-pill--${review.isComplete ? "ok" : "warn"}`}>
                     {review.isComplete ? "Review complete" : "Requires human review"}
                   </span>
-                </div>
+                </summary>
                 {canManageLeadActions ? (
                   <form action="/api/admin/funding/review" method="post" className="funding-review__form">
                     <input type="hidden" name="leadId" value={lead.id} />
@@ -610,7 +613,7 @@ export default async function AdminPage({ searchParams }) {
                 ) : (
                   <p>Reviewer access required to update the checklist.</p>
                 )}
-              </div>
+              </details>
 
               <details className="funding-handoff">
                 <summary>Closer handoff summary{handoff.reviewIncomplete ? " (review incomplete)" : ""}</summary>

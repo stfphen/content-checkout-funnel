@@ -13,6 +13,7 @@ import {
   LogOut,
   Sun,
   Moon,
+  X,
 } from "lucide-react";
 
 const AdminTabsContext = createContext("pipeline");
@@ -79,6 +80,27 @@ function ThemeToggle({ theme, onToggle }) {
   );
 }
 
+// Confirmation/notice banner. Sticky to the top of the scrollable dashboard so it
+// stays in an expected, non-intrusive spot on every viewport, and dismissible so it
+// never lingers over content on small screens.
+function AdminNotice({ children }) {
+  const [dismissed, setDismissed] = useState(false);
+  if (dismissed) return null;
+  return (
+    <div className="admin-notice" role="status">
+      <span className="admin-notice__text">{children}</span>
+      <button
+        type="button"
+        className="admin-notice__close"
+        aria-label="Dismiss notice"
+        onClick={() => setDismissed(true)}
+      >
+        <X size={16} strokeWidth={2} />
+      </button>
+    </div>
+  );
+}
+
 export function AdminTabbedShell({ notice, children, visibleTabs }) {
   const visibleNavItems = useMemo(() => {
     if (!visibleTabs?.length) return navItems;
@@ -131,7 +153,7 @@ export function AdminTabbedShell({ notice, children, visibleTabs }) {
             </div>
           </header>
 
-          {notice ? <div className="admin-notice">{notice}</div> : null}
+          {notice ? <AdminNotice>{notice}</AdminNotice> : null}
           {children}
         </main>
       </div>

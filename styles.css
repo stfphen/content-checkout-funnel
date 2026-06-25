@@ -1354,6 +1354,9 @@ p {
 }
 
 .admin-notice {
+  display: flex;
+  align-items: center;
+  gap: 12px;
   margin: 0 0 24px;
   padding: 14px 16px;
   border: 1px solid rgba(0, 113, 227, 0.24);
@@ -1361,6 +1364,84 @@ p {
   color: var(--near-black);
   background: rgba(0, 113, 227, 0.08);
   font-weight: 700;
+  /* Keep the confirmation in an expected spot without overlapping the fixed nav. */
+  scroll-margin-top: 16px;
+}
+
+.admin-notice__text {
+  flex: 1;
+  min-width: 0;
+}
+
+.admin-notice__close,
+.funding-review-banner__close {
+  flex: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border: none;
+  border-radius: 999px;
+  background: transparent;
+  color: inherit;
+  cursor: pointer;
+}
+
+.admin-notice__close:hover,
+.funding-review-banner__close:hover {
+  background: rgba(0, 0, 0, 0.06);
+}
+
+/* Pinned, dismissible reminder that funding leads need human review. Sticky to the
+   top of the scrolling dashboard so it stays in an expected place on every screen,
+   replacing the old mid-card-only signal. Base = mobile. */
+.funding-review-banner {
+  position: sticky;
+  top: 0;
+  z-index: 5;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin: 0 0 20px;
+  padding: 12px 14px;
+  border: 1px solid color-mix(in srgb, #b8860b 36%, transparent);
+  border-radius: var(--radius);
+  background: color-mix(in srgb, #b8860b 12%, var(--white, #fff));
+  color: var(--near-black);
+}
+
+.funding-review-banner__icon {
+  flex: none;
+  display: inline-flex;
+  color: #8a6d0b;
+}
+
+.funding-review-banner__text {
+  flex: 1;
+  min-width: 0;
+  margin: 0;
+  font-weight: 600;
+  font-size: 14px;
+}
+
+.funding-review-banner__link {
+  font-weight: 700;
+  color: var(--blue, #0071e3);
+  text-decoration: underline;
+  white-space: nowrap;
+}
+
+/* Per-lead checklist is now a <details>; collapse it so it no longer sprawls
+   mid-card. The summary row keeps the status pill visible at a glance. */
+summary.funding-review__header {
+  cursor: pointer;
+  margin-bottom: 0;
+  list-style-position: inside;
+}
+
+details.funding-review[open] summary.funding-review__header {
+  margin-bottom: 10px;
 }
 
 .admin-metrics article,
