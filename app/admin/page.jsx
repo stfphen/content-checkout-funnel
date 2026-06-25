@@ -1662,9 +1662,9 @@ export default async function AdminPage({ searchParams }) {
             </div>
             {teamUsers.map((user) => (
               <div key={user.id} className="team-users-table__row" role="row">
-                <span role="cell"><strong>{user.name || "No name"}</strong></span>
-                <span role="cell">{user.email}</span>
-                <span role="cell">
+                <span role="cell" data-label="Name"><strong>{user.name || "No name"}</strong></span>
+                <span role="cell" data-label="Email">{user.email}</span>
+                <span role="cell" data-label="Role">
                   <form action="/api/admin/users" method="post" className="inline-form team-role-form">
                     <input type="hidden" name="action" value="update_role" />
                     <input type="hidden" name="teamId" value={session.team.id} />
@@ -1677,11 +1677,11 @@ export default async function AdminPage({ searchParams }) {
                     <button className="button button--secondary" type="submit">Save</button>
                   </form>
                 </span>
-                <span role="cell">
+                <span role="cell" data-label="Status">
                   <span className={`status-pill status-pill--${user.status}`}>{user.status}</span>
                 </span>
-                <span role="cell">{user.createdAt ? new Date(user.createdAt).toLocaleDateString() : "Unknown"}</span>
-                <span role="cell">
+                <span role="cell" data-label="Created">{user.createdAt ? new Date(user.createdAt).toLocaleDateString() : "Unknown"}</span>
+                <span role="cell" data-label="Actions">
                   <form action="/api/admin/users" method="post" className="inline-form">
                     <input type="hidden" name="action" value={user.status === "active" ? "deactivate" : "reactivate"} />
                     <input type="hidden" name="teamId" value={session.team.id} />
@@ -1721,11 +1721,11 @@ export default async function AdminPage({ searchParams }) {
             </div>
             {auditLogs.map((event) => (
               <div key={event.id} className="team-users-table__row audit-log-table__row" role="row">
-                <span role="cell">{event.createdAt ? new Date(event.createdAt).toLocaleString() : "Unknown"}</span>
-                <span role="cell">{event.userName || event.userEmail || event.userId || "Unknown"}</span>
-                <span role="cell"><strong>{event.action}</strong></span>
-                <span role="cell">{[event.targetType, event.targetId].filter(Boolean).join(": ") || "None"}</span>
-                <span role="cell"><code>{JSON.stringify(event.metadata || {})}</code></span>
+                <span role="cell" data-label="Time">{event.createdAt ? new Date(event.createdAt).toLocaleString() : "Unknown"}</span>
+                <span role="cell" data-label="User">{event.userName || event.userEmail || event.userId || "Unknown"}</span>
+                <span role="cell" data-label="Action"><strong>{event.action}</strong></span>
+                <span role="cell" data-label="Target">{[event.targetType, event.targetId].filter(Boolean).join(": ") || "None"}</span>
+                <span role="cell" data-label="Metadata"><code>{JSON.stringify(event.metadata || {})}</code></span>
               </div>
             ))}
             {!auditLogs.length ? <p>No audit events yet.</p> : null}

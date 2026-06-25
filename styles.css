@@ -2374,6 +2374,43 @@ p {
   padding: 8px 14px;
 }
 
+/* Phones/tablets: stack team + audit rows into labeled cards instead of a
+   fixed 920px-wide grid with horizontal scroll. Desktop keeps the grid. */
+@media (max-width: 1023px) {
+  .team-users-table {
+    overflow-x: visible;
+  }
+
+  .team-users-table__row {
+    min-width: 0;
+    grid-template-columns: 1fr;
+    gap: 6px;
+    padding: 12px 14px;
+  }
+
+  .team-users-table__row--head {
+    display: none;
+  }
+
+  .team-users-table__row > [role="cell"] {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    overflow-wrap: anywhere;
+  }
+
+  .team-users-table__row > [role="cell"]::before {
+    content: attr(data-label);
+    flex: 0 0 auto;
+    font-size: 12px;
+    font-weight: 700;
+    text-transform: uppercase;
+    color: var(--muted);
+  }
+}
+
 .admin-error {
   margin: 0;
   color: #b00020;
@@ -2444,6 +2481,53 @@ p {
 
 .calls-table select {
   font-size: 13px;
+}
+
+/* Phones/tablets: stack the call log into labeled cards instead of a
+   nowrap horizontal-scroll table. Desktop (>=1024px) keeps the table. */
+@media (max-width: 1023px) {
+  .calls-table-wrap {
+    overflow-x: visible;
+  }
+
+  .calls-table,
+  .calls-table tbody,
+  .calls-table tr,
+  .calls-table td {
+    display: block;
+    width: 100%;
+  }
+
+  .calls-table thead {
+    display: none;
+  }
+
+  .calls-table tr {
+    margin-bottom: 12px;
+    border: 1px solid var(--border, #e5e7eb);
+    border-radius: var(--radius-sm);
+  }
+
+  .calls-table td {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    padding: 8px 12px;
+    white-space: normal;
+  }
+
+  .calls-table tr td:last-child {
+    border-bottom: 0;
+  }
+
+  .calls-table td::before {
+    content: attr(data-label);
+    font-weight: 600;
+    color: var(--fg-muted, #6b7280);
+    flex: 0 0 auto;
+  }
 }
 
 /* Call-status pill colors (mirrors the lead status-pill palette) */

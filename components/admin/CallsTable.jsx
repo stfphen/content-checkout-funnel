@@ -185,23 +185,23 @@ export default function CallsTable({ calls = [], canDelete = false, dialTenants 
           <tbody>
             {filtered.map((call) => (
               <tr key={call.id}>
-                <td>
+                <td data-label="Business">
                   {call.businessName ? (
                     <a href={`/admin?q=${encodeURIComponent(call.businessName)}`}>{call.businessName}</a>
                   ) : (
                     <span>{call.leadPhone || call.fromNumber || call.toNumber || "Unknown"}</span>
                   )}
                 </td>
-                <td>{call.direction === "inbound" ? "In" : "Out"}</td>
-                <td>{call.repName || "—"}</td>
-                <td>{formatWhen(call.startedAt || call.createdAt)}</td>
-                <td>{formatDuration(call.durationSeconds)}</td>
-                <td>
+                <td data-label="Direction">{call.direction === "inbound" ? "In" : "Out"}</td>
+                <td data-label="Rep">{call.repName || "—"}</td>
+                <td data-label="When">{formatWhen(call.startedAt || call.createdAt)}</td>
+                <td data-label="Duration">{formatDuration(call.durationSeconds)}</td>
+                <td data-label="Status">
                   <span className={`status-pill status-pill--${call.status}`}>
                     {String(call.status || "").replaceAll("_", " ")}
                   </span>
                 </td>
-                <td>
+                <td data-label="Recording">
                   <div className="calls-table__rec-cell">
                     {call.recordingUrl ? (
                       <RecordingButton src={recordingSrc(call)} />
@@ -227,7 +227,7 @@ export default function CallsTable({ calls = [], canDelete = false, dialTenants 
                     ) : null}
                   </div>
                 </td>
-                <td>
+                <td data-label="Outcome">
                   <select
                     defaultValue={call.outcome || ""}
                     disabled={savingId === call.id}
