@@ -483,6 +483,50 @@ export default async function AdminPage({ searchParams }) {
                 <span className={`status-pill status-pill--${lead.pipelineStatus}`}>{lead.pipelineStatus}</span>
               </div>
 
+              <details className="funding-review" open>
+                <summary className="funding-review__header">
+                  <strong>Human review checklist</strong>
+                  <span className={`status-pill status-pill--${review.isComplete ? "ok" : "warn"}`}>
+                    {review.isComplete ? "Review complete" : "Requires human review"}
+                  </span>
+                </summary>
+                {canManageLeadActions ? (
+                  <form action="/api/admin/funding/review" method="post" className="funding-review__form">
+                    <input type="hidden" name="leadId" value={lead.id} />
+                    <input type="hidden" name="redirectTo" value="/admin" />
+                    {FUNDING_REVIEW_ITEMS.map((item) => (
+                      <label key={item.id} className="funding-review__item">
+                        <input
+                          type="checkbox"
+                          name="items"
+                          value={item.id}
+                          defaultChecked={review.items[item.id]}
+                        />
+                        <span>
+                          {item.label}
+                          {item.required ? <em> (required)</em> : null}
+                        </span>
+                      </label>
+                    ))}
+                    <input
+                      className="input"
+                      type="text"
+                      name="reviewer"
+                      placeholder="Reviewer name"
+                      defaultValue={review.reviewer}
+                    />
+                    <button className="button button--secondary" type="submit">Save review</button>
+                    {review.updatedAt ? (
+                      <p className="funding-review__meta">
+                        Last reviewed by {review.reviewer || "unknown"} on {review.updatedAt.slice(0, 10)}
+                      </p>
+                    ) : null}
+                  </form>
+                ) : (
+                  <p>Reviewer access required to update the checklist.</p>
+                )}
+              </details>
+
               <dl className="funding-lead-stats">
                 <div>
                   <dt>Potential fit</dt>
@@ -567,50 +611,6 @@ export default async function AdminPage({ searchParams }) {
                   </p>
                 </div>
               ) : null}
-
-              <div className="funding-review">
-                <div className="funding-review__header">
-                  <strong>Human review checklist</strong>
-                  <span className={`status-pill status-pill--${review.isComplete ? "ok" : "warn"}`}>
-                    {review.isComplete ? "Review complete" : "Requires human review"}
-                  </span>
-                </div>
-                {canManageLeadActions ? (
-                  <form action="/api/admin/funding/review" method="post" className="funding-review__form">
-                    <input type="hidden" name="leadId" value={lead.id} />
-                    <input type="hidden" name="redirectTo" value="/admin" />
-                    {FUNDING_REVIEW_ITEMS.map((item) => (
-                      <label key={item.id} className="funding-review__item">
-                        <input
-                          type="checkbox"
-                          name="items"
-                          value={item.id}
-                          defaultChecked={review.items[item.id]}
-                        />
-                        <span>
-                          {item.label}
-                          {item.required ? <em> (required)</em> : null}
-                        </span>
-                      </label>
-                    ))}
-                    <input
-                      className="input"
-                      type="text"
-                      name="reviewer"
-                      placeholder="Reviewer name"
-                      defaultValue={review.reviewer}
-                    />
-                    <button className="button button--secondary" type="submit">Save review</button>
-                    {review.updatedAt ? (
-                      <p className="funding-review__meta">
-                        Last reviewed by {review.reviewer || "unknown"} on {review.updatedAt.slice(0, 10)}
-                      </p>
-                    ) : null}
-                  </form>
-                ) : (
-                  <p>Reviewer access required to update the checklist.</p>
-                )}
-              </div>
 
               <details className="funding-handoff">
                 <summary>Closer handoff summary{handoff.reviewIncomplete ? " (review incomplete)" : ""}</summary>

@@ -1521,24 +1521,61 @@ p {
   color: var(--muted);
 }
 
+/* Human review checklist: pinned at top of the lead card, collapsible.
+   Mobile-first base; the sticky summary keeps the review status visible. */
 .funding-review {
-  margin-top: 16px;
-  padding: 14px;
+  margin: 0 0 16px;
   border: 1px solid var(--line);
-  border-radius: var(--radius);
+  border-radius: var(--radius-sm);
+  background: var(--surface, #fff);
+  overflow: hidden;
 }
 
 .funding-review__header {
+  position: sticky;
+  top: 0;
+  z-index: 2;
   display: flex;
+  flex-wrap: wrap;
   align-items: center;
   justify-content: space-between;
-  gap: 12px;
-  margin-bottom: 10px;
+  gap: 10px;
+  margin: 0;
+  padding: 12px 14px;
+  cursor: pointer;
+  list-style: none;
+  background: var(--surface, #fff);
+  border-bottom: 1px solid var(--line);
+}
+
+.funding-review__header::-webkit-details-marker {
+  display: none;
+}
+
+.funding-review[open] > .funding-review__header {
+  border-bottom: 1px solid var(--line);
+}
+
+.funding-review:not([open]) > .funding-review__header {
+  border-bottom: 0;
 }
 
 .funding-review__form {
   display: grid;
   gap: 8px;
+  padding: 12px 14px;
+}
+
+.funding-review > p {
+  margin: 0;
+  padding: 12px 14px;
+  color: var(--muted);
+}
+
+@media (min-width: 768px) {
+  .funding-review__form {
+    padding: 14px 16px;
+  }
 }
 
 .funding-review__item {
@@ -3118,7 +3155,6 @@ p {
 .v2-admin-shell .funding-lead-stats div,
 .v2-admin-shell .lead-facts div,
 .v2-admin-shell .preview-card,
-.v2-admin-shell .funding-review,
 .v2-admin-shell .duplicate-review,
 .v2-admin-shell .metadata-preview,
 .v2-admin-shell .admin-list div {
