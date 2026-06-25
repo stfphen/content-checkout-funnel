@@ -14,6 +14,7 @@ import { buildCallMetrics, formatTalkTime } from "../../lib/telephony/metrics";
 import { getAdminSession } from "../../lib/auth";
 import { listAuditLogs } from "../../lib/audit";
 import {
+  canDeleteCalls,
   canManageContractors,
   canManageLeads,
   canManageTenants,
@@ -239,6 +240,7 @@ export default async function AdminPage({ searchParams }) {
   const params = await searchParams;
   const notice = params?.notice;
   const canManageLeadActions = canManageLeads(session);
+  const canDeleteCallRecords = canDeleteCalls(session);
   const canManageTenantActions = canManageTenants(session);
   const canManageContractorActions = canManageContractors(session);
   const teamId = getSessionTeamId(session);
@@ -442,7 +444,7 @@ export default async function AdminPage({ searchParams }) {
             </div>
             <span className="status-pill">{calls.length} calls</span>
           </div>
-          <CallsTable calls={callsView} />
+          <CallsTable calls={callsView} canDelete={canDeleteCallRecords} />
         </section>
       </AdminTabPanel>
       ) : null}
@@ -1180,6 +1182,7 @@ export default async function AdminPage({ searchParams }) {
                           doNotContact={Boolean(lead.doNotContact)}
                           telephonyEnabled={Boolean(leadTenant?.telephony?.enabled)}
                           calls={leadCalls}
+                          canDelete={canDeleteCallRecords}
                         />
                       ) : (
                         <p>You do not have permission to manage call actions.</p>

@@ -3597,6 +3597,55 @@ summary:focus-visible,
   cursor: help;
 }
 
+/* Owner-only destructive controls (call delete) */
+.calls-table__delete,
+.lead-call-delete {
+  margin-left: 8px;
+  padding: 3px 9px;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--danger, #d70015);
+  background: transparent;
+  border: 1px solid color-mix(in srgb, var(--danger, #d70015) 40%, transparent);
+  border-radius: 8px;
+  cursor: pointer;
+}
+
+.calls-table__delete:hover,
+.lead-call-delete:hover {
+  background: color-mix(in srgb, var(--danger, #d70015) 10%, transparent);
+}
+
+.calls-table__confirm,
+.lead-call-confirm {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  margin-left: 8px;
+}
+
+.calls-table__danger,
+.lead-call-danger {
+  padding: 3px 9px;
+  font-size: 12px;
+  font-weight: 700;
+  color: #fff;
+  background: var(--danger, #d70015);
+  border: 1px solid var(--danger, #d70015);
+  border-radius: 8px;
+  cursor: pointer;
+}
+
+.calls-table__cancel,
+.lead-call-cancel {
+  padding: 3px 9px;
+  font-size: 12px;
+  background: transparent;
+  border: 1px solid var(--line, rgba(0, 0, 0, 0.14));
+  border-radius: 8px;
+  cursor: pointer;
+}
+
 /* Per-call transcript + AI summary (lead Call panel) */
 .lead-call-summary,
 .lead-call-transcript {

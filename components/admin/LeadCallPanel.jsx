@@ -37,13 +37,39 @@ export default function LeadCallPanel({
   doNotCall = false,
   doNotContact = false,
   telephonyEnabled = false,
-  calls = []
+  calls = [],
+  canDelete = false
 }) {
   const router = useRouter();
   const [status, setStatus] = useState("idle"); // idle | calling | placed | error
   const [error, setError] = useState("");
   const [savingId, setSavingId] = useState("");
   const [transcribingId, setTranscribingId] = useState("");
+  const [confirmingId, setConfirmingId] = useState("");
+  const [deletingId, setDeletingId] = useState("");
+
+  async function deleteCallRow(callId) {
+    setDeletingId(callId);
+    setError("");
+    try {
+      const response = await fetch("/api/admin/telephony/delete-call", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ callId })
+      });
+      const data = await response.json().catch(() => ({}));
+      if (!response.ok) {
+        setError(data?.error || `Delete failed (${response.status}).`);
+        return;
+      }
+      setConfirmingId("");
+      router.refresh();
+    } catch (err) {
+      setError(err?.message || "Network error.");
+    } finally {
+      setDeletingId("");
+    }
+  }
 
   async function transcribeCall(callId) {
     setTranscribingId(callId);
@@ -196,6 +222,37 @@ export default function LeadCallPanel({
                 ))}
               </select>
             </label>
+            {canDelete ? (
+              confirmingId === call.id ? (
+                <span className="lead-call-confirm">
+                  <button
+                    type="button"
+                    className="lead-call-danger"
+                    onClick={() => deleteCallRow(call.id)}
+                    disabled={deletingId === call.id}
+                  >
+                    {deletingId === call.id ? "Deleting…" : "Confirm delete"}
+                  </button>
+                  <button
+                    type="button"
+                    className="lead-call-cancel"
+                    onClick={() => setConfirmingId("")}
+                    disabled={deletingId === call.id}
+                  >
+                    Cancel
+                  </button>
+                </span>
+              ) : (
+                <button
+                  type="button"
+                  className="lead-call-delete"
+                  onClick={() => setConfirmingId(call.id)}
+                  title="Delete call"
+                >
+                  Delete
+                </button>
+              )
+            ) : null}
           </div>
         ))}
         {!calls.length ? <p>No calls logged yet.</p> : null}

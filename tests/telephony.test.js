@@ -528,6 +528,34 @@ test("outbound guard rejects do-not-call, foreign-team, and disabled tenants", (
   );
 });
 
+test("canDeleteCalls is restricted to the configured owner email", async () => {
+  const { canDeleteCalls, DELETE_ADMIN_EMAIL } = await import("../lib/permissions.js");
+  assert.equal(DELETE_ADMIN_EMAIL, "stephen@dgtlgroup.io");
+  assert.equal(canDeleteCalls({ role: "owner", email: "stephen@dgtlgroup.io" }), true);
+  assert.equal(canDeleteCalls({ role: "owner", email: "STEPHEN@DGTLGROUP.IO" }), true); // case-insensitive
+  assert.equal(canDeleteCalls({ role: "owner", email: "someoneelse@dgtlgroup.io" }), false);
+  assert.equal(canDeleteCalls({ role: "admin", email: "stephen@dgtlgroup.io" }), true); // email is the gate
+  assert.equal(canDeleteCalls({}), false);
+});
+
+test("deleteCall removes the call and its events", async () => {
+  const call = await store.createCall({
+    teamId: TEAM,
+    tenantId: "tenant_dgtlmag",
+    direction: "outbound",
+    status: "completed",
+    providerCallId: "CAdelete1"
+  });
+  await store.addCallEvent(call.id, "status_update", { status: "completed" });
+  assert.ok(await store.getCallById(call.id), "call exists before delete");
+
+  const removed = await store.deleteCall(call.id);
+  assert.equal(removed, true);
+  assert.equal(await store.getCallById(call.id), null);
+  const events = await store.getCallEventsForCall(call.id);
+  assert.equal(events.length, 0);
+});
+
 test("saving a 'do_not_call' outcome flips the lead flag", async () => {
   const lead = await store.createLead({
     teamId: TEAM,

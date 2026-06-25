@@ -31,7 +31,7 @@ function recordingSrc(call) {
     : call.recordingUrl;
 }
 
-export default function CallsTable({ calls = [] }) {
+export default function CallsTable({ calls = [], canDelete = false }) {
   const router = useRouter();
   const [direction, setDirection] = useState("");
   const [status, setStatus] = useState("");
@@ -39,7 +39,32 @@ export default function CallsTable({ calls = [] }) {
   const [query, setQuery] = useState("");
   const [savingId, setSavingId] = useState("");
   const [transcribingId, setTranscribingId] = useState("");
+  const [confirmingId, setConfirmingId] = useState("");
+  const [deletingId, setDeletingId] = useState("");
   const [error, setError] = useState("");
+
+  async function deleteCallRow(callId) {
+    setDeletingId(callId);
+    setError("");
+    try {
+      const response = await fetch("/api/admin/telephony/delete-call", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ callId })
+      });
+      const data = await response.json().catch(() => ({}));
+      if (!response.ok) {
+        setError(data?.error || `Delete failed (${response.status}).`);
+        return;
+      }
+      setConfirmingId("");
+      router.refresh();
+    } catch (err) {
+      setError(err?.message || "Network error.");
+    } finally {
+      setDeletingId("");
+    }
+  }
 
   async function transcribeCall(callId) {
     setTranscribingId(callId);
@@ -215,6 +240,37 @@ export default function CallsTable({ calls = [] }) {
                       </option>
                     ))}
                   </select>
+                  {canDelete ? (
+                    confirmingId === call.id ? (
+                      <span className="calls-table__confirm">
+                        <button
+                          type="button"
+                          className="calls-table__danger"
+                          onClick={() => deleteCallRow(call.id)}
+                          disabled={deletingId === call.id}
+                        >
+                          {deletingId === call.id ? "Deleting…" : "Confirm delete"}
+                        </button>
+                        <button
+                          type="button"
+                          className="calls-table__cancel"
+                          onClick={() => setConfirmingId("")}
+                          disabled={deletingId === call.id}
+                        >
+                          Cancel
+                        </button>
+                      </span>
+                    ) : (
+                      <button
+                        type="button"
+                        className="calls-table__delete"
+                        onClick={() => setConfirmingId(call.id)}
+                        title="Delete call"
+                      >
+                        Delete
+                      </button>
+                    )
+                  ) : null}
                 </td>
               </tr>
             ))}
