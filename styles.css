@@ -1940,6 +1940,69 @@ p {
   margin-top: 0;
 }
 
+/* "More details" disclosure for long admin forms. CSS-only (checkbox hack):
+   advanced fields are collapsed on phones and always shown on desktop. The
+   inputs stay in the DOM either way, so they always submit. */
+.admin-form__more-toggle {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+.admin-form__more-label {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  width: fit-content;
+  padding: 8px 12px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-sm);
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--near-black);
+  cursor: pointer;
+}
+
+.admin-form__more-label::after {
+  content: "▾";
+}
+
+.admin-form__more-toggle:checked ~ .admin-form__more-label::after {
+  content: "▴";
+}
+
+.admin-form__more-toggle:focus-visible ~ .admin-form__more-label {
+  outline: 2px solid var(--blue);
+  outline-offset: 2px;
+}
+
+.admin-form__more {
+  display: none;
+  grid-template-columns: 1fr;
+  gap: 12px;
+}
+
+.admin-form__more-toggle:checked ~ .admin-form__more {
+  display: grid;
+}
+
+@media (min-width: 1024px) {
+  .admin-form__more-toggle,
+  .admin-form__more-label {
+    display: none;
+  }
+
+  .admin-form__more {
+    display: grid;
+  }
+}
+
 .pipeline-header,
 .batch-preview__header {
   display: flex;

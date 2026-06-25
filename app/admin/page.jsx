@@ -1263,59 +1263,14 @@ export default async function AdminPage({ searchParams }) {
                       <input name="contactName" defaultValue={lead.contactName || ""} />
                     </label>
                     <label>
-                      Contact Title
-                      <input name="contactTitle" defaultValue={lead.contactTitle || ""} />
-                    </label>
-                    <label>
                       Pipeline Status
                       <select name="pipelineStatus" defaultValue={lead.pipelineStatus}>
                         {pipelineStatuses.map((status) => <option key={status} value={status}>{status.replaceAll("_", " ")}</option>)}
                       </select>
                     </label>
                     <label>
-                      Outreach Status
-                      <select name="outreachStatus" defaultValue={lead.outreachStatus}>
-                        {outreachStatuses.map((status) => <option key={status} value={status}>{status.replaceAll("_", " ")}</option>)}
-                      </select>
-                    </label>
-                    <label>
-                      Enrichment Status
-                      <select name="enrichmentStatus" defaultValue={lead.enrichmentStatus}>
-                        {enrichmentStatuses.map((status) => <option key={status} value={status}>{status.replaceAll("_", " ")}</option>)}
-                      </select>
-                    </label>
-                    <label>
-                      Lead Score
-                      <input name="leadScore" type="number" defaultValue={lead.leadScore || 0} />
-                    </label>
-                    <label>
-                      Score Reason
-                      <textarea name="leadScoreReason" rows="3" defaultValue={lead.leadScoreReason || ""} />
-                    </label>
-                    <label>
-                      Pain Points
-                      <textarea name="painPoints" rows="3" defaultValue={lead.painPoints || ""} />
-                    </label>
-                    <label>
-                      Recommended next step
-                      <input name="recommendedOffer" defaultValue={lead.recommendedOffer || ""} />
-                    </label>
-                    <label>
                       Assigned To
                       <input name="assignedTo" defaultValue={lead.assignedTo || ""} />
-                    </label>
-                    <label>
-                      Campaign
-                      <select name="campaignId" defaultValue={lead.campaignId || ""}>
-                        <option value="">No campaign</option>
-                        {outreachCampaigns.map((campaign) => (
-                          <option key={campaign.id} value={campaign.id}>{campaign.name}</option>
-                        ))}
-                      </select>
-                    </label>
-                    <label>
-                      Reply Status
-                      <input name="replyStatus" defaultValue={lead.replyStatus || ""} />
                     </label>
                     <label>
                       Next Follow-up
@@ -1325,6 +1280,58 @@ export default async function AdminPage({ searchParams }) {
                       Notes
                       <textarea name="notes" rows="4" defaultValue={lead.notes || ""} />
                     </label>
+                    {/* Advanced fields: collapsed on phones behind a CSS-only toggle,
+                        always visible on desktop. All inputs stay in the DOM so they
+                        submit regardless of the toggle state. */}
+                    <input type="checkbox" id={`lead-more-${lead.id}`} className="admin-form__more-toggle" />
+                    <label htmlFor={`lead-more-${lead.id}`} className="admin-form__more-label">More details</label>
+                    <div className="admin-form__more">
+                      <label>
+                        Contact Title
+                        <input name="contactTitle" defaultValue={lead.contactTitle || ""} />
+                      </label>
+                      <label>
+                        Outreach Status
+                        <select name="outreachStatus" defaultValue={lead.outreachStatus}>
+                          {outreachStatuses.map((status) => <option key={status} value={status}>{status.replaceAll("_", " ")}</option>)}
+                        </select>
+                      </label>
+                      <label>
+                        Enrichment Status
+                        <select name="enrichmentStatus" defaultValue={lead.enrichmentStatus}>
+                          {enrichmentStatuses.map((status) => <option key={status} value={status}>{status.replaceAll("_", " ")}</option>)}
+                        </select>
+                      </label>
+                      <label>
+                        Lead Score
+                        <input name="leadScore" type="number" defaultValue={lead.leadScore || 0} />
+                      </label>
+                      <label>
+                        Score Reason
+                        <textarea name="leadScoreReason" rows="3" defaultValue={lead.leadScoreReason || ""} />
+                      </label>
+                      <label>
+                        Pain Points
+                        <textarea name="painPoints" rows="3" defaultValue={lead.painPoints || ""} />
+                      </label>
+                      <label>
+                        Recommended next step
+                        <input name="recommendedOffer" defaultValue={lead.recommendedOffer || ""} />
+                      </label>
+                      <label>
+                        Campaign
+                        <select name="campaignId" defaultValue={lead.campaignId || ""}>
+                          <option value="">No campaign</option>
+                          {outreachCampaigns.map((campaign) => (
+                            <option key={campaign.id} value={campaign.id}>{campaign.name}</option>
+                          ))}
+                        </select>
+                      </label>
+                      <label>
+                        Reply Status
+                        <input name="replyStatus" defaultValue={lead.replyStatus || ""} />
+                      </label>
+                    </div>
                     <button className="button button--primary" type="submit">Save Lead</button>
                   </form>
 
