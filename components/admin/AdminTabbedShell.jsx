@@ -14,6 +14,7 @@ import {
   Sun,
   Moon,
   X,
+  MoreHorizontal,
 } from "lucide-react";
 
 const AdminTabsContext = createContext("pipeline");
@@ -108,10 +109,25 @@ export function AdminTabbedShell({ notice, children, visibleTabs }) {
   }, [visibleTabs]);
   const [activeTab, setActiveTab] = useState(visibleNavItems[0]?.id || "pipeline");
   const [theme, toggleTheme] = useAdminTheme();
+  const [moreOpen, setMoreOpen] = useState(false);
   const activeItem = useMemo(
     () => visibleNavItems.find((item) => item.id === activeTab) || visibleNavItems[0] || navItems[0],
     [activeTab, visibleNavItems]
   );
+  // Mobile only: once there are more than 5 destinations, keep the first 4 in the
+  // bottom bar and push the rest into a "More" sheet so the bar stays uncluttered
+  // with large touch targets. Desktop (>=1024px) still shows every item in the
+  // sidebar via CSS, so this split never reduces what desktop users can reach.
+  const overflowItems = useMemo(
+    () => (visibleNavItems.length > 5 ? visibleNavItems.slice(4) : []),
+    [visibleNavItems]
+  );
+  const overflowIds = useMemo(() => new Set(overflowItems.map((item) => item.id)), [overflowItems]);
+
+  const selectTab = (id) => {
+    setActiveTab(id);
+    setMoreOpen(false);
+  };
 
   return (
     <AdminTabsContext.Provider value={activeTab}>
@@ -121,15 +137,29 @@ export function AdminTabbedShell({ notice, children, visibleTabs }) {
             <button
               key={item.id}
               type="button"
-              className={`v2-nav-item ${activeTab === item.id ? "is-active" : ""}`}
+              className={`v2-nav-item ${activeTab === item.id ? "is-active" : ""} ${
+                overflowIds.has(item.id) ? "v2-nav-item--overflow" : ""
+              }`}
               aria-current={activeTab === item.id ? "page" : undefined}
               aria-controls={`admin-tab-${item.id}`}
-              onClick={() => setActiveTab(item.id)}
+              onClick={() => selectTab(item.id)}
             >
               {item.icon}
               <span>{item.label}</span>
             </button>
           ))}
+          {overflowItems.length ? (
+            <button
+              type="button"
+              className={`v2-nav-item v2-nav-more ${overflowIds.has(activeTab) || moreOpen ? "is-active" : ""}`}
+              aria-haspopup="true"
+              aria-expanded={moreOpen}
+              onClick={() => setMoreOpen((open) => !open)}
+            >
+              <MoreHorizontal {...ICON_PROPS} />
+              <span>More</span>
+            </button>
+          ) : null}
           <form action="/api/admin/logout" method="post" className="desktop-only v2-nav-logout">
             <button className="v2-nav-item v2-nav-item--danger" type="submit">
               <LogOut {...ICON_PROPS} />
@@ -137,6 +167,42 @@ export function AdminTabbedShell({ notice, children, visibleTabs }) {
             </button>
           </form>
         </nav>
+
+        {overflowItems.length && moreOpen ? (
+          <div
+            className="v2-nav-sheet"
+            role="dialog"
+            aria-modal="true"
+            aria-label="More sections"
+            onClick={() => setMoreOpen(false)}
+          >
+            <div className="v2-nav-sheet__panel" onClick={(event) => event.stopPropagation()}>
+              <div className="v2-nav-sheet__head">
+                <p className="v2-nav-sheet__title">More</p>
+                <button
+                  type="button"
+                  className="v2-nav-sheet__close"
+                  aria-label="Close"
+                  onClick={() => setMoreOpen(false)}
+                >
+                  <X size={18} strokeWidth={2} />
+                </button>
+              </div>
+              {overflowItems.map((item) => (
+                <button
+                  key={item.id}
+                  type="button"
+                  className={`v2-nav-sheet__item ${activeTab === item.id ? "is-active" : ""}`}
+                  aria-current={activeTab === item.id ? "page" : undefined}
+                  onClick={() => selectTab(item.id)}
+                >
+                  {item.icon}
+                  <span>{item.label}</span>
+                </button>
+              ))}
+            </div>
+          </div>
+        ) : null}
 
         <main className="v2-dashboard-main admin-shell">
           <header className="admin-header v2-view-header">
