@@ -13,6 +13,7 @@ import {
   LogOut,
   Sun,
   Moon,
+  MoreHorizontal,
 } from "lucide-react";
 
 const AdminTabsContext = createContext("pipeline");
@@ -85,29 +86,75 @@ export function AdminTabbedShell({ notice, children, visibleTabs }) {
     return navItems.filter((item) => visibleTabs.includes(item.id));
   }, [visibleTabs]);
   const [activeTab, setActiveTab] = useState(visibleNavItems[0]?.id || "pipeline");
+  const [moreOpen, setMoreOpen] = useState(false);
   const [theme, toggleTheme] = useAdminTheme();
   const activeItem = useMemo(
     () => visibleNavItems.find((item) => item.id === activeTab) || visibleNavItems[0] || navItems[0],
     [activeTab, visibleNavItems]
   );
 
+  // Mobile shows at most 5 bottom-bar slots: keep up to 4 primary tabs visible
+  // and tuck the rest into a "More" sheet. Desktop renders every item in the
+  // sidebar (the overflow group becomes display:contents there).
+  const hasOverflow = visibleNavItems.length > 5;
+  const primaryCount = hasOverflow ? 4 : visibleNavItems.length;
+  const primaryItems = visibleNavItems.slice(0, primaryCount);
+  const overflowItems = visibleNavItems.slice(primaryCount);
+  const activeInOverflow = overflowItems.some((item) => item.id === activeTab);
+
+  const selectTab = (id) => {
+    setActiveTab(id);
+    setMoreOpen(false);
+  };
+
+  const renderNavButton = (item) => (
+    <button
+      key={item.id}
+      type="button"
+      className={`v2-nav-item ${activeTab === item.id ? "is-active" : ""}`}
+      aria-current={activeTab === item.id ? "page" : undefined}
+      aria-controls={`admin-tab-${item.id}`}
+      onClick={() => selectTab(item.id)}
+    >
+      {item.icon}
+      <span>{item.label}</span>
+    </button>
+  );
+
   return (
     <AdminTabsContext.Provider value={activeTab}>
       <div className="v2-admin-shell" data-active-tab={activeTab} data-theme={theme || undefined}>
-        <nav className="v2-nav-container" aria-label="Admin navigation">
-          {visibleNavItems.map((item) => (
+        {moreOpen ? (
+          <button
+            type="button"
+            className="v2-nav-scrim"
+            aria-label="Close menu"
+            onClick={() => setMoreOpen(false)}
+          />
+        ) : null}
+        <nav
+          className={`v2-nav-container ${moreOpen ? "is-more-open" : ""}`}
+          aria-label="Admin navigation"
+        >
+          {primaryItems.map(renderNavButton)}
+          {hasOverflow ? (
             <button
-              key={item.id}
               type="button"
-              className={`v2-nav-item ${activeTab === item.id ? "is-active" : ""}`}
-              aria-current={activeTab === item.id ? "page" : undefined}
-              aria-controls={`admin-tab-${item.id}`}
-              onClick={() => setActiveTab(item.id)}
+              className={`v2-nav-item v2-nav-more ${activeInOverflow ? "is-active" : ""}`}
+              aria-haspopup="true"
+              aria-expanded={moreOpen}
+              aria-controls="v2-nav-overflow"
+              onClick={() => setMoreOpen((open) => !open)}
             >
-              {item.icon}
-              <span>{item.label}</span>
+              <MoreHorizontal {...ICON_PROPS} />
+              <span>More</span>
             </button>
-          ))}
+          ) : null}
+          {hasOverflow ? (
+            <div className="v2-nav-overflow" id="v2-nav-overflow">
+              {overflowItems.map(renderNavButton)}
+            </div>
+          ) : null}
           <form action="/api/admin/logout" method="post" className="desktop-only v2-nav-logout">
             <button className="v2-nav-item v2-nav-item--danger" type="submit">
               <LogOut {...ICON_PROPS} />
