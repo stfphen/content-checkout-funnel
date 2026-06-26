@@ -1191,6 +1191,12 @@ p {
     grid-template-columns: 1fr;
   }
 
+  /* Once these stack, the 54px column gap becomes wasted vertical space. */
+  .split,
+  .checkout-layout {
+    gap: 28px;
+  }
+
   .section {
     padding: 64px 0;
   }
