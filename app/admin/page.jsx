@@ -483,6 +483,50 @@ export default async function AdminPage({ searchParams }) {
                 <span className={`status-pill status-pill--${lead.pipelineStatus}`}>{lead.pipelineStatus}</span>
               </div>
 
+              <details className="funding-review" open>
+                <summary className="funding-review__header">
+                  <strong>Human review checklist</strong>
+                  <span className={`status-pill status-pill--${review.isComplete ? "ok" : "warn"}`}>
+                    {review.isComplete ? "Review complete" : "Requires human review"}
+                  </span>
+                </summary>
+                {canManageLeadActions ? (
+                  <form action="/api/admin/funding/review" method="post" className="funding-review__form">
+                    <input type="hidden" name="leadId" value={lead.id} />
+                    <input type="hidden" name="redirectTo" value="/admin" />
+                    {FUNDING_REVIEW_ITEMS.map((item) => (
+                      <label key={item.id} className="funding-review__item">
+                        <input
+                          type="checkbox"
+                          name="items"
+                          value={item.id}
+                          defaultChecked={review.items[item.id]}
+                        />
+                        <span>
+                          {item.label}
+                          {item.required ? <em> (required)</em> : null}
+                        </span>
+                      </label>
+                    ))}
+                    <input
+                      className="input"
+                      type="text"
+                      name="reviewer"
+                      placeholder="Reviewer name"
+                      defaultValue={review.reviewer}
+                    />
+                    <button className="button button--secondary" type="submit">Save review</button>
+                    {review.updatedAt ? (
+                      <p className="funding-review__meta">
+                        Last reviewed by {review.reviewer || "unknown"} on {review.updatedAt.slice(0, 10)}
+                      </p>
+                    ) : null}
+                  </form>
+                ) : (
+                  <p>Reviewer access required to update the checklist.</p>
+                )}
+              </details>
+
               <dl className="funding-lead-stats">
                 <div>
                   <dt>Potential fit</dt>
@@ -567,50 +611,6 @@ export default async function AdminPage({ searchParams }) {
                   </p>
                 </div>
               ) : null}
-
-              <div className="funding-review">
-                <div className="funding-review__header">
-                  <strong>Human review checklist</strong>
-                  <span className={`status-pill status-pill--${review.isComplete ? "ok" : "warn"}`}>
-                    {review.isComplete ? "Review complete" : "Requires human review"}
-                  </span>
-                </div>
-                {canManageLeadActions ? (
-                  <form action="/api/admin/funding/review" method="post" className="funding-review__form">
-                    <input type="hidden" name="leadId" value={lead.id} />
-                    <input type="hidden" name="redirectTo" value="/admin" />
-                    {FUNDING_REVIEW_ITEMS.map((item) => (
-                      <label key={item.id} className="funding-review__item">
-                        <input
-                          type="checkbox"
-                          name="items"
-                          value={item.id}
-                          defaultChecked={review.items[item.id]}
-                        />
-                        <span>
-                          {item.label}
-                          {item.required ? <em> (required)</em> : null}
-                        </span>
-                      </label>
-                    ))}
-                    <input
-                      className="input"
-                      type="text"
-                      name="reviewer"
-                      placeholder="Reviewer name"
-                      defaultValue={review.reviewer}
-                    />
-                    <button className="button button--secondary" type="submit">Save review</button>
-                    {review.updatedAt ? (
-                      <p className="funding-review__meta">
-                        Last reviewed by {review.reviewer || "unknown"} on {review.updatedAt.slice(0, 10)}
-                      </p>
-                    ) : null}
-                  </form>
-                ) : (
-                  <p>Reviewer access required to update the checklist.</p>
-                )}
-              </div>
 
               <details className="funding-handoff">
                 <summary>Closer handoff summary{handoff.reviewIncomplete ? " (review incomplete)" : ""}</summary>
@@ -1263,59 +1263,14 @@ export default async function AdminPage({ searchParams }) {
                       <input name="contactName" defaultValue={lead.contactName || ""} />
                     </label>
                     <label>
-                      Contact Title
-                      <input name="contactTitle" defaultValue={lead.contactTitle || ""} />
-                    </label>
-                    <label>
                       Pipeline Status
                       <select name="pipelineStatus" defaultValue={lead.pipelineStatus}>
                         {pipelineStatuses.map((status) => <option key={status} value={status}>{status.replaceAll("_", " ")}</option>)}
                       </select>
                     </label>
                     <label>
-                      Outreach Status
-                      <select name="outreachStatus" defaultValue={lead.outreachStatus}>
-                        {outreachStatuses.map((status) => <option key={status} value={status}>{status.replaceAll("_", " ")}</option>)}
-                      </select>
-                    </label>
-                    <label>
-                      Enrichment Status
-                      <select name="enrichmentStatus" defaultValue={lead.enrichmentStatus}>
-                        {enrichmentStatuses.map((status) => <option key={status} value={status}>{status.replaceAll("_", " ")}</option>)}
-                      </select>
-                    </label>
-                    <label>
-                      Lead Score
-                      <input name="leadScore" type="number" defaultValue={lead.leadScore || 0} />
-                    </label>
-                    <label>
-                      Score Reason
-                      <textarea name="leadScoreReason" rows="3" defaultValue={lead.leadScoreReason || ""} />
-                    </label>
-                    <label>
-                      Pain Points
-                      <textarea name="painPoints" rows="3" defaultValue={lead.painPoints || ""} />
-                    </label>
-                    <label>
-                      Recommended next step
-                      <input name="recommendedOffer" defaultValue={lead.recommendedOffer || ""} />
-                    </label>
-                    <label>
                       Assigned To
                       <input name="assignedTo" defaultValue={lead.assignedTo || ""} />
-                    </label>
-                    <label>
-                      Campaign
-                      <select name="campaignId" defaultValue={lead.campaignId || ""}>
-                        <option value="">No campaign</option>
-                        {outreachCampaigns.map((campaign) => (
-                          <option key={campaign.id} value={campaign.id}>{campaign.name}</option>
-                        ))}
-                      </select>
-                    </label>
-                    <label>
-                      Reply Status
-                      <input name="replyStatus" defaultValue={lead.replyStatus || ""} />
                     </label>
                     <label>
                       Next Follow-up
@@ -1325,6 +1280,58 @@ export default async function AdminPage({ searchParams }) {
                       Notes
                       <textarea name="notes" rows="4" defaultValue={lead.notes || ""} />
                     </label>
+                    {/* Advanced fields: collapsed on phones behind a CSS-only toggle,
+                        always visible on desktop. All inputs stay in the DOM so they
+                        submit regardless of the toggle state. */}
+                    <input type="checkbox" id={`lead-more-${lead.id}`} className="admin-form__more-toggle" />
+                    <label htmlFor={`lead-more-${lead.id}`} className="admin-form__more-label">More details</label>
+                    <div className="admin-form__more">
+                      <label>
+                        Contact Title
+                        <input name="contactTitle" defaultValue={lead.contactTitle || ""} />
+                      </label>
+                      <label>
+                        Outreach Status
+                        <select name="outreachStatus" defaultValue={lead.outreachStatus}>
+                          {outreachStatuses.map((status) => <option key={status} value={status}>{status.replaceAll("_", " ")}</option>)}
+                        </select>
+                      </label>
+                      <label>
+                        Enrichment Status
+                        <select name="enrichmentStatus" defaultValue={lead.enrichmentStatus}>
+                          {enrichmentStatuses.map((status) => <option key={status} value={status}>{status.replaceAll("_", " ")}</option>)}
+                        </select>
+                      </label>
+                      <label>
+                        Lead Score
+                        <input name="leadScore" type="number" defaultValue={lead.leadScore || 0} />
+                      </label>
+                      <label>
+                        Score Reason
+                        <textarea name="leadScoreReason" rows="3" defaultValue={lead.leadScoreReason || ""} />
+                      </label>
+                      <label>
+                        Pain Points
+                        <textarea name="painPoints" rows="3" defaultValue={lead.painPoints || ""} />
+                      </label>
+                      <label>
+                        Recommended next step
+                        <input name="recommendedOffer" defaultValue={lead.recommendedOffer || ""} />
+                      </label>
+                      <label>
+                        Campaign
+                        <select name="campaignId" defaultValue={lead.campaignId || ""}>
+                          <option value="">No campaign</option>
+                          {outreachCampaigns.map((campaign) => (
+                            <option key={campaign.id} value={campaign.id}>{campaign.name}</option>
+                          ))}
+                        </select>
+                      </label>
+                      <label>
+                        Reply Status
+                        <input name="replyStatus" defaultValue={lead.replyStatus || ""} />
+                      </label>
+                    </div>
                     <button className="button button--primary" type="submit">Save Lead</button>
                   </form>
 
@@ -1662,9 +1669,9 @@ export default async function AdminPage({ searchParams }) {
             </div>
             {teamUsers.map((user) => (
               <div key={user.id} className="team-users-table__row" role="row">
-                <span role="cell"><strong>{user.name || "No name"}</strong></span>
-                <span role="cell">{user.email}</span>
-                <span role="cell">
+                <span role="cell" data-label="Name"><strong>{user.name || "No name"}</strong></span>
+                <span role="cell" data-label="Email">{user.email}</span>
+                <span role="cell" data-label="Role">
                   <form action="/api/admin/users" method="post" className="inline-form team-role-form">
                     <input type="hidden" name="action" value="update_role" />
                     <input type="hidden" name="teamId" value={session.team.id} />
@@ -1677,11 +1684,11 @@ export default async function AdminPage({ searchParams }) {
                     <button className="button button--secondary" type="submit">Save</button>
                   </form>
                 </span>
-                <span role="cell">
+                <span role="cell" data-label="Status">
                   <span className={`status-pill status-pill--${user.status}`}>{user.status}</span>
                 </span>
-                <span role="cell">{user.createdAt ? new Date(user.createdAt).toLocaleDateString() : "Unknown"}</span>
-                <span role="cell">
+                <span role="cell" data-label="Created">{user.createdAt ? new Date(user.createdAt).toLocaleDateString() : "Unknown"}</span>
+                <span role="cell" data-label="Actions">
                   <form action="/api/admin/users" method="post" className="inline-form">
                     <input type="hidden" name="action" value={user.status === "active" ? "deactivate" : "reactivate"} />
                     <input type="hidden" name="teamId" value={session.team.id} />
@@ -1721,11 +1728,11 @@ export default async function AdminPage({ searchParams }) {
             </div>
             {auditLogs.map((event) => (
               <div key={event.id} className="team-users-table__row audit-log-table__row" role="row">
-                <span role="cell">{event.createdAt ? new Date(event.createdAt).toLocaleString() : "Unknown"}</span>
-                <span role="cell">{event.userName || event.userEmail || event.userId || "Unknown"}</span>
-                <span role="cell"><strong>{event.action}</strong></span>
-                <span role="cell">{[event.targetType, event.targetId].filter(Boolean).join(": ") || "None"}</span>
-                <span role="cell"><code>{JSON.stringify(event.metadata || {})}</code></span>
+                <span role="cell" data-label="Time">{event.createdAt ? new Date(event.createdAt).toLocaleString() : "Unknown"}</span>
+                <span role="cell" data-label="User">{event.userName || event.userEmail || event.userId || "Unknown"}</span>
+                <span role="cell" data-label="Action"><strong>{event.action}</strong></span>
+                <span role="cell" data-label="Target">{[event.targetType, event.targetId].filter(Boolean).join(": ") || "None"}</span>
+                <span role="cell" data-label="Metadata"><code>{JSON.stringify(event.metadata || {})}</code></span>
               </div>
             ))}
             {!auditLogs.length ? <p>No audit events yet.</p> : null}
