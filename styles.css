@@ -2099,7 +2099,10 @@ p {
 
 .lead-filters {
   display: grid;
-  grid-template-columns: minmax(220px, 1.6fr) repeat(4, minmax(130px, 1fr)) auto;
+  /* 0 minimums let the search box + 4 selects shrink to fit the desktop sidebar
+     content width instead of overflowing at ~1024px. Inputs already set
+     min-width:0. Collapses to one column at <=880px. */
+  grid-template-columns: minmax(0, 1.6fr) repeat(4, minmax(0, 1fr)) auto;
   gap: 10px;
   margin: 18px 0;
 }
@@ -2228,7 +2231,10 @@ p {
 
 .outreach-builder {
   display: grid;
-  grid-template-columns: minmax(220px, 0.8fr) minmax(260px, 1fr) minmax(320px, 1.2fr);
+  /* 0 minimums so the three columns shrink to fit the narrower desktop content
+     width once the sidebar appears (~1024px) instead of overflowing. Stacks to
+     a single column at <=880px. On roomy desktops the fr ratios are unchanged. */
+  grid-template-columns: minmax(0, 0.8fr) minmax(0, 1fr) minmax(0, 1.2fr);
   gap: 16px;
 }
 
