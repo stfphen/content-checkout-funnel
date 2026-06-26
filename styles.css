@@ -744,8 +744,26 @@ p {
   gap: 16px;
 }
 
+/* Mobile-first: these funnel grids stack in a single column by default and
+   fan out on wider screens. The 881px enhancement mirrors the existing 880px
+   collapse boundary, so desktop renders exactly as before. */
 .problem__grid {
-  grid-template-columns: repeat(2, minmax(0, 1fr));
+  grid-template-columns: 1fr;
+}
+
+@media (min-width: 881px) {
+  .problem__grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .feature-row,
+  .faq-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
+  .package-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
 }
 
 .problem__grid p,
@@ -769,7 +787,7 @@ p {
 }
 
 .feature-row {
-  grid-template-columns: repeat(3, 1fr);
+  grid-template-columns: 1fr;
 }
 
 .feature-row article {
@@ -839,7 +857,7 @@ p {
 }
 
 .package-grid {
-  grid-template-columns: repeat(3, minmax(0, 1fr));
+  grid-template-columns: 1fr;
   align-items: stretch;
 }
 
@@ -1013,7 +1031,7 @@ p {
 }
 
 .faq-grid {
-  grid-template-columns: repeat(3, 1fr);
+  grid-template-columns: 1fr;
 }
 
 .faq-grid article {
