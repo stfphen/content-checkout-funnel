@@ -2040,6 +2040,66 @@ details.funding-review[open] summary.funding-review__header {
   margin-top: 0;
 }
 
+/* "More options" disclosure for long admin forms. Pure CSS so it works in the
+   server-rendered form: on phones the advanced fields are hidden until the label
+   is toggled; on desktop the toggle is hidden and the fields always show
+   (display:contents folds them back into the .admin-form grid, unchanged). */
+.admin-form__more-toggle {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.admin-form__more-label {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  justify-self: start;
+  padding: 10px 14px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: var(--soft);
+  font-weight: 600;
+  font-size: 14px;
+  cursor: pointer;
+}
+
+.admin-form__more-label::after {
+  content: "▾";
+  font-size: 12px;
+  color: var(--muted);
+}
+
+.admin-form__more-toggle:checked ~ .admin-form__more-label::after {
+  content: "▴";
+}
+
+.admin-form__more-toggle:focus-visible ~ .admin-form__more-label {
+  outline: 2px solid var(--blue);
+  outline-offset: 2px;
+}
+
+.admin-form__more-fields {
+  display: none;
+}
+
+.admin-form__more-toggle:checked ~ .admin-form__more-fields {
+  display: grid;
+  gap: 12px;
+}
+
+@media (min-width: 768px) {
+  .admin-form__more-label {
+    display: none;
+  }
+
+  .admin-form__more-fields {
+    display: contents;
+  }
+}
+
 .pipeline-header,
 .batch-preview__header {
   display: flex;
@@ -2484,6 +2544,13 @@ details.funding-review[open] summary.funding-review__header {
 
 .team-user-form .button {
   align-self: end;
+}
+
+/* Phones: the two-up credential form is too cramped — stack it. */
+@media (max-width: 560px) {
+  .team-user-form {
+    grid-template-columns: 1fr;
+  }
 }
 
 .team-users-table {

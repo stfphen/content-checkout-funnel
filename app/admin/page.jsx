@@ -1282,14 +1282,19 @@ export default async function AdminPage({ searchParams }) {
                       </select>
                     </label>
                     <label>
+                      Lead Score
+                      <input name="leadScore" type="number" defaultValue={lead.leadScore || 0} />
+                    </label>
+                    {/* Advanced fields: collapsed on phones to keep the mobile form
+                        short, but always shown on desktop (CSS display:contents). */}
+                    <input className="admin-form__more-toggle" type="checkbox" id={`lead-more-${lead.id}`} />
+                    <label className="admin-form__more-label" htmlFor={`lead-more-${lead.id}`}>More options</label>
+                    <div className="admin-form__more-fields">
+                    <label>
                       Enrichment Status
                       <select name="enrichmentStatus" defaultValue={lead.enrichmentStatus}>
                         {enrichmentStatuses.map((status) => <option key={status} value={status}>{status.replaceAll("_", " ")}</option>)}
                       </select>
-                    </label>
-                    <label>
-                      Lead Score
-                      <input name="leadScore" type="number" defaultValue={lead.leadScore || 0} />
                     </label>
                     <label>
                       Score Reason
@@ -1328,6 +1333,7 @@ export default async function AdminPage({ searchParams }) {
                       Notes
                       <textarea name="notes" rows="4" defaultValue={lead.notes || ""} />
                     </label>
+                    </div>
                     <button className="button button--primary" type="submit">Save Lead</button>
                   </form>
 
