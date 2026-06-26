@@ -61,20 +61,27 @@ item count and enlarge targets.
 
 | File | Problem | Fix |
 |---|---|---|
-| `components/admin/CallsTable.jsx` + `.calls-table` (~2388) | 8 columns, `white-space: nowrap`, scroll-only | Drop nowrap; card/stacked layout via `data-label` at `< 768px` |
-| `styles.css` `.team-users-table__row` (~2294) | `min-width: 920px` forces horizontal scroll | `min-width: unset` + 1-col card stack `< 768px` |
-| `styles.css` `.outreach-metrics` (~2008) | 7-col grid → ~51px cells on phones | 2-col `< 560px` |
-| `styles.css` `.admin-metrics` (~2648) | Stays 2-col at 560px | 1-col `< 560px` |
-| `styles.css` `.admin-list--drafts pre` (~2462) | `overflow-x` on JSON blobs | Acceptable for code; left as-is |
+| `components/admin/CallsTable.jsx` + `.calls-table` | 8 columns, `white-space: nowrap`, scroll-only | Drop nowrap; card/stacked layout via `data-label`. **Breakpoint `< 1024px`** (see note) |
+| `styles.css` `.team-users-table__row` | `min-width: 920px` forces horizontal scroll | `min-width: unset` + 1-col card stack `< 1024px` |
+| `styles.css` `.outreach-metrics` | 7-col grid | **Already** collapses to 1-col at `<= 880px` — no change needed |
+| `styles.css` `.admin-metrics` | 5-col grid | **Intentional** `v2-metrics-scroll` horizontal-pill pattern — left as-is |
+| `styles.css` `.admin-list--drafts pre` | `overflow-x` on JSON blobs | Acceptable for code; left as-is |
+| `styles.css` `.v2-dashboard-main` (desktop) | flex item won't shrink below a wide table → page overflow | Add `min-width: 0` so the table scrolls inside its own wrapper |
+
+> **Breakpoint note (found during verification):** the table card layout must apply
+> below **1024px**, not 768px. Between 768–1023px the admin is still in mobile-shell
+> mode (bottom nav, no sidebar), and the desktop tables (`nowrap` ≈ 938px,
+> `min-width:920px`) are wider than a tablet viewport — using 768px left a
+> 768–1023px overflow band. 1024px matches the shell's own mobile→desktop boundary.
 
 ## E. Funnel / checkout / tenant pages
 
 | File | Problem | Fix |
 |---|---|---|
-| `styles.css` `.package` (~792) | `min-height: 520px` retained when stacked | `min-height: unset` `< 560px` |
-| `styles.css` `.checkout-layout` (~881) | `gap: 54px` kept when stacked → wasted vertical space | Reduce gap `< 880px` |
-| `styles.css` `.section__inner` (~654) / `.timeline li` (~747) | Gutters / index column too wide `< 370px` | Tighten gutters + shrink index column |
-| `components/FunnelPage.jsx` grids (`.package-grid`, `.problem__grid`, `.faq-grid`) | Desktop-first; collapse only via max-width | Verify reflow; mostly already collapse at 880px |
+| `styles.css` `.package` | `min-height: 520px` when stacked | **Already** resets to `auto` at `<= 880px` — no change |
+| `styles.css` `.checkout-layout` / `.split` | `gap: 54px` kept when stacked → wasted vertical space | Reduce gap to 28px `<= 880px` (**fixed**) |
+| `styles.css` `.section__inner` / `.timeline li` | Gutters / index column on tiny screens | Verified acceptable at 360px (28px gutter, 44px index) — no change |
+| `components/FunnelPage.jsx` grids (`.package-grid`, `.problem__grid`, `.faq-grid`) | Desktop-first; collapse only via max-width | Verified: all collapse to 1-col at `<= 880px`, no overflow at 360px |
 
 Tenant-facing routes (`app/t/[slug]/page.jsx`, `app/page.jsx`) render `FunnelPage`, so they
 inherit funnel fixes — no separate work.
@@ -93,19 +100,26 @@ only the specific rules tied to a bug above.
 
 ## Viewport test matrix
 
-| Width | Focus | Status |
-|---|---|---|
-| 360 | smallest phone — overflow, nav, tables | to verify |
-| 375 | iPhone SE/Mini | to verify |
-| 390 | iPhone 12-15 | to verify |
-| 414 | large phone | to verify |
-| 768 | tablet — table card→row transition | to verify |
-| 1024 | desktop sidebar engages | to verify |
-| 1280 | wide desktop unchanged | to verify |
-| 375×667 (short) | nav clearance, sticky notice | to verify |
-| 390×667 (short) | nav clearance, sticky notice | to verify |
+Verified in Chromium (headless): the public funnel (`/t/dgtlmag`) live against the
+running app, and the admin surfaces via a static harness loading the real
+`styles.css` with representative admin markup (admin auth requires Postgres, which
+can't run as root in this environment, so admin was verified by CSS harness + build
++ tests rather than a live login). "No overflow" = `scrollingElement.scrollWidth <=
+innerWidth` with no element extending past the viewport.
 
-Status filled in during Phase 3 verification.
+| Width | Focus | Funnel | Admin |
+|---|---|---|---|
+| 360 | smallest phone — overflow, nav, tables | ✅ no overflow | ✅ cards, More nav, collapsed fields |
+| 375×667 (short) | nav clearance, sticky notice | ✅ | ✅ |
+| 390×667 (short) | nav clearance, sticky notice | ✅ | ✅ |
+| 414 | large phone | ✅ | ✅ |
+| 768 | tablet — tables still card (shell mobile mode) | ✅ | ✅ |
+| 1024 | desktop sidebar engages, full tables | ✅ | ✅ all nav items, full tables |
+| 1280 | wide desktop unchanged | ✅ | ✅ unchanged |
+
+All breakpoints: no horizontal overflow. Admin harness confirmed mobile rules fire
+(overflow nav items hidden + "More" shown; table headers hidden + per-cell labels
+shown; advanced form fields collapsed) and desktop rules restore the full layout.
 
 ---
 
