@@ -12,6 +12,8 @@ Chronological history, reconstructed from repo docs + git. **Append newest entri
 Dates are from doc timestamps / commit themes; treat older "status" claims as point-in-time snapshots.
 
 ## 2026-06
+- **06-27** — **ON Home Decor** onboarded as a built-in tenant: `onHomeDecorTenant` wired into `builtInTenants()` (`lib/store.js`) and the `npm run seed:tenants` list. Toronto/GTA interior-design + paint funnel migrated from a standalone Lovable site; `$200` *Curated Paint Selection* entry offer (`curated-paint-selection`) laddering up to room styling, kitchen/bath, and full-home renovation design. See [[63-Tenants-Catalog]].
+- **06-27** — Added [[Architecture]] overview note (single-page map: components, tenant system, admin dashboard) under `10-Architecture/`; linked from [[10-Architecture-MOC]].
 - **06-27** — 🧠 Built this Obsidian knowledge vault (`brain/`) consolidating all project context.
 - **~06-26** — **Mobile-first UI overhaul** merged to `main` (audit U1–U5): bottom nav capped at ≤5 + "More" sheet, admin tables → stacked cards, advanced lead fields collapsed, funding review checklist pinned, funnel grids mobile-first with `minmax` guards. Phase 1 audit → `docs/specs/mobile-audit.md`.
 - **~06-25** — Telephony deepening: Calls-tab dialpad for ad-hoc calls; **owner-gated call delete** (email-gated to `stephen@dgtlgroup.io`); in-app **Deepgram transcription + Claude summary** (no Twilio CI dependency) with manual Transcribe button; authenticated recording proxy so Twilio recordings play in-browser; Twilio Conversational Intelligence + Claude summaries.

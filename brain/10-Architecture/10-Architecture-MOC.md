@@ -10,6 +10,7 @@ updated: 2026-06-27
 How the system is built — the structural facts that rarely change.
 
 ## Notes
+- [[Architecture]] — single-page overview: main components, tenant system, admin dashboard.
 - [[11-Tech-Stack]] — frameworks, libraries, runtime, scripts.
 - [[12-Repo-Structure]] — full directory tree with what lives where.
 - [[13-Data-Model]] — Postgres tables + the 5 migrations.

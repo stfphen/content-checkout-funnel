@@ -17,7 +17,7 @@ The built-in (seeded) tenants. All register under `team_default` ([[15-Multi-Ten
 | **DGTL Funded Growth Studio** | `funded-growth` | `lib/funding/tenant.js` (`fundedGrowthTenant`) | The Funding Program funnel. Served on `funding.dgtlmag.com` + `grants.dgtlmag.com`. [[29-Funding-Program]] |
 | **DMTV** | `dmtv` | `lib/tenants/dmtv.js` | Built-in brand config. |
 | **ELiXR** | `elixr` | `lib/tenants/elixr.js` | Built-in brand config. |
-| **ON Home Decor** | `onhomedecor` | `lib/tenants/onHomeDecor.js` | Interior design / paint; migrated from a Lovable site. (Currently untracked in git — see [[47-Git-Workflow]].) |
+| **ON Home Decor** | `on-home-decor` | `lib/tenants/onHomeDecor.js` | Toronto/GTA interior design + paint (`on-homedecor.com`). Migrated from a standalone Lovable site; now wired into `builtInTenants()` (`lib/store.js`) + `seed:tenants`. Default package `curated-paint-selection` ($200/colour) laddering to room styling, kitchen/bath, and full-home renovation design. (Config file still untracked in git — see [[47-Git-Workflow]].) |
 
 ## Tenant config model
 - Each calls `normalizeTenantConfig(...)` to fill media/routing/checkout/defaults.

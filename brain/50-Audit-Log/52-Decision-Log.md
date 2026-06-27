@@ -12,6 +12,7 @@ The "why" behind how things are built. Append new decisions at the top with a da
 
 | Date | Decision | Rationale |
 |---|---|---|
+| 2026-06-27 | **ON Home Decor migrated into the multi-tenant platform**, not kept as a standalone site. | Reuse the existing funnel/admin/checkout/telephony stack instead of maintaining a separate Lovable app; productized as a low-friction `$200` paint-selection entry offer that ladders into styling + renovation packages. [[63-Tenants-Catalog]] · [[15-Multi-Tenancy]] |
 | 2026-06 | **Repo 1 is canonical; Repo 2 is reference-only.** | Repo 1 has the real integrations + git + is half-deployed. Splitting effort into the V2 mock rewrite caused confusion. [[02-Glossary]] |
 | 2026-06 | **`team_default` + `TEAM_SLUG=default` for built-in tenants.** | Built-in tenants/leads scope to one internal team; owner must join it to see them. Workaround until self-serve onboarding. [[15-Multi-Tenancy]] |
 | 2026-06 | **Funding matching is manual + human-reviewed, not auto-ingested.** | Compliance: never claim eligibility/approval; data-quality risk in scraping. `ingestion.js` left as a safe future boundary. [[29-Funding-Program]] |
