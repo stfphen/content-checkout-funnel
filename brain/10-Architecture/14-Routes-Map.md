@@ -1,0 +1,54 @@
+---
+title: 14 · Routes Map
+type: reference
+tags: [architecture]
+status: stable
+updated: 2026-06-27
+source: app/
+---
+
+# Routes Map
+
+All routing lives under `app/` (Next.js App Router). Pages are server components by default;
+API routes are `route.js` handlers.
+
+## Pages
+| Route | File | Purpose |
+|---|---|---|
+| `/` | `app/page.jsx` | Public funnel, host-resolved tenant via `getTenantForHost`. |
+| `/t/[slug]` | `app/t/[slug]/page.jsx` | Per-tenant funnel preview; `?preview=draft` renders the draft config. |
+| `/admin` | `app/admin/page.jsx` | The admin shell (server component importing all admin components). [[21-Admin-Shell]] |
+| `/admin/login` | `app/admin/login/page.jsx` | Login (DB-backed; redirects here if unauthenticated). |
+| `/branding/icon` | `app/branding/icon/route.js` | Per-tenant PWA icon. |
+| `/manifest.webmanifest` | route | PWA manifest. |
+
+## Public API routes (UNAUTHENTICATED — security-sensitive)
+| Route | Method | Purpose | Notes |
+|---|---|---|---|
+| `/api/leads` | POST | Create a lead from the funnel. | ⚠️ public; can set internal fields (security M1/M2). [[61-Security-Review]] |
+| `/api/funding/survey` | POST | Funding scan: teaser w/o email, full result + `funding_scan` lead w/ email; re-scores server-side. | ⚠️ public; SSRF vector via website field (C2). |
+| `/api/checkout` | POST | Resolves tenant+package price server-side, captures lead, redirects to Stripe (or falls back). | [[27-Checkout-Payments]] |
+| `/api/webhooks/stripe` | POST | Raw-body signature verify, idempotent fulfillment. | force-dynamic, no auth (by design). |
+| `/api/unsubscribe` | GET | Unsubscribe link. | ⚠️ unauthenticated, not team-scoped (M3). |
+
+## Admin API routes (`/api/admin/*` — 34 files, 29 use `requireRole`)
+- **Auth:** `login`, `logout`.
+- **Leads:** `leads/status`, `leads/update`, `leads/import`, `leads/export`, `leads/enrich`, `leads/enrich-batch` ⚠️(IDOR H2 — bare session, no team scope), `leads/research`, `leads/research-from-query`, `leads/fill-missing`.
+- **Funding:** `funding/review`.
+- **Outreach:** `outreach/campaigns`, `outreach/events`, `outreach/queue`, `outreach/queue/send`, `outreach/suppressions`, `outreach/templates`.
+- **Prospecting:** `prospecting/apollo`, `prospecting/google`, `prospecting/hunter`, `prospecting/batches`, `prospecting/batches/import`.
+- **Telephony:** `telephony/outcome`, `telephony/transcribe`, `telephony/delete-call`.
+- **Tenants:** `tenants/generate` (AI), `tenants/import`, `tenants/publish`, `tenants/branding`, `tenants/telephony`.
+- **Other:** `contractors`, `drafts`, `users`.
+
+## Telephony provider routes (`/api/telephony/*`)
+| Route | Caller | Notes |
+|---|---|---|
+| `inbound` | Twilio webhook | Signature must verify (403 else); routes via `decideRoute`; logs Call. |
+| `status` | Twilio webhook | Updates Call by `providerCallId`; missed → `createMissedCallTask`. |
+| `outbound` | Admin UI (auth: owner/admin/sales) | Click-to-call; bridge rep→lead. |
+| `recording`, `recordings/[callId]`, `transcription`, `dial` | mixed | Recording proxy + transcription. |
+
+See [[28-Telephony]] for the full telephony flow.
+
+Up: [[10-Architecture-MOC]]

@@ -1,5 +1,22 @@
 # Content Checkout Funnel — Claude Instructions
 
+## 🧠 Project Brain — READ FIRST
+This repo has an Obsidian knowledge vault at **`brain/`** that holds all durable project context
+(architecture, modules, roadmap, operations runbooks, known issues, decisions, and history).
+
+**At the start of every session:** read `brain/00-Index/00-Home.md`. It is the hub that links to
+everything else — follow its "start-of-session checklist" and open only the notes relevant to the
+task instead of re-reading the whole codebase.
+
+**Keep the brain current.** After any meaningful work:
+- Append a dated bullet to `brain/50-Audit-Log/51-Timeline.md`.
+- If a decision was made, add it to `brain/50-Audit-Log/52-Decision-Log.md`.
+- If a bug/risk was found or fixed, update `brain/50-Audit-Log/53-Known-Issues.md`.
+- When code changes a documented fact, update the relevant note and bump its `updated:` date.
+- When the user says "update the brain," refresh the affected notes.
+
+Conventions for the vault are in `brain/00-Index/01-How-To-Use-This-Vault.md`.
+
 ## Project identity
 This is the Marketing Agency / Content Checkout Funnel project for DGTL-style creative and B2B marketing services.
 

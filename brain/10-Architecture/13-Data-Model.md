@@ -1,0 +1,56 @@
+---
+title: 13 · Data Model
+type: reference
+tags: [architecture, leads, tenancy]
+status: stable
+updated: 2026-06-27
+source: migrations/001-005, lib/store.js
+---
+
+# Data Model
+
+Postgres schema, defined by 5 ordered migrations (`migrations/`, run via `npm run migrate`).
+The data layer is `lib/store.js` (82KB) which also has a **JSON-file fallback**
+(`data/app-store.json`) used when `DATABASE_URL` is unset — local dev only.
+
+> Key store constant: `DEFAULT_TEAM_ID = "team_default"`. Built-in tenants + public/funding leads
+> are scoped here — the operating owner must be in this team (`TEAM_SLUG=default`). See [[15-Multi-Tenancy]].
+
+## Migrations
+### `001_initial_schema.sql` — core business tables
+- **`tenants`** — id, slug, domains (jsonb), status, config (jsonb).
+- **`leads`** — large table: contact fields, `pipeline_status`, `enrichment_status`, `outreach_status`, `lead_score`, `source_type`, `metadata` (jsonb), `google_*` fields, follow-up timestamps.
+- **`contractors`** — contractor capacity records.
+- **`draft_emails`** — generated draft outreach.
+- **`prospecting_batches`** — query/category/city/provider, `preview_results` (jsonb), counts (jsonb), `enrich_hunter`/`enrich_apollo` flags.
+- **`outreach_templates`**, **`outreach_campaigns`** (`daily_send_cap=25`, `per_domain_daily_cap=1`, filters), **`outreach_queue`** (status, `scheduled_for`, `resend_message_id`), **`outreach_suppression_list`**, **`outreach_events`**.
+
+### `002_team_auth_schema.sql` — auth & teams
+- **`users`** (email unique, `password_hash`, status), **`teams`** (slug unique), **`team_memberships`** (role CHECK: owner/admin/sales/contractor/viewer; unique team+user), **`sessions`** (`token_hash` unique = SHA-256, `expires_at`), **`audit_logs`** (user_id, action, target_type/id, metadata) + indexes.
+
+### `003_team_scoped_business_data.sql` — multi-tenant isolation
+- Adds `team_id NOT NULL` to tenants/leads/contractors/draft_emails (backfill → enforce) + team-scoped composite indexes. **This is the migration that makes the app multi-tenant-safe.**
+
+### `004_telephony.sql` — calls
+- **`calls`** — provider, `provider_call_id`, direction, from/to/tenant numbers, status, outcome, `duration_seconds`, `recording_url`, `transcript`, `ai_summary`, started/ended timestamps.
+- **`call_events`** — `call_id`, `event_type`, `payload` (jsonb) — the call timeline.
+- Adds lead telephony fields (`assigned_to_user_id`, `do_not_call`, `do_not_contact`, `consent_source`, `phone_country`) and `team_memberships` telephony fields (`telephony_role`, `phone_number`, `availability_status`, `can_receive_inbound`/`can_make_outbound`).
+
+### `005_tasks.sql` — tasks
+- **`tasks`** — `team_id`, `lead_id`, title, priority, `due_at`, `assigned_to_user_id`, status. Powers missed-call follow-ups (`createMissedCallTask`). See [[28-Telephony]].
+
+## Entity relationships (mental model)
+```
+team ─┬─ users (via team_memberships, with role + telephony fields)
+      ├─ tenants ── config (funnel/branding/packages/telephony)
+      ├─ leads ─┬─ calls ── call_events
+      │         ├─ draft_emails
+      │         ├─ outreach_queue / outreach_events
+      │         └─ tasks
+      ├─ contractors
+      ├─ prospecting_batches
+      └─ outreach_templates / campaigns / suppression_list
+sessions ── users        audit_logs ── users
+```
+
+Up: [[10-Architecture-MOC]]
