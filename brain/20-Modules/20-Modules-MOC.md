@@ -36,5 +36,6 @@ inbound ┘                                   │        ├─► OUTREACH (hum
 | [[29-Funding-Program]] | Funding Program engine | Grant-readiness funnel, scoring, matching, review. |
 | [[2A-Tenant-Builder]] | AI tenant builder | Generate a tenant config from a prompt. |
 | [[2B-AI-Backend]] | AI backend | Shared Claude transport (subscription / apiKey). |
+| [[2C-Enterprise-Prospecting]] | Enterprise prospecting (ABM) | **MVP built.** Account-based motion: accounts → committee → campaign, 3 gates → outreach. |
 
 Up: [[00-Home]]

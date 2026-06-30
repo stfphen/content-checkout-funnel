@@ -9,6 +9,7 @@
     "migrate": "node scripts/migrate.js",
     "create-owner": "node scripts/create-owner.js",
     "seed:funding-demo": "node scripts/seed-funding-demo.js",
+    "seed:enterprise-demo": "node scripts/seed-enterprise-demo.js",
     "seed:tenants": "node scripts/seed-tenants.js",
     "build": "next build",
     "start": "next start -p 3000",

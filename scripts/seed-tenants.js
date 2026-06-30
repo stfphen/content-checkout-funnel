@@ -50,13 +50,15 @@ async function main() {
   const { defaultTenant } = await import("../lib/defaultTenant.js");
   const { dmtvTenant } = await import("../lib/tenants/dmtv.js");
   const { elixrTenant } = await import("../lib/tenants/elixr.js");
+  const { onHomeDecorTenant } = await import("../lib/tenants/onHomeDecor.js");
 
   // DGTL Content Day is the built-in default tenant; persist it so it shows up as
-  // an explicit, editable tenant row alongside DMTV and ELiXR.
+  // an explicit, editable tenant row alongside DMTV, ELiXR, and ON Home Decor.
   const tenants = [
     { label: "DGTL Content Day", config: defaultTenant },
     { label: "DMTV", config: dmtvTenant },
-    { label: "ELiXR Gallery", config: elixrTenant }
+    { label: "ELiXR Gallery", config: elixrTenant },
+    { label: "ON Home Decor", config: onHomeDecorTenant }
   ];
 
   for (const { label, config } of tenants) {

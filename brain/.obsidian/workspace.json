@@ -173,9 +173,16 @@
       "daily-notes:Open today's daily note": false,
       "templates:Insert template": false,
       "command-palette:Open command palette": false,
-      "bases:Create new base": false
+      "bases:Create new base": false,
+      "obsidian42-brat:BRAT": false,
+      "vibesidian:Vibesidian": false,
+      "claude-code-mcp:Toggle Claude Terminal": false
     }
   },
   "active": "f27aabca05b02be3",
-  "lastOpenFiles": []
+  "lastOpenFiles": [
+    "50-Audit-Log/51-Timeline.md.tmp.16598.e19a61711c04",
+    "20-Modules/2C-Enterprise-Prospecting.md",
+    "10-Architecture/Architecture.md"
+  ]
 }

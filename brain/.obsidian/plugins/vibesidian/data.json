@@ -1,0 +1,9 @@
+{
+  "apiKey": "",
+  "baseUrl": "https://api.anthropic.com/v1",
+  "model": "claude-3-7-sonnet-20250219",
+  "availableModels": [],
+  "maxSteps": 20,
+  "maxRetries": 1,
+  "maxTokens": 8000
+}

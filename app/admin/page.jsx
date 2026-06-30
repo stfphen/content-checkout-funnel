@@ -6,6 +6,7 @@ import LeadDeepResearch from "../../components/admin/LeadDeepResearch";
 import FillMissingButton from "../../components/admin/FillMissingButton";
 import { missingFields } from "../../lib/leadResearch/leadFields";
 import ResearchFromQuery from "../../components/admin/ResearchFromQuery";
+import AccountsPanel from "../../components/admin/AccountsPanel";
 import LeadCallPanel from "../../components/admin/LeadCallPanel";
 import TenantPhoneSettings from "../../components/admin/TenantPhoneSettings";
 import TenantBrandingSettings from "../../components/admin/TenantBrandingSettings";
@@ -34,7 +35,9 @@ import {
   listTenants,
   getSessionTeamId,
   getCalls,
-  listTasks
+  listTasks,
+  listTargetAccounts,
+  listAccountCampaigns
 } from "../../lib/store";
 import {
   enrichmentStatuses,
@@ -247,7 +250,7 @@ export default async function AdminPage({ searchParams }) {
   const canManageTeamUsers = canManageUsers(session) && Boolean(teamId);
   const visibleTabs = [
     ...(session.role === "contractor" ? [] : ["pipeline"]),
-    ...(canManageLeadActions ? ["funding", "prospecting", "outreach", "calls"] : []),
+    ...(canManageLeadActions ? ["funding", "prospecting", "accounts", "outreach", "calls"] : []),
     ...(canManageTenantActions ? ["tenants"] : []),
     ...(canManageTeamUsers || canManageContractorActions || session.role === "contractor" ? ["team"] : [])
   ];
@@ -266,7 +269,9 @@ export default async function AdminPage({ searchParams }) {
     calls,
     tasks,
     teamUsers,
-    auditLogs
+    auditLogs,
+    targetAccounts,
+    accountCampaigns
   ] = await Promise.all([
     listTenants({ teamId }),
     listLeads({ teamId }),
@@ -281,7 +286,9 @@ export default async function AdminPage({ searchParams }) {
     getCalls({ teamId }),
     listTasks({ teamId, status: "open" }),
     canManageTeamUsers ? listTeamUsers(teamId) : Promise.resolve([]),
-    canManageTeamUsers ? listAuditLogs({ teamId, limit: 75 }) : Promise.resolve([])
+    canManageTeamUsers ? listAuditLogs({ teamId, limit: 75 }) : Promise.resolve([]),
+    canManageLeadActions ? listTargetAccounts({ teamId }) : Promise.resolve([]),
+    canManageLeadActions ? listAccountCampaigns({ teamId }) : Promise.resolve([])
   ]);
 
   const leadFilters = {
@@ -823,6 +830,12 @@ export default async function AdminPage({ searchParams }) {
           </div>
         ) : null}
       </section>
+      </AdminTabPanel>
+      ) : null}
+
+      {canManageLeadActions ? (
+      <AdminTabPanel tabId="accounts">
+        <AccountsPanel accounts={targetAccounts} campaigns={accountCampaigns} />
       </AdminTabPanel>
       ) : null}
 

@@ -35,6 +35,10 @@ Open problems. Full security analysis in [[61-Security-Review]]. **Update status
 | **L3** | Historic `.env.example` shipped `ADMIN_PASSWORD=change-this-password` placeholder. | — |
 
 ## ⚙️ Operational / tech debt
+- **Stale `.git/HEAD.lock` + `.git/index.lock`** (dated 2026-06-27) block all git ref ops (commit/checkout/branch). A sandbox couldn't remove them ("Operation not permitted"). **Action: on the host run `rm -f .git/HEAD.lock .git/index.lock`** to unblock git, then review/commit the enterprise-prospecting MVP (currently uncommitted on `main`'s working tree alongside prior WIP). [[47-Git-Workflow]]
+- **Enterprise-prospecting MVP is uncommitted** (built 06-29). Files: `lib/enterpriseProspecting/*`, `app/api/admin/accounts/**`, `components/admin/AccountsPanel.jsx`, `migrations/006_*`, `scripts/seed-enterprise-demo.js`, `tests/enterprise-prospecting.test.js`, plus edits to `lib/store.js`, `lib/leadUtils.js`, `app/admin/page.jsx`, `components/admin/AdminTabbedShell.jsx`, `package.json`. Needs `npm run migrate` + `npm run build` on a real machine before deploy. [[2C-Enterprise-Prospecting]]
+- **Pre-existing test flake in sandbox:** `tests/core.test.js` → "updateLeadResearch works in file-store mode" fails with `EPERM unlink data/app-store.json` (old test deletes the real store file; sandbox FS forbids it). Passes on a normal filesystem. Not a code defect; consider migrating that test to the `APP_STORE_PATH`-tmpdir isolation pattern. [[62-Testing]]
+- **`next build` can't run in the cloud sandbox** (only the macOS SWC binary is vendored; no Linux/wasm SWC + no npm network). Build/typecheck must run on the operator's machine or CI.
 - **Branch sprawl** (~15+ local + backups + wip/rescue + remotes) — needs consolidation. [[47-Git-Workflow]]
 - **`team_default` workaround** — built-in tenants tied to one team; blocks clean multi-team onboarding. [[15-Multi-Tenancy]] / [[33-Sprint-2-Productization]]
 - **No `lint` script** despite the mobile prompt referencing `npm run lint`. [[11-Tech-Stack]]

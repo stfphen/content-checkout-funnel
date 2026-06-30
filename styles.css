@@ -1232,6 +1232,16 @@ p {
     padding: 13px 18px;
   }
 
+  /* Keep the top-bar login compact; the full-width rule above is for stacked
+     CTAs, not the brandbar corner button. */
+  .brandbar__login {
+    width: auto;
+    flex: 0 0 auto;
+    align-self: center;
+    min-height: 40px;
+    padding: 8px 18px;
+  }
+
   .hero__stats {
     margin-top: 28px;
     grid-template-columns: repeat(3, minmax(0, 1fr));
@@ -1364,6 +1374,16 @@ p {
 }
 
 @media (max-width: 370px) {
+  /* On the narrowest phones, drop the secondary tagline so the logo and the
+     login button sit cleanly on one row. */
+  .brandbar {
+    gap: 10px;
+  }
+
+  .brandbar__tagline {
+    display: none;
+  }
+
   h1 {
     font-size: 38px;
   }
