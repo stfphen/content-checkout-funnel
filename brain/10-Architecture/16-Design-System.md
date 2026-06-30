@@ -4,13 +4,13 @@ type: reference
 tags: [architecture, design]
 status: stable
 updated: 2026-06-29
-source: DESIGN.md, docs/prompts/mobile-first-ui-overhaul.md, docs/prompts/ui-ux-overhaul.md, docs/specs/mobile-audit.md
+source: DESIGN.md, docs/prompts/ui-ux-overhaul.md, docs/specs/ui-overhaul-audit.md, docs/specs/ui-overhaul-build-plan.md, docs/specs/mobile-audit.md
 ---
 
 # Design System & Mobile-First
 
 ## Stack additions
-- **Fonts** (`next/font/google`, wired in `app/layout.jsx`): **Inter** (`--font-sans`, body/UI) + **Sora** (`--font-display`, headlines). *Never redefine these vars in CSS or they clobber the webfonts.*
+- **Fonts** (`next/font/google`, wired in `app/layout.jsx`): **Geist** (`--font-sans`, body **and** headings) + **Geist Mono** (`--font-mono`, data/numbers/code). One calm technical-premium family for everything; `--font-display` simply **aliases** `--font-sans`. *Never redefine these vars in CSS or they clobber the webfonts.* (Swapped from the earlier Inter/Sora pairing in the Direction C overhaul — see below.)
 - **framer-motion** — scroll reveals, hero stagger, admin tab transitions.
 - **lucide-react** — admin nav + toggle icons.
 
@@ -40,14 +40,23 @@ The app was originally **desktop-first** (max-width breakpoints 370/560/880/1023
 - **Test viewports:** 360/375/390/414/768/1024/1280 + 375×667/390×667 + short heights.
 - Audit doc: `docs/specs/mobile-audit.md`.
 
-## Planned: full UI/UX + performance overhaul (proposed 2026-06-29)
-A gated, multi-phase brief to reskin the **whole product** (admin shell + all tabs + public
-funnel/checkout) to a modern-SaaS standard and trim CSS/bundle weight lives at
-`docs/prompts/ui-ux-overhaul.md`. It is **aesthetic-agnostic** (quality bars; executor proposes the
-look for approval) and **preserves the contracts above** — per-tenant brand tokens, admin-scoped
-dark mode, mobile-first `min-width` breakpoints, and the `next/font` Inter/Sora vars. Phases: audit +
-design language → token foundation → admin reskin → funnel reskin → perf pass, each behind an
-approval gate. Status **proposed**, gated behind repo stabilization ([[31-Current-Priorities]]).
+## Full UI/UX + performance overhaul — IN PROGRESS (Direction C)
+A gated, multi-phase reskin of the **whole product** (admin shell + all tabs + public funnel/checkout)
+to a modern-SaaS standard, trimming CSS/bundle weight. Brief at `docs/prompts/ui-ux-overhaul.md`; it
+**preserves the contracts above** — per-tenant brand tokens, admin-scoped dark mode, mobile-first
+`min-width` breakpoints, and the `next/font` vars. The Phase-1 gate **chose Direction C — "Editorial
+brand-forward"**: one language in two densities (editorial funnel with big type / whitespace / accent
+bands; quieter, denser admin with restrained accent + hairline borders), mostly-flat elevation,
+restrained 10px radii, AA-by-construction against any tenant accent. Work lives on branch
+`feature/ui-overhaul`.
+
+Phase status:
+- ✅ **Phase 1** — audit + design language + throwaway preview (`docs/specs/ui-overhaul-audit.md`, `docs/specs/ui-preview.html`); Direction C chosen.
+- ✅ **Phase 2** — token foundation + primitives: neutral ramp `--n0…--n950`, success/warn/danger trios, **legacy aliases** (`--white→--n0`, `--muted→--n500`, etc.) so existing rules don't shift (`docs/specs/ui-overhaul-build-plan.md`, `styles.css` +183 lines). Geist typeface swapped in.
+- ✅ **Phase 3** — admin shell editorial refinement + admin component states (`OutreachQueueBuilder`, `RecordingButton`, `.v2-admin-shell`).
+- ⬜ **Phase 4** — public funnel/checkout reskin (pending gate).
+- ⬜ **Phase 5** — performance pass / CSS + bundle trim (pending gate).
+
 See [[51-Timeline]] · [[52-Decision-Log]].
 
 Up: [[10-Architecture-MOC]]

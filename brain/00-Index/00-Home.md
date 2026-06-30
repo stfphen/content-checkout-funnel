@@ -3,7 +3,7 @@ title: 00 · Home (Master MOC)
 type: moc
 tags: [moc, home]
 status: living
-updated: 2026-06-27
+updated: 2026-06-29
 ---
 
 # 🏠 Home — Content Checkout Funnel
@@ -46,10 +46,12 @@ review → all tenant-scoped, permissioned, and audit-logged.*
 - [[42-Go-Live-Plan]] — the 12-phase production plan.
 - [[29-Funding-Program]] — the biggest/newest subsystem.
 
-## 🧭 Status at a glance (2026-06-27)
+## 🧭 Status at a glance (2026-06-29)
 - **Current priority:** stabilize the repo before building more features. See [[31-Current-Priorities]].
+- **Active branch:** `feature/ui-overhaul` — UI/UX overhaul **Phases 1–3 built** (Direction C "Editorial brand-forward", Geist typeface); funnel reskin + perf pass pending. See [[16-Design-System]].
 - **Deploy target:** `dgtlmag.com` on Hostinger VPS `62.72.16.32`. See [[41-Deployment-Runbook]].
 - **Biggest open risks:** security findings (SSRF, no rate limiting, key rotation) — see [[53-Known-Issues]] / [[61-Security-Review]].
+- **Recently cleared:** git locks gone; enterprise-prospecting MVP committed (`87f94a6`). See [[51-Timeline]].
 - **Next big build:** Funding Program productization → sellable B2B offer. See [[33-Sprint-2-Productization]].
 
 ---
