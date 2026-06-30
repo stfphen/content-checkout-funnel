@@ -3,8 +3,8 @@ title: 16 · Design System & Mobile-First
 type: reference
 tags: [architecture, design]
 status: stable
-updated: 2026-06-27
-source: DESIGN.md, docs/prompts/mobile-first-ui-overhaul.md, docs/specs/mobile-audit.md
+updated: 2026-06-29
+source: DESIGN.md, docs/prompts/mobile-first-ui-overhaul.md, docs/prompts/ui-ux-overhaul.md, docs/specs/mobile-audit.md
 ---
 
 # Design System & Mobile-First
@@ -39,5 +39,15 @@ The app was originally **desktop-first** (max-width breakpoints 370/560/880/1023
 - **Changes shipped:** bottom nav capped at ≤5 slots + "More" overflow sheet (`AdminTabbedShell`); admin tables stack into labeled cards on small screens (`CallsTable`, `.v2-table`); advanced lead-edit fields collapse behind "More" / `<details>`; funding review checklist pinned to top of lead card; funnel/checkout grids made mobile-first with `minmax` guards.
 - **Test viewports:** 360/375/390/414/768/1024/1280 + 375×667/390×667 + short heights.
 - Audit doc: `docs/specs/mobile-audit.md`.
+
+## Planned: full UI/UX + performance overhaul (proposed 2026-06-29)
+A gated, multi-phase brief to reskin the **whole product** (admin shell + all tabs + public
+funnel/checkout) to a modern-SaaS standard and trim CSS/bundle weight lives at
+`docs/prompts/ui-ux-overhaul.md`. It is **aesthetic-agnostic** (quality bars; executor proposes the
+look for approval) and **preserves the contracts above** — per-tenant brand tokens, admin-scoped
+dark mode, mobile-first `min-width` breakpoints, and the `next/font` Inter/Sora vars. Phases: audit +
+design language → token foundation → admin reskin → funnel reskin → perf pass, each behind an
+approval gate. Status **proposed**, gated behind repo stabilization ([[31-Current-Priorities]]).
+See [[51-Timeline]] · [[52-Decision-Log]].
 
 Up: [[10-Architecture-MOC]]

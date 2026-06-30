@@ -3,7 +3,7 @@ title: 52 · Decision Log
 type: log
 tags: [audit]
 status: living
-updated: 2026-06-27
+updated: 2026-06-29
 ---
 
 # Decision Log
@@ -12,6 +12,15 @@ The "why" behind how things are built. Append new decisions at the top with a da
 
 | Date | Decision | Rationale |
 |---|---|---|
+| 2026-06-29 | **Product-wide UI/UX overhaul will be a token-preserving reskin, not a styling rewrite.** | The brief (`docs/prompts/ui-ux-overhaul.md`) keeps the existing `styles.css` token architecture, the per-tenant brand-token contract, admin-scoped dark mode, and the mobile-first `min-width` pattern — reskinning within them rather than introducing Tailwind/CSS-modules churn. Lowest regression risk across tenants and dark mode. [[16-Design-System]] |
+| 2026-06-29 | **The overhaul brief is aesthetic-agnostic — quality bars, not a fixed look.** | Operator chose to define measurable standards (system consistency, hierarchy/density, AA contrast against arbitrary tenant accents, purposeful motion, perf budgets) and let the executor propose the visual direction for approval at the Phase-1 gate, rather than prescribing one style up front. [[16-Design-System]] |
+| 2026-06-29 | **Quota-staged sourcing: cheap/broad sources for search, expensive for research.** | SEC EDGAR + OpenCorporates + Google Places power search; Apollo + Hunter + Claude run per-account behind Gate 1 — so credits/quota (Hunter free = 50/mo) are only spent on approved accounts. Every adapter degrades to mock. [[2C-Enterprise-Prospecting]] |
+| 2026-06-29 | **Enterprise prospecting MVP built now** (overriding the "do-not-start-until-stable" hold). | Operator explicitly directed a full working MVP. Mitigated risk by building additively + mock-first + fully tested, so existing modules don't regress. [[2C-Enterprise-Prospecting]] |
+| 2026-06-29 | **Account routes use `accountId` in the request body, not dynamic `[id]` segments.** | Avoids Next 15 async-params footguns; matches existing leads-route convention (`leadId` in body). [[2C-Enterprise-Prospecting]] |
+| 2026-06-29 | **Committee contacts link to leads via `lead.metadata.accountId`, not a `leads.account_id` column.** | MVP: avoids editing the large lead normalizer (which had adjacent uncommitted WIP); reuses the entire lead pipeline. New lead source `enterprise_prospect`. Revisit a real column later if querying by account gets heavy. [[2C-Enterprise-Prospecting]] |
+| 2026-06-29 | **Enterprise prospecting will EXTEND existing modules, not fork a new pipeline.** | Account-based layer reuses Batch Builder + Deep Research + Outreach; only 2 tables + a thin orchestration lib are new. Lower risk, keeps lead pipeline/outreach unchanged. [[2C-Enterprise-Prospecting]] |
+| 2026-06-29 | **No LinkedIn scraping for prospecting — official API + manual research only.** | ToS §8.2 prohibits scraping; *hiQ* says public scraping isn't a CFAA crime but is still a ToS breach; LinkedIn sues/bans (Proxycurl shut down 2025). Mirrors "funding matching is manual, not scraped." [[2C-Enterprise-Prospecting]] |
+| 2026-06-29 | **Three manual approval gates for the enterprise motion** (account+tier → contacts+campaign → send). | Operator chose maximum control; protects provider quotas, blocks fabricated contacts, preserves "outreach human-approved only." [[2C-Enterprise-Prospecting]] · [[26-Outreach]] |
 | 2026-06-27 | **ON Home Decor migrated into the multi-tenant platform**, not kept as a standalone site. | Reuse the existing funnel/admin/checkout/telephony stack instead of maintaining a separate Lovable app; productized as a low-friction `$200` paint-selection entry offer that ladders into styling + renovation packages. [[63-Tenants-Catalog]] · [[15-Multi-Tenancy]] |
 | 2026-06 | **Repo 1 is canonical; Repo 2 is reference-only.** | Repo 1 has the real integrations + git + is half-deployed. Splitting effort into the V2 mock rewrite caused confusion. [[02-Glossary]] |
 | 2026-06 | **`team_default` + `TEAM_SLUG=default` for built-in tenants.** | Built-in tenants/leads scope to one internal team; owner must join it to see them. Workaround until self-serve onboarding. [[15-Multi-Tenancy]] |
