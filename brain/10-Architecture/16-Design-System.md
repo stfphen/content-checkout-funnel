@@ -3,7 +3,7 @@ title: 16 · Design System & Mobile-First
 type: reference
 tags: [architecture, design]
 status: stable
-updated: 2026-06-29
+updated: 2026-06-30
 source: DESIGN.md, docs/prompts/ui-ux-overhaul.md, docs/specs/ui-overhaul-audit.md, docs/specs/ui-overhaul-build-plan.md, docs/specs/mobile-audit.md
 ---
 
@@ -40,7 +40,7 @@ The app was originally **desktop-first** (max-width breakpoints 370/560/880/1023
 - **Test viewports:** 360/375/390/414/768/1024/1280 + 375×667/390×667 + short heights.
 - Audit doc: `docs/specs/mobile-audit.md`.
 
-## Full UI/UX + performance overhaul — IN PROGRESS (Direction C)
+## Full UI/UX + performance overhaul — Phases 0–5 SHIPPED on `feature/ui-overhaul` (Direction C)
 A gated, multi-phase reskin of the **whole product** (admin shell + all tabs + public funnel/checkout)
 to a modern-SaaS standard, trimming CSS/bundle weight. Brief at `docs/prompts/ui-ux-overhaul.md`; it
 **preserves the contracts above** — per-tenant brand tokens, admin-scoped dark mode, mobile-first
@@ -50,12 +50,14 @@ bands; quieter, denser admin with restrained accent + hairline borders), mostly-
 restrained 10px radii, AA-by-construction against any tenant accent. Work lives on branch
 `feature/ui-overhaul`.
 
-Phase status:
+Phase status (all phases run 2026-06-30; build + 202 tests green; final numbers in `docs/specs/ui-overhaul-build-plan.md`):
+- ✅ **Phase 0** — `integration/ui-overhaul` (committed enterprise MVP `87f94a6`) + `feature/ui-overhaul`; perf baseline captured.
 - ✅ **Phase 1** — audit + design language + throwaway preview (`docs/specs/ui-overhaul-audit.md`, `docs/specs/ui-preview.html`); Direction C chosen.
-- ✅ **Phase 2** — token foundation + primitives: neutral ramp `--n0…--n950`, success/warn/danger trios, **legacy aliases** (`--white→--n0`, `--muted→--n500`, etc.) so existing rules don't shift (`docs/specs/ui-overhaul-build-plan.md`, `styles.css` +183 lines). Geist typeface swapped in.
-- ✅ **Phase 3** — admin shell editorial refinement + admin component states (`OutreachQueueBuilder`, `RecordingButton`, `.v2-admin-shell`).
-- ⬜ **Phase 4** — public funnel/checkout reskin (pending gate).
-- ⬜ **Phase 5** — performance pass / CSS + bundle trim (pending gate).
+- ✅ **Phase 2** — token foundation + `.ui-*` primitives. **Implemented as `color-mix` derivations over the semantic tokens** (state trios, `--surface-3`/`--fg-subtle`/`--border-subtle/-strong`, `--ring/--hover-fill/--active-fill/--overlay`, `--accent-band/-soft`) — **not** the `--n0…--n950` ramp (that lives only in `ui-preview.html`); auto-adapts in dark mode, brand tokens untouched. (Geist swap predates this run.)
+- ✅ **Phase 3** — admin shell editorial refinement (accent nav active + eyebrows) + component states (`OutreachQueueBuilder` `.ui-empty`, `RecordingButton` error note).
+- ✅ **Phase 4** — funnel + funding-widget cohesion (accent eyebrows on light sections; funding CTA `--on-blue`/`--danger`). *Light-touch — funnel was already editorial; deep per-surface reskin not exhaustive.*
+- ✅ **Phase 5** — hero `next/image` → funnel Lighthouse **desktop 86→100, mobile 75→92** (LCP 15.7s→3.1s), CLS 0. *Admin code-split + CSS consolidation deferred (see build-plan "follow-ups").*
+- ⚠️ **Before merge:** browser-based visual-regression QA at all breakpoints in light + admin-dark with a non-default tenant accent; deep table/panel reskin + funding review-banner reposition still open.
 
 See [[51-Timeline]] · [[52-Decision-Log]].
 

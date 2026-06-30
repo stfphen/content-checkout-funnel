@@ -107,3 +107,49 @@ Commits stay small (one surface per commit in Phases 3–4). Brain updated at th
 On approval I implement **items 1–2 only** (token layer + primitives) in `styles.css`, additive and
 back-compatible, verify light + admin-dark + a non-default accent, commit, and show the result before
 starting the admin reskin (item 3).
+
+---
+
+## Execution results (2026-06-29/30)
+
+Approved to run end-to-end. Shipped on `feature/ui-overhaul` (off `integration/ui-overhaul`),
+small commits, **build + 202 tests green at every step**.
+
+### Performance — before → after
+| Metric | Baseline | After | Target |
+|---|---|---|---|
+| Funnel Lighthouse **desktop** | 86 (LCP 2.6s) | **100** (LCP 0.7s) | ≥90 ✅ |
+| Funnel Lighthouse **mobile** | 75 (LCP 15.7s) | **92** (LCP 3.1s) | ≥90 ✅ |
+| Funnel CLS | 0 | 0 | no regression ✅ |
+| Funnel first-load JS | 151 kB | 157 kB | +6 kB (next/image client cost; image **bytes** down ~10×) |
+| `/admin` first-load JS | 169 kB | 169 kB | unchanged (see follow-up) |
+| `styles.css` | 82.6 kB | 88.7 kB | +6 kB token/primitive layer (consolidation deferred) |
+
+The hero LCP fix (1.74 MB raw `<img>` → `next/image` resized WebP/AVIF + `priority`) drove the
+funnel score win — the primary target — comfortably past 90 on both presets.
+
+### Shipped
+1. **Token foundation + primitives** (`styles.css`): state-color trios, surface/text/border tiers,
+   interaction tokens (`--ring/--hover-fill/--active-fill/--overlay`), editorial accent devices,
+   and the `.ui-*` primitive set. Additive + back-compatible; new tokens `color-mix` over semantic
+   tokens so they auto-adapt in admin dark mode. Brand tokens untouched.
+2. **Admin shell editorial refinement**: accent-forward nav active state + eyebrows, tokenized hover.
+3. **Admin component states**: `RecordingButton` playback-error note; `OutreachQueueBuilder` empty
+   states → `.ui-empty`.
+4. **Funnel + funding cohesion**: Direction-C accent eyebrows on light sections; funding widget CTA
+   uses `--on-blue` (AA on light accents) + `--danger` error.
+5. **Perf**: hero/LCP via `next/image` (the headline win).
+
+### Honest gaps / follow-ups (need browser-based visual-regression QA)
+- **Deep per-surface reskin not exhaustive.** Tables (calls/team/lead), the remaining admin panels
+  (DialPad, LeadCallPanel, Tenant*, AccountsPanel, the AI trio), the funding review-banner reposition,
+  and full checkout/package restyle were **not** individually reworked — they inherit the new tokens
+  but weren't pixel-reskinned. Each needs verification at 360–1280 + short heights, light + dark.
+- **Admin first-load JS unchanged.** `next/dynamic` with SSR on gave no reduction (panels render
+  during SSR); a real cut needs `ssr:false` lazy **client** tab-panels — an architectural change, not
+  a reskin. Reverted to keep the tree honest.
+- **CSS consolidation deferred.** The 3 accreted redesign layers + 72 stray hex + 112 rgba weren't
+  collapsed; the foundation *added* ~6 kB. Dead-coding safely requires CSS-coverage + visual diffing.
+- **Breakpoint/visual verification was limited** this run (Chrome extension not connected); correctness
+  rests on build + 202 tests + disciplined mobile-first token CSS + Lighthouse. A manual pass at all
+  breakpoints in light + admin-dark with a non-default tenant accent is still recommended before merge.

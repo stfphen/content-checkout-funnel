@@ -3,7 +3,7 @@ title: 52 · Decision Log
 type: log
 tags: [audit]
 status: living
-updated: 2026-06-29
+updated: 2026-06-30
 ---
 
 # Decision Log
@@ -12,6 +12,9 @@ The "why" behind how things are built. Append new decisions at the top with a da
 
 | Date | Decision | Rationale |
 |---|---|---|
+| 2026-06-30 | **New design tokens are `color-mix` derivations over the existing semantic tokens — not a literal `--n0…--n950` neutral ramp.** | The audit/preview proposed a ramp, but deriving state/border/interaction tokens from `--surface`/`--fg`/`--blue` means they re-point automatically in admin dark mode and stay accent-correct, with far lower regression risk than re-aliasing every legacy primitive. The `--n0…--n950` ramp exists only in the throwaway `ui-preview.html`. [[16-Design-System]] |
+| 2026-06-30 | **Hero image: `next/image` only for local (`/`-prefixed) tenant images; remote URLs fall back to a prioritized plain `<img>`.** | Optimizing the local 1.74 MB hero is the LCP win (mobile 75→92), but pointing the Next image optimizer at arbitrary tenant-supplied hosts would re-introduce an SSRF-style surface (cf. C2). Conditional render gets the win without a wildcard `remotePatterns`. [[53-Known-Issues]] |
+| 2026-06-30 | **Admin code-splitting deferred: `next/dynamic` with SSR gives no first-load cut here.** | The server page renders every tab panel during SSR, so dynamic chunks are still needed for hydration; a real cut needs `ssr:false` lazy **client** tab-panels (architectural), out of scope for a reskin. Experiment reverted. [[21-Admin-Shell]] |
 | 2026-06-29 | **Phase-1 gate: chose "Direction C — Editorial brand-forward" as the overhaul's visual language.** | One language, two densities — editorial funnel (big type, whitespace, accent bands) + a quieter, denser admin (restrained accent, hairline borders) so operator tables stay scannable. Flat elevation, restrained 10px radii, AA-by-construction against any tenant accent. Spec in `docs/specs/ui-overhaul-build-plan.md`. [[16-Design-System]] |
 | 2026-06-29 | **Typeface switched to Geist + Geist Mono (one family) — replaces Inter/Sora.** | Direction C wants a single calm technical-premium family for body and headings, with numbers typeset as data in Geist Mono; `--font-display` now just aliases `--font-sans`. Wired in `app/layout.jsx` via `next/font/google`. [[16-Design-System]] |
 | 2026-06-29 | **Product-wide UI/UX overhaul will be a token-preserving reskin, not a styling rewrite.** | The brief (`docs/prompts/ui-ux-overhaul.md`) keeps the existing `styles.css` token architecture, the per-tenant brand-token contract, admin-scoped dark mode, and the mobile-first `min-width` pattern — reskinning within them rather than introducing Tailwind/CSS-modules churn. Lowest regression risk across tenants and dark mode. [[16-Design-System]] |
