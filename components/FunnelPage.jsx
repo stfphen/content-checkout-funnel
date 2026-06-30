@@ -1,6 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
+import Image from "next/image";
 import { getTenantTheme } from "../lib/branding";
 import FundingSurveyWidget from "./funding/FundingSurveyWidget";
 import Reveal from "./motion/Reveal";
@@ -149,7 +150,29 @@ export default function FunnelPage({ tenant }) {
     <div className="tenant-root" style={theme.vars} data-tenant={tenant.slug}>
       <main>
         <section className="hero" aria-label={`${tenant.brand.name} sales offer`}>
-          <img className="hero__image" src={tenant.media.heroImage} alt={tenant.media.heroAlt} />
+          {/* LCP element: optimize local tenant images via next/image (resized
+              WebP/AVIF + preload). Remote tenant URLs (edge case) fall back to a
+              prioritized plain <img> so the image optimizer isn't opened to
+              arbitrary hosts. */}
+          {tenant.media.heroImage?.startsWith("/") ? (
+            <Image
+              className="hero__image"
+              src={tenant.media.heroImage}
+              alt={tenant.media.heroAlt}
+              fill
+              priority
+              sizes="100vw"
+            />
+          ) : (
+            // eslint-disable-next-line @next/next/no-img-element
+            <img
+              className="hero__image"
+              src={tenant.media.heroImage}
+              alt={tenant.media.heroAlt}
+              fetchPriority="high"
+              decoding="async"
+            />
+          )}
           <div className="hero__shade" />
           <Stagger className="hero__content" stagger={0.1} amount={0.1}>
             <StaggerItem className="brandbar">
