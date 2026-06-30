@@ -12,10 +12,19 @@
   --blue: #0071e3;
   --blue-dark: #005bb5;
   --accent: #050505;
-  /* Semantic status colors (Phase 5) — referenced instead of scattered hex. */
-  --danger: #ff3b30;
+  /* Semantic status colors — referenced instead of scattered hex. Each has a
+     soft surface (-bg) + accessible text (-fg) variant; both color-mix over the
+     semantic --surface/--fg so they adapt automatically in admin dark mode. */
+  --danger: #d23123;
   --success: #0b8a5a;
-  --warn: #b8860b;
+  --warn: #b07d0a;
+  --info: var(--blue);
+  --success-bg: color-mix(in srgb, var(--success) 12%, var(--surface));
+  --success-fg: color-mix(in srgb, var(--success) 72%, var(--fg));
+  --warn-bg: color-mix(in srgb, var(--warn) 14%, var(--surface));
+  --warn-fg: color-mix(in srgb, var(--warn) 78%, var(--fg));
+  --danger-bg: color-mix(in srgb, var(--danger) 12%, var(--surface));
+  --danger-fg: color-mix(in srgb, var(--danger) 70%, var(--fg));
 
   /* Brand aliases — readable names for new rules; never override the contract
      tokens above so tenant theming keeps working. */
@@ -27,9 +36,24 @@
   --bg: var(--soft);
   --surface: var(--white);
   --surface-2: var(--soft);
+  --surface-3: var(--white); /* raised: popovers/modals (re-pointed lighter in dark) */
   --border: var(--line);
+  --border-subtle: color-mix(in srgb, var(--border) 55%, transparent);
+  --border-strong: color-mix(in srgb, var(--fg) 16%, transparent);
   --fg: var(--black);
   --fg-muted: var(--muted);
+  --fg-subtle: color-mix(in srgb, var(--fg-muted) 70%, var(--surface));
+
+  /* Interaction tokens — derived from the (tenant) accent + semantic fg, so they
+     stay AA and re-point with dark mode. */
+  --ring: color-mix(in srgb, var(--blue) 45%, transparent);
+  --ring-offset: var(--surface);
+  --hover-fill: color-mix(in srgb, var(--fg) 5%, transparent);
+  --active-fill: color-mix(in srgb, var(--fg) 9%, transparent);
+  --overlay: color-mix(in srgb, #000 55%, transparent);
+  /* Editorial accent devices (Direction C) — section tints + soft chips. */
+  --accent-band: color-mix(in srgb, var(--blue) 9%, var(--surface));
+  --accent-soft: color-mix(in srgb, var(--blue) 13%, transparent);
 
   /* Radii */
   --radius: 12px;
@@ -3088,6 +3112,7 @@ p {
   --bg: #0c0c0e;
   --surface: #1c1c1e;
   --surface-2: #161618;
+  --surface-3: #2c2c2e; /* raised sits lighter than surface in dark */
   --fg: #f5f5f7;
   --fg-muted: #9b9ba3;
   --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.4);
@@ -3648,7 +3673,7 @@ input:focus-visible,
 textarea:focus-visible,
 summary:focus-visible,
 [tabindex]:not([tabindex="-1"]):focus-visible {
-  outline: 3px solid color-mix(in srgb, var(--blue) 42%, transparent);
+  outline: 3px solid var(--ring);
   outline-offset: 2px;
 }
 
@@ -4105,3 +4130,136 @@ summary:focus-visible,
     margin-top: 0;
   }
 }
+
+/* ============================================================================
+   === UI OVERHAUL PRIMITIVES (Direction C — editorial brand-forward) ===
+   Small, additive, token-only utility classes. Reused across admin + funnel
+   reskins. Every value reads var(--…) so admin dark mode + tenant accents work.
+   ========================================================================== */
+
+/* --- Card: flat, hairline; elevation reserved for raised/popover --- */
+.ui-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: var(--space-5);
+}
+.ui-card--raised {
+  background: var(--surface-3);
+  box-shadow: var(--shadow);
+  border-color: var(--border-subtle);
+}
+.ui-card--accent {
+  background: var(--accent-band);
+  border-color: color-mix(in srgb, var(--blue) 22%, var(--border));
+}
+
+/* --- Eyebrow / kicker: editorial section intro --- */
+.ui-eyebrow {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  font-size: var(--text-xs);
+  font-weight: 600;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: color-mix(in srgb, var(--blue) 72%, var(--fg-muted));
+}
+
+/* --- Display heading helper --- */
+.ui-display {
+  font-family: var(--font-display, var(--font-sans, inherit));
+  font-weight: 720;
+  letter-spacing: -0.025em;
+  line-height: 1.05;
+}
+
+/* --- Badge set (complements .status-pill; for new, generic chips) --- */
+.ui-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-size: var(--text-xs);
+  font-weight: 600;
+  line-height: 1.5;
+  padding: 3px 9px;
+  border-radius: 999px;
+  border: 1px solid transparent;
+}
+.ui-badge--neutral {
+  background: var(--surface-2);
+  color: var(--fg-muted);
+  border-color: var(--border);
+}
+.ui-badge--accent {
+  background: var(--accent-soft);
+  color: color-mix(in srgb, var(--blue) 78%, var(--fg));
+}
+.ui-badge--success { background: var(--success-bg); color: var(--success-fg); }
+.ui-badge--warn { background: var(--warn-bg); color: var(--warn-fg); }
+.ui-badge--danger { background: var(--danger-bg); color: var(--danger-fg); }
+
+/* --- Skeleton: reserves space for async content (CLS guard) --- */
+.ui-skeleton {
+  background: linear-gradient(
+    90deg,
+    var(--surface-2) 25%,
+    color-mix(in srgb, var(--fg) 8%, var(--surface-2)) 37%,
+    var(--surface-2) 63%
+  );
+  background-size: 400% 100%;
+  border-radius: var(--radius-sm);
+  height: 14px;
+  animation: ui-shimmer 1.4s ease infinite;
+}
+.ui-skeleton + .ui-skeleton { margin-top: var(--space-3); }
+@keyframes ui-shimmer {
+  to { background-position: -100% 0; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .ui-skeleton { animation: none; }
+}
+
+/* --- Empty state --- */
+.ui-empty {
+  text-align: center;
+  border: 1px dashed var(--border-strong);
+  border-radius: var(--radius);
+  padding: var(--space-8) var(--space-6);
+  color: var(--fg-muted);
+}
+.ui-empty__icon {
+  width: 40px;
+  height: 40px;
+  margin: 0 auto var(--space-3);
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+  background: var(--surface-2);
+  color: var(--fg-subtle);
+}
+.ui-empty__title { font-weight: 640; color: var(--fg); }
+.ui-empty p { margin: var(--space-1) 0 0; font-size: var(--text-sm); color: var(--fg-subtle); }
+
+/* --- Inline error note (for components lacking error UX) --- */
+.ui-error {
+  display: flex;
+  gap: var(--space-2);
+  align-items: flex-start;
+  font-size: var(--text-sm);
+  color: var(--danger-fg);
+  background: var(--danger-bg);
+  border: 1px solid color-mix(in srgb, var(--danger) 30%, transparent);
+  border-radius: var(--radius-sm);
+  padding: var(--space-2) var(--space-3);
+}
+
+/* --- Editorial section band (funnel; Direction C accent device) --- */
+.section--accent {
+  background: var(--accent-band);
+}
+.section--accent-strong {
+  background: var(--blue);
+  color: var(--on-blue);
+}
+.section--accent-strong .ui-eyebrow { color: color-mix(in srgb, var(--on-blue) 80%, transparent); }
