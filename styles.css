@@ -575,6 +575,15 @@ button {
   opacity: 0.72;
 }
 
+/* Direction C: accent-forward eyebrows on light funnel sections (the hero
+   eyebrow keeps inheriting white against its dark image). */
+.section .eyebrow,
+.section__inner .eyebrow,
+.section__header .eyebrow {
+  color: color-mix(in srgb, var(--blue) 78%, var(--fg-muted));
+  opacity: 1;
+}
+
 h1,
 h2,
 h3,

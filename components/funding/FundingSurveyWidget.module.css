@@ -87,7 +87,7 @@
 .ctaPrimary {
   appearance: none; border: none; cursor: pointer;
   padding: 14px 22px; border-radius: 999px;
-  background: var(--blue, #0071e3); color: #fff;
+  background: var(--blue, #0071e3); color: var(--on-blue, #fff);
   font-size: 15px; font-weight: 600; text-decoration: none;
   display: inline-flex; align-items: center; justify-content: center;
   transition: transform 120ms ease, opacity 160ms ease;
@@ -101,7 +101,7 @@
   background: transparent; color: inherit; font-size: 15px; font-weight: 600;
 }
 
-.error { margin: 0; color: #b00020; font-size: 14px; font-weight: 600; }
+.error { margin: 0; color: var(--danger, #b00020); font-size: 14px; font-weight: 600; }
 .trust {
   margin: 0; font-size: 12.5px; line-height: 1.5;
   color: var(--muted, #6e6e73);
