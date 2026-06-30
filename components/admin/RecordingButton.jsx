@@ -7,13 +7,15 @@ import { useRef, useState } from "react";
 export default function RecordingButton({ src }) {
   const audioRef = useRef(null);
   const [playing, setPlaying] = useState(false);
+  const [error, setError] = useState(false);
 
   if (!src) return null;
 
   function toggle() {
     const audio = audioRef.current;
     if (!audio) return;
-    if (audio.paused) audio.play().catch(() => {});
+    setError(false);
+    if (audio.paused) audio.play().catch(() => setError(true));
     else audio.pause();
   }
 
@@ -25,7 +27,7 @@ export default function RecordingButton({ src }) {
         onClick={toggle}
         aria-label={playing ? "Pause recording" : "Play recording"}
         aria-pressed={playing}
-        title={playing ? "Pause recording" : "Play recording"}
+        title={error ? "Recording unavailable" : playing ? "Pause recording" : "Play recording"}
       >
         {playing ? (
           <svg width="13" height="13" viewBox="0 0 14 14" aria-hidden="true">
@@ -38,6 +40,9 @@ export default function RecordingButton({ src }) {
           </svg>
         )}
       </button>
+      {error ? (
+        <span className="rec-player__error" role="status">Recording unavailable</span>
+      ) : null}
       <audio
         ref={audioRef}
         src={src}
@@ -45,6 +50,7 @@ export default function RecordingButton({ src }) {
         onPlay={() => setPlaying(true)}
         onPause={() => setPlaying(false)}
         onEnded={() => setPlaying(false)}
+        onError={() => setError(true)}
       />
     </span>
   );

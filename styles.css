@@ -4267,3 +4267,10 @@ summary:focus-visible,
   color: var(--on-blue);
 }
 .section--accent-strong .ui-eyebrow { color: color-mix(in srgb, var(--on-blue) 80%, transparent); }
+
+/* Inline recording-error note (RecordingButton) */
+.rec-player__error {
+  font-size: var(--text-xs);
+  color: var(--danger-fg);
+  white-space: nowrap;
+}

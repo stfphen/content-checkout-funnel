@@ -149,7 +149,13 @@ export default function OutreachQueueBuilder({
               </label>
             );
           })}
-          {!leads.length ? <p>No leads match the current filters.</p> : null}
+          {!leads.length ? (
+            <div className="ui-empty">
+              <div className="ui-empty__icon" aria-hidden="true">○</div>
+              <div className="ui-empty__title">No matching leads</div>
+              <p>Adjust the pipeline filters to surface leads here.</p>
+            </div>
+          ) : null}
         </div>
       </div>
 
@@ -165,7 +171,13 @@ export default function OutreachQueueBuilder({
             <pre>{row.rendered.body}</pre>
           </article>
         ))}
-        {!previewRows.length ? <p>Select leads to preview personalized outreach.</p> : null}
+        {!previewRows.length ? (
+          <div className="ui-empty">
+            <div className="ui-empty__icon" aria-hidden="true">✎</div>
+            <div className="ui-empty__title">Nothing selected yet</div>
+            <p>Select leads to preview personalized outreach.</p>
+          </div>
+        ) : null}
       </div>
     </div>
   );
