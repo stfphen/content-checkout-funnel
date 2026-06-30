@@ -431,12 +431,14 @@
   }
 
   .v2-nav-item:hover {
-    background: rgba(0, 0, 0, 0.04);
+    background: var(--hover-fill);
   }
 
   .v2-nav-item.is-active {
-    background: rgba(0, 113, 227, 0.1);
+    background: var(--accent-soft);
     box-shadow: inset 3px 0 0 var(--blue);
+    color: var(--blue);
+    font-weight: 650;
   }
 
   .v2-dashboard-main {
@@ -3364,7 +3366,9 @@ p {
 }
 .v2-admin-shell .v2-view-header .eyebrow {
   margin-bottom: 8px;
-  opacity: 0.7;
+  color: color-mix(in srgb, var(--blue) 70%, var(--fg-muted));
+  font-weight: 600;
+  letter-spacing: 0.12em;
 }
 .v2-admin-shell .admin-header > div > p {
   margin-top: 6px;
