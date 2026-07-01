@@ -37,5 +37,6 @@ inbound ┘                                   │        ├─► OUTREACH (hum
 | [[2A-Tenant-Builder]] | AI tenant builder | Generate a tenant config from a prompt. |
 | [[2B-AI-Backend]] | AI backend | Shared Claude transport (subscription / apiKey). |
 | [[2C-Enterprise-Prospecting]] | Enterprise prospecting (ABM) | **MVP built.** Account-based motion: accounts → committee → campaign, 3 gates → outreach. |
+| [[2D-Portfolio-Media]] | Portfolio / references & media library | **Proposed.** Per-tenant portfolio section + reusable media library + AI-assisted selection + hero/media editor. |
 
 Up: [[00-Home]]

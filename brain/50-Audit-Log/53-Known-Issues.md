@@ -3,7 +3,7 @@ title: 53 · Known Issues, Risks & Tech Debt
 type: log
 tags: [audit, security]
 status: living
-updated: 2026-06-29
+updated: 2026-07-01
 source: docs/SECURITY_REVIEW.md, status docs
 ---
 
@@ -45,6 +45,11 @@ Open problems. Full security analysis in [[61-Security-Review]]. **Update status
 - **2 moderate npm advisories** (`npm install`) — not yet addressed.
 - **VPS drift risk** — VPS has run snapshots far behind `main`; add an uptime monitor (Phase 12) to catch 502s automatically. [[42-Go-Live-Plan]]
 - Provider hardening (retries/rate-limits/quota) outstanding. [[23-Prospecting]]
+- **PLANNED-SURFACE (watch): media upload endpoints** — the proposed portfolio/media library
+  ([[2D-Portfolio-Media]]) adds a file-upload surface (`POST /api/admin/media`). It must ship **after** the
+  open security fixes and with: mime allowlist + magic-byte sniff, size caps, team-scoped IDOR checks
+  (cf. H2), rate limiting (cf. H1), path-traversal-safe storage keys, and SSRF guards on any server-side
+  URL fetch/thumbnailing (cf. C2). Do not point `next/image` at arbitrary uploaded remote hosts.
 
 ## Top-5 fix order (from the security review)
 1. Rotate keys + strong DB password (C1, H3). 2. SSRF guard (C2). 3. Rate limiting (H1). 4. Fix the two enrich routes (H2). 5. Lock down public lead creation (M1/M2).

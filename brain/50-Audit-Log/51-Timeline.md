@@ -3,13 +3,29 @@ title: 51 · Project Timeline
 type: log
 tags: [audit]
 status: living
-updated: 2026-06-30
+updated: 2026-07-01
 ---
 
 # Project Timeline
 
 Chronological history, reconstructed from repo docs + git. **Append newest entries at the top.**
 Dates are from doc timestamps / commit themes; treat older "status" claims as point-in-time snapshots.
+
+## 2026-07
+- **07-01** — **Portfolio / references + media library DESIGNED (not built).** Planned a per-tenant funnel
+  "Portfolio & References" section (real video/image case studies, client logos, testimonials, result
+  metrics) that today has no equivalent — the funnel's `output` section renders only `aria-hidden`
+  **text tiles** (`components/FunnelPage.jsx:270-283`). Operator chose: (1) a **real upload + team-scoped
+  media library** (new `media_assets` table / migration `007`, storage-provider seam mirroring telephony,
+  mock/URL-first with graceful degradation) with **assets referenced by `mediaId` — never inlined into
+  `tenants.config`** to keep configs lean; (2) **AI-assisted selection** — extend [[2A-Tenant-Builder]]'s
+  `TENANT_OUTPUT_SCHEMA` to pick relevant library assets by `industry`/`format` tags (retrieval of existing
+  `mediaId`s, not fabricated URLs; human-approved via draft→publish); (3) a **plan-only** deliverable
+  captured in the brain. New config sections `portfolio` + `references` + validation `ARRAY_PATHS` entries;
+  new admin `MediaLibrary` + `FunnelContentEditor` (the first direct hero/media/copy editor — today copy is
+  only AI-regenerated or JSON-imported). 5-phase additive rollout, gated behind repo stabilization. Flagged
+  that the new upload surface amplifies open security gaps (SSRF C2, rate-limit H1, IDOR H2, type-sniffing).
+  Plan of record: [[2D-Portfolio-Media]]. See [[52-Decision-Log]] · [[33-Sprint-2-Productization]].
 
 ## 2026-06
 - **06-30** — **UI/UX overhaul prompt revised to add a Phase 0 preflight gate** (uncommitted working-tree change to `docs/prompts/ui-ux-overhaul.md`, on `feature/ui-overhaul`). The overhaul workflow now opens with **Phase 0 — Preflight / Repo-State Report**: before touching code the executor must inventory `git status`/`stash`/`log`/`diff`, bucket every change by effort (enterprise-prospecting, mobile, brain, this UI work) as committed/uncommitted/stashed, flag collisions on shared files (`styles.css`, `AdminTabbedShell.jsx`, `app/admin/page.jsx`), capture a build+test baseline, and recommend a safe starting branch — then stop for approval. Also strengthens guardrails: explicit "no app code until Phase 0 + 1 approved," all perf baselines re-anchored to the **Phase-0** numbers (was "Phase 1"), `git stash` added to the hard-stop list, and the Accounts tab folded into the surface inventory. Effectively documents the gate the already-shipped build followed. See [[16-Design-System]].

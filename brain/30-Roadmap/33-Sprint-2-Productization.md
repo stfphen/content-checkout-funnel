@@ -3,7 +3,7 @@ title: 33 · Sprint 2 — Productization
 type: roadmap
 tags: [roadmap, funding, payments]
 status: living
-updated: 2026-06-27
+updated: 2026-07-01
 source: NEXT_STEPS.md, docs/funding-program-offer-positioning.md
 ---
 
@@ -22,6 +22,9 @@ The north star: turn the platform into a sellable, white-label B2B offer.
 5. **Reporting/dashboards** — pipeline conversion, outreach metrics, funding-match + payment outcomes.
 6. **Funding opportunity ingestion** — activate `lib/funding/ingestion.js` with human-review gating
    (gated — see [[34-Do-Not-Start-Yet]]). [[29-Funding-Program]]
+7. **Portfolio / references + media library** — per-tenant proof section with a reusable, tagged, AI-selected
+   media library and a hero/media editor; strengthens the "every client gets a branded funnel" pitch.
+   Plan of record: [[2D-Portfolio-Media]] (proposed; gated behind stabilization).
 
 ## Go-to-market (from the positioning doc)
 - **Offer ladder:** free Funding Fit Scan → Fundable Project Blueprint → Application Support → Funded Growth Execution → Monthly Opportunity Intelligence.

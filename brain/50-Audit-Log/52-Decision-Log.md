@@ -3,7 +3,7 @@ title: 52 · Decision Log
 type: log
 tags: [audit]
 status: living
-updated: 2026-06-30
+updated: 2026-07-01
 ---
 
 # Decision Log
@@ -12,6 +12,10 @@ The "why" behind how things are built. Append new decisions at the top with a da
 
 | Date | Decision | Rationale |
 |---|---|---|
+| 2026-07-01 | **Portfolio media lives in a team-scoped `media_assets` library and is referenced by `mediaId` — never inlined into `tenants.config`.** | One reusable, tagged library lets the same asset serve many tenants and keeps the (already large) tenant config JSON lean; only tiny icons keep the data-URL pattern (`brand.appIcon`). Mirrors the no-hardcoding invariant. [[2D-Portfolio-Media]] · [[15-Multi-Tenancy]] |
+| 2026-07-01 | **AI-assisted portfolio selection is tag-constrained retrieval, not generation** — the model returns existing `mediaId`s, never fabricated URLs. | Prevents hallucinated/broken media and keeps proof truthful; the Tenant Builder picks relevant assets by `industry`/`format` tags and a human approves via draft→publish (same human-in-the-loop as outreach/funding). [[2D-Portfolio-Media]] · [[2A-Tenant-Builder]] |
+| 2026-07-01 | **Media storage uses a provider seam (mock/local/URL-first), degrading to URL/embed when unconfigured.** | Matches the project-wide "every integration degrades to not-configured" rule (cf. telephony `getProvider`); prod target is an S3-compatible store (DO Spaces). Video prefers embeds + poster until the object-store phase. [[2D-Portfolio-Media]] |
+| 2026-07-01 | **Portfolio/media feature is planned as a 5-phase additive rollout, gated behind repo stabilization — plan-only for now.** | Respects the current "stabilize before building" priority (like [[2C-Enterprise-Prospecting]] was held); the new upload surface must ship with SSRF/rate-limit/IDOR/type-sniffing hardening, so it is sequenced after the open security fixes. [[31-Current-Priorities]] · [[53-Known-Issues]] |
 | 2026-06-30 | **New design tokens are `color-mix` derivations over the existing semantic tokens — not a literal `--n0…--n950` neutral ramp.** | The audit/preview proposed a ramp, but deriving state/border/interaction tokens from `--surface`/`--fg`/`--blue` means they re-point automatically in admin dark mode and stay accent-correct, with far lower regression risk than re-aliasing every legacy primitive. The `--n0…--n950` ramp exists only in the throwaway `ui-preview.html`. [[16-Design-System]] |
 | 2026-06-30 | **Hero image: `next/image` only for local (`/`-prefixed) tenant images; remote URLs fall back to a prioritized plain `<img>`.** | Optimizing the local 1.74 MB hero is the LCP win (mobile 75→92), but pointing the Next image optimizer at arbitrary tenant-supplied hosts would re-introduce an SSRF-style surface (cf. C2). Conditional render gets the win without a wildcard `remotePatterns`. [[53-Known-Issues]] |
 | 2026-06-30 | **Admin code-splitting deferred: `next/dynamic` with SSR gives no first-load cut here.** | The server page renders every tab panel during SSR, so dynamic chunks are still needed for hydration; a real cut needs `ssr:false` lazy **client** tab-panels (architectural), out of scope for a reskin. Experiment reverted. [[21-Admin-Shell]] |
