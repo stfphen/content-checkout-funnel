@@ -2,7 +2,8 @@
 title: 01 · How To Use This Vault
 type: guide
 tags: [meta, conventions]
-updated: 2026-06-27
+status: living
+updated: 2026-07-02
 ---
 
 # How To Use This Vault

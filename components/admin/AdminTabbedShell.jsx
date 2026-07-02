@@ -15,6 +15,7 @@ import {
   Sun,
   Moon,
   MoreHorizontal,
+  X,
 } from "lucide-react";
 
 const AdminTabsContext = createContext("pipeline");
@@ -89,7 +90,14 @@ export function AdminTabbedShell({ notice, children, visibleTabs }) {
   }, [visibleTabs]);
   const [activeTab, setActiveTab] = useState(visibleNavItems[0]?.id || "pipeline");
   const [moreOpen, setMoreOpen] = useState(false);
+  const [noticeDismissed, setNoticeDismissed] = useState(false);
   const [theme, toggleTheme] = useAdminTheme();
+
+  // A fresh notice (new redirect message) should re-surface even if the previous
+  // one was dismissed within this mount.
+  useEffect(() => {
+    setNoticeDismissed(false);
+  }, [notice]);
   const activeItem = useMemo(
     () => visibleNavItems.find((item) => item.id === activeTab) || visibleNavItems[0] || navItems[0],
     [activeTab, visibleNavItems]
@@ -180,7 +188,19 @@ export function AdminTabbedShell({ notice, children, visibleTabs }) {
             </div>
           </header>
 
-          {notice ? <div className="admin-notice">{notice}</div> : null}
+          {notice && !noticeDismissed ? (
+            <div className="admin-notice" role="status">
+              <span className="admin-notice__text">{notice}</span>
+              <button
+                type="button"
+                className="admin-notice__dismiss"
+                aria-label="Dismiss notification"
+                onClick={() => setNoticeDismissed(true)}
+              >
+                <X size={18} strokeWidth={2} aria-hidden />
+              </button>
+            </div>
+          ) : null}
           {children}
         </main>
       </div>

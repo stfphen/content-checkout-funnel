@@ -3,7 +3,7 @@ title: 16 · Design System & Mobile-First
 type: reference
 tags: [architecture, design]
 status: stable
-updated: 2026-06-30
+updated: 2026-07-02
 source: DESIGN.md, docs/prompts/ui-ux-overhaul.md, docs/specs/ui-overhaul-audit.md, docs/specs/ui-overhaul-build-plan.md, docs/specs/mobile-audit.md
 ---
 
@@ -53,11 +53,11 @@ restrained 10px radii, AA-by-construction against any tenant accent. Work lives 
 Phase status (all phases run 2026-06-30; build + 202 tests green; final numbers in `docs/specs/ui-overhaul-build-plan.md`):
 - ✅ **Phase 0** — `integration/ui-overhaul` (committed enterprise MVP `87f94a6`) + `feature/ui-overhaul`; perf baseline captured.
 - ✅ **Phase 1** — audit + design language + throwaway preview (`docs/specs/ui-overhaul-audit.md`, `docs/specs/ui-preview.html`); Direction C chosen.
-- ✅ **Phase 2** — token foundation + `.ui-*` primitives. **Implemented as `color-mix` derivations over the semantic tokens** (state trios, `--surface-3`/`--fg-subtle`/`--border-subtle/-strong`, `--ring/--hover-fill/--active-fill/--overlay`, `--accent-band/-soft`) — **not** the `--n0…--n950` ramp (that lives only in `ui-preview.html`); auto-adapts in dark mode, brand tokens untouched. (Geist swap predates this run.)
+- ✅ **Phase 2** — token foundation + `.ui-*` primitives. **Implemented as `color-mix` derivations over the semantic tokens** (state trios, `--surface-3`/`--fg-subtle`/`--border-subtle/-strong`, `--ring/--hover-fill/--active-fill/--overlay`, `--accent-band/-soft`) — **not** the `--n0…--n950` ramp (that lives only in `ui-preview.html`); brand tokens untouched. (Geist swap predates this run.) ⚠️ **Dark-mode correction (07-01, `f3f7eef`):** these derived tokens do **not** auto-adapt just by re-pointing primitives — declared only at `:root`, their `color-mix()` bakes in the LIGHT `--surface/--fg/--border` and inherits into the dark shell unchanged. They must be **re-declared inside `.v2-admin-shell[data-theme="dark"]`** to re-resolve against the dark primitives (now done for the `-bg/-fg`, border, interaction-fill and accent-band tokens). Any *new* derived token added at `:root` needs a matching dark-scope re-declaration.
 - ✅ **Phase 3** — admin shell editorial refinement (accent nav active + eyebrows) + component states (`OutreachQueueBuilder` `.ui-empty`, `RecordingButton` error note).
 - ✅ **Phase 4** — funnel + funding-widget cohesion (accent eyebrows on light sections; funding CTA `--on-blue`/`--danger`). *Light-touch — funnel was already editorial; deep per-surface reskin not exhaustive.*
 - ✅ **Phase 5** — hero `next/image` → funnel Lighthouse **desktop 86→100, mobile 75→92** (LCP 15.7s→3.1s), CLS 0. *Admin code-split + CSS consolidation deferred (see build-plan "follow-ups").*
-- ⚠️ **Before merge:** browser-based visual-regression QA at all breakpoints in light + admin-dark with a non-default tenant accent; deep table/panel reskin + funding review-banner reposition still open.
+- ⚠️ **Before merge (deferred-items pass, 07-01/02 — complete):** ✅ funding review-banner reposition (sticky/dismissible/tokenized, `f3f7eef`); ✅ dark-mode derived-token bug fixed (same commit); ✅ table/panel reskin resolved QA-first (`78970d9`) — dark-mode luminance audit of all 8 tabs found only `.research-pill--*` hardcoded hex + `-webkit-autofill` to fix, no blanket rework. ✅ CSS consolidation done (`cdd529d`) — PostCSS dead-rule prune (66 rules removed + 9 grouped rules trimmed), **styles.css 94.8 kB → 86.1 kB (net −2.5 kB vs the 88.7 kB Phase-0 baseline)**. ✅ Admin code-split done (`c3425aa`) — six off-default-tab panels lazy-loaded via `next/dynamic({ssr:false})` from a new client module `components/admin/lazyPanels.jsx`; **/admin first-load JS 169 kB → 151 kB (−18 kB)**, verified nav + deferred-chunk render in-browser. ✅ Narrow-breakpoint pass over *populated* Pipeline/Calls tables done (07-02, iframe harness at 360/375/414 with 12 seeded qa-team leads + 10 calls): no horizontal overflow, lead cards stack 1-col with ellipsis truncation, calls table stacks into `data-label` cards, Outcome select usable and saves. No CSS changes needed. **Checklist complete — branch merge-ready.**
 
 See [[51-Timeline]] · [[52-Decision-Log]].
 

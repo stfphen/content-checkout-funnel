@@ -1,16 +1,20 @@
 import { redirect } from "next/navigation";
 import { AdminTabbedShell, AdminTabPanel } from "../../components/admin/AdminTabbedShell";
-import OutreachQueueBuilder from "../../components/admin/OutreachQueueBuilder";
-import TenantBuilder from "../../components/admin/TenantBuilder";
 import LeadDeepResearch from "../../components/admin/LeadDeepResearch";
 import FillMissingButton from "../../components/admin/FillMissingButton";
 import { missingFields } from "../../lib/leadResearch/leadFields";
 import ResearchFromQuery from "../../components/admin/ResearchFromQuery";
-import AccountsPanel from "../../components/admin/AccountsPanel";
 import LeadCallPanel from "../../components/admin/LeadCallPanel";
-import TenantPhoneSettings from "../../components/admin/TenantPhoneSettings";
-import TenantBrandingSettings from "../../components/admin/TenantBrandingSettings";
-import CallsTable from "../../components/admin/CallsTable";
+// Off-default-tab panels are code-split (ssr:false) via a client wrapper so
+// their JS loads only when the tab is opened — see components/admin/lazyPanels.
+import {
+  OutreachQueueBuilder,
+  TenantBuilder,
+  AccountsPanel,
+  TenantPhoneSettings,
+  TenantBrandingSettings,
+  CallsTable,
+} from "../../components/admin/lazyPanels";
 import { buildCallMetrics, formatTalkTime } from "../../lib/telephony/metrics";
 import { getAdminSession } from "../../lib/auth";
 import { listAuditLogs } from "../../lib/audit";

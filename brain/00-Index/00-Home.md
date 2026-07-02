@@ -3,7 +3,7 @@ title: 00 · Home (Master MOC)
 type: moc
 tags: [moc, home]
 status: living
-updated: 2026-06-29
+updated: 2026-07-02
 ---
 
 # 🏠 Home — Content Checkout Funnel
@@ -26,6 +26,7 @@ review → all tenant-scoped, permissioned, and audit-logged.*
 3. Skim the latest entries in [[51-Timeline]].
 4. Re-read [[CLAUDE-Operating-Rules]] before any git/file mutation.
 5. For module work, open the matching note in [[20-Modules-MOC]].
+6. Visual overviews: [[Vault-Dashboard.base|Vault dashboard]] (note health/staleness) · [[Product-Map.canvas|Product map]] (module flow).
 
 ## 🗺️ The four maps
 - 🏛️ [[10-Architecture-MOC]] — how the system is built.
@@ -46,13 +47,13 @@ review → all tenant-scoped, permissioned, and audit-logged.*
 - [[42-Go-Live-Plan]] — the 12-phase production plan.
 - [[29-Funding-Program]] — the biggest/newest subsystem.
 
-## 🧭 Status at a glance (2026-06-29)
+## 🧭 Status at a glance (2026-07-02)
 - **Current priority:** stabilize the repo before building more features. See [[31-Current-Priorities]].
-- **Active branch:** `feature/ui-overhaul` — UI/UX overhaul **Phases 1–3 built** (Direction C "Editorial brand-forward", Geist typeface); funnel reskin + perf pass pending. See [[16-Design-System]].
+- **Active branch:** `feature/portfolio-p0` — carries the full UI/UX overhaul (**Phases 0–5 + deferred-items pass**: dark-token fix, CSS prune, admin code-split), **Portfolio/References P0**, and the AccountCard research/scope surfacing. Unmerged, partially unpushed. See [[16-Design-System]] / [[2D-Portfolio-Media]].
 - **Deploy target:** `dgtlmag.com` on Hostinger VPS `62.72.16.32`. See [[41-Deployment-Runbook]].
-- **Biggest open risks:** security findings (SSRF, no rate limiting, key rotation) — see [[53-Known-Issues]] / [[61-Security-Review]].
-- **Recently cleared:** git locks gone; enterprise-prospecting MVP committed (`87f94a6`). See [[51-Timeline]].
-- **Next big build:** Funding Program productization → sellable B2B offer. See [[33-Sprint-2-Productization]].
+- **Biggest open risks:** security Top-5 all still open (key rotation C1, SSRF C2, rate limiting H1, enrich IDOR H2, weak DB pw H3) — see [[53-Known-Issues]] / [[61-Security-Review]].
+- **Recently shipped:** UI overhaul deferred items done; Portfolio P0 (config + render); enterprise AccountCard now surfaces research + campaign scope. See [[51-Timeline]].
+- **Next big build:** merge + deploy the active line → security Top-5 → Sprint-2 productization. See [[33-Sprint-2-Productization]].
 
 ---
 *Maintained as a living document. When project reality changes, update the relevant note and add a line to [[51-Timeline]].*

@@ -7,6 +7,146 @@ import FundingSurveyWidget from "./funding/FundingSurveyWidget";
 import Reveal from "./motion/Reveal";
 import { Stagger, StaggerItem } from "./motion/Stagger";
 
+// Same rule as the hero image: local "/"-prefixed assets go through next/image
+// (resized WebP/AVIF); remote tenant URLs fall back to a plain <img> so the
+// image optimizer isn't opened to arbitrary hosts.
+function MediaImage({ src, alt, className, sizes }) {
+  if (src?.startsWith("/")) {
+    return <Image className={className} src={src} alt={alt} fill sizes={sizes} />;
+  }
+  return (
+    // eslint-disable-next-line @next/next/no-img-element
+    <img className={className} src={src} alt={alt} loading="lazy" decoding="async" />
+  );
+}
+
+function PortfolioMedia({ item }) {
+  const alt = item.alt || item.title || "Portfolio piece";
+
+  if (item.mediaType === "embed") {
+    return (
+      <iframe
+        src={item.src}
+        title={item.title || "Portfolio media"}
+        loading="lazy"
+        allowFullScreen
+        referrerPolicy="strict-origin-when-cross-origin"
+      />
+    );
+  }
+
+  if (item.mediaType === "video") {
+    return (
+      <video
+        controls
+        preload="metadata"
+        src={item.src}
+        poster={item.thumbnail || undefined}
+        aria-label={alt}
+      />
+    );
+  }
+
+  return <MediaImage src={item.src} alt={alt} sizes="(min-width: 1024px) 33vw, (min-width: 768px) 50vw, 100vw" />;
+}
+
+function PortfolioSection({ portfolio }) {
+  if (!portfolio?.items?.length) return null;
+
+  return (
+    <section className="section portfolio" aria-labelledby="portfolio-heading">
+      <div className="section__inner">
+        <Reveal className="section__header">
+          <p className="eyebrow">{portfolio.eyebrow}</p>
+          <h2 id="portfolio-heading">{portfolio.headline}</h2>
+          {portfolio.body ? <p>{portfolio.body}</p> : null}
+        </Reveal>
+        <Stagger className="portfolio-grid" stagger={0.08}>
+          {portfolio.items.map((item, index) => (
+            <StaggerItem as="article" className="portfolio-card" key={item.id || item.src || index}>
+              <div className="portfolio-card__media">
+                <PortfolioMedia item={item} />
+              </div>
+              <div className="portfolio-card__body">
+                {item.title ? (
+                  <h3>
+                    {item.link ? (
+                      <a href={item.link} target="_blank" rel="noopener noreferrer">
+                        {item.title}
+                      </a>
+                    ) : (
+                      item.title
+                    )}
+                  </h3>
+                ) : null}
+                {item.caption ? <p>{item.caption}</p> : null}
+                {item.client || item.result ? (
+                  <p className="portfolio-card__meta">
+                    {item.client ? <span>{item.client}</span> : null}
+                    {item.result ? <strong>{item.result}</strong> : null}
+                  </p>
+                ) : null}
+              </div>
+            </StaggerItem>
+          ))}
+        </Stagger>
+      </div>
+    </section>
+  );
+}
+
+function ReferencesSection({ references }) {
+  const hasTestimonials = Boolean(references?.testimonials?.length);
+  const hasLogos = Boolean(references?.logos?.length);
+  if (!hasTestimonials && !hasLogos) return null;
+
+  return (
+    <section className="section section--soft references" aria-labelledby="references-heading">
+      <div className="section__inner">
+        <Reveal className="section__header section__header--compact">
+          <p className="eyebrow">{references.eyebrow}</p>
+          <h2 id="references-heading">{references.headline}</h2>
+        </Reveal>
+        {hasTestimonials ? (
+          <Stagger className="testimonial-grid" stagger={0.07}>
+            {references.testimonials.map((entry, index) => (
+              <StaggerItem as="blockquote" className="testimonial" key={`${entry.name}-${index}`}>
+                <p>{entry.quote}</p>
+                <footer>
+                  {entry.name ? <strong>{entry.name}</strong> : null}
+                  {entry.role || entry.company ? (
+                    <span>{[entry.role, entry.company].filter(Boolean).join(", ")}</span>
+                  ) : null}
+                </footer>
+              </StaggerItem>
+            ))}
+          </Stagger>
+        ) : null}
+        {hasLogos ? (
+          <Reveal as="ul" className="logo-wall" aria-label="Client logos">
+            {references.logos.map((logo, index) => {
+              const image = (
+                <MediaImage src={logo.src} alt={logo.alt || logo.name || "Client logo"} sizes="160px" />
+              );
+              return (
+                <li key={logo.src || index}>
+                  {logo.link ? (
+                    <a href={logo.link} target="_blank" rel="noopener noreferrer">
+                      {image}
+                    </a>
+                  ) : (
+                    image
+                  )}
+                </li>
+              );
+            })}
+          </Reveal>
+        ) : null}
+      </div>
+    </section>
+  );
+}
+
 export default function FunnelPage({ tenant }) {
   const [selectedPackageId, setSelectedPackageId] = useState(tenant.defaultPackageId);
   const [formNote, setFormNote] = useState(tenant.checkout.disclaimer);
@@ -281,6 +421,9 @@ export default function FunnelPage({ tenant }) {
             </div>
           </Reveal>
         </section>
+
+        <PortfolioSection portfolio={tenant.portfolio} />
+        <ReferencesSection references={tenant.references} />
 
         {tenant.fundedOpportunity ? (
           <section className="section">

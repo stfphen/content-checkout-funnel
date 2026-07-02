@@ -272,10 +272,59 @@ function AccountCard({ account, campaigns, busy, onAction }) {
         </div>
       ) : null}
 
+      {a.dossier?.businessProfile?.summary ? (
+        <div className="research-group" style={{ marginTop: "0.5rem" }}>
+          <strong>Research summary</strong>
+          <div style={{ fontSize: "0.9em" }}>{a.dossier.businessProfile.summary}</div>
+          <div className="muted" style={{ fontSize: "0.8em", marginTop: 4 }}>
+            {a.dossier.source === "mock" ? "Offline dossier" : "AI research"}
+            {a.dossier.businessProfile.confidence ? ` · ${a.dossier.businessProfile.confidence} confidence` : ""}
+            {a.dossier.generatedAt ? ` · ${new Date(a.dossier.generatedAt).toLocaleDateString()}` : ""}
+            {a.dossier.compliance?.publicDataOnly ? " · public data only" : ""}
+          </div>
+        </div>
+      ) : null}
+
       {draftCampaign ? (
         <div className="research-group" style={{ marginTop: "0.5rem" }}>
-          <strong>{draftCampaign.name}</strong> — {draftCampaign.budgetBand}
+          <strong>
+            {draftCampaign.name}
+            {draftCampaign.status ? (
+              <span
+                className={`status-pill status-pill--${draftCampaign.status === "approved" ? "won" : "warn"}`}
+                style={{ marginLeft: 6 }}
+              >
+                {draftCampaign.status}
+              </span>
+            ) : null}
+          </strong>
           <div style={{ fontSize: "0.9em" }}>{draftCampaign.bigIdea}</div>
+          {Array.isArray(draftCampaign.deliverables) && draftCampaign.deliverables.length ? (
+            <div style={{ fontSize: "0.85em", marginTop: 6 }}>
+              <em>Deliverables:</em>
+              <ul>
+                {draftCampaign.deliverables.map((d, i) => (
+                  <li key={i}>{d}</li>
+                ))}
+              </ul>
+            </div>
+          ) : null}
+          {draftCampaign.budgetBand ? (
+            <div className="muted" style={{ fontSize: "0.85em", marginTop: 4 }}>
+              <em>Budget:</em> {draftCampaign.budgetBand}
+              {draftCampaign.budgetRationale ? ` — ${draftCampaign.budgetRationale}` : ""}
+            </div>
+          ) : null}
+          {draftCampaign.successMetric ? (
+            <div className="muted" style={{ fontSize: "0.85em", marginTop: 2 }}>
+              <em>Success metric:</em> {draftCampaign.successMetric}
+            </div>
+          ) : null}
+          {draftCampaign.outreachOpener ? (
+            <div style={{ fontSize: "0.85em", marginTop: 6, fontStyle: "italic", color: "var(--fg-muted)" }}>
+              <em style={{ fontStyle: "normal" }}>Outreach opener:</em> “{draftCampaign.outreachOpener}”
+            </div>
+          ) : null}
         </div>
       ) : null}
 

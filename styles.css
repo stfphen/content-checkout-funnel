@@ -25,6 +25,9 @@
   --warn-fg: color-mix(in srgb, var(--warn) 78%, var(--fg));
   --danger-bg: color-mix(in srgb, var(--danger) 12%, var(--surface));
   --danger-fg: color-mix(in srgb, var(--danger) 70%, var(--fg));
+  --info-bg: color-mix(in srgb, var(--info) 10%, var(--surface));
+  --info-fg: color-mix(in srgb, var(--info) 30%, var(--fg));
+  --info-border: color-mix(in srgb, var(--info) 24%, transparent);
 
   /* Brand aliases — readable names for new rules; never override the contract
      tokens above so tenant theming keeps working. */
@@ -304,74 +307,8 @@
 }
 
 /* Table Polish */
-.v2-table-wrapper {
-  overflow-x: auto;
-  -webkit-overflow-scrolling: touch;
-}
-
-.v2-table {
-  width: 100%;
-  border-collapse: collapse;
-  font-size: 14px;
-}
-
-.v2-table th {
-  text-align: left;
-  padding: 12px 16px;
-  font-size: 12px;
-  font-weight: 600;
-  color: var(--muted);
-  text-transform: uppercase;
-  border-bottom: 1px solid var(--line);
-}
-
-.v2-table td {
-  padding: 16px;
-  border-bottom: 1px solid rgba(0, 0, 0, 0.03);
-  vertical-align: middle;
-}
-
-.v2-cell-business strong {
-  display: block;
-  font-weight: 600;
-  color: var(--black);
-}
-
-.v2-cell-business small {
-  color: var(--muted);
-  font-size: 12px;
-}
 
 /* iOS Status Select */
-.v2-status-select {
-  appearance: none;
-  background: #f2f2f7;
-  border: none;
-  border-radius: 8px;
-  padding: 6px 10px;
-  font-size: 13px;
-  font-weight: 500;
-  color: var(--black);
-  width: auto !important;
-  cursor: pointer;
-}
-
-.v2-action-button {
-  background: var(--blue);
-  color: var(--white);
-  border: none;
-  border-radius: 50%;
-  width: 36px;
-  height: 36px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  transition: transform var(--dur-fast) var(--ease-out);
-}
-
-.v2-action-button:active {
-  transform: scale(0.92);
-}
 
 .desktop-only {
   display: none;
@@ -889,6 +826,168 @@ p {
     #17171a;
   font-size: 13px;
   font-weight: 800;
+}
+
+/* Portfolio + references (per-tenant proof sections; render only when the
+   tenant config populates them). Mobile-first: single column base, enhanced
+   at min-width 768/1024. Uses semantic tokens only — brand tokens untouched. */
+.portfolio-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 22px;
+  margin-top: 36px;
+}
+
+.portfolio-card {
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: var(--surface);
+  box-shadow: var(--shadow-sm);
+}
+
+.portfolio-card__media {
+  position: relative;
+  aspect-ratio: 16 / 10;
+  overflow: hidden;
+  background: var(--soft);
+}
+
+.portfolio-card__media img,
+.portfolio-card__media video,
+.portfolio-card__media iframe {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  border: 0;
+  object-fit: cover;
+}
+
+.portfolio-card__body {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 18px 20px 20px;
+}
+
+.portfolio-card__body h3 {
+  font-size: 18px;
+  margin: 0;
+}
+
+.portfolio-card__body h3 a {
+  color: inherit;
+  text-decoration: none;
+}
+
+.portfolio-card__body h3 a:hover,
+.portfolio-card__body h3 a:focus-visible {
+  color: var(--blue);
+  text-decoration: underline;
+}
+
+.portfolio-card__body p {
+  margin: 0;
+  color: var(--muted);
+  font-size: 15px;
+}
+
+.portfolio-card__meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 12px;
+  margin-top: 4px;
+  font-size: 13px;
+}
+
+.portfolio-card__meta strong {
+  color: var(--blue-dark);
+  font-weight: 700;
+}
+
+.testimonial-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 18px;
+  margin-top: 32px;
+}
+
+.testimonial {
+  margin: 0;
+  padding: 22px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: var(--surface);
+}
+
+.testimonial p {
+  margin: 0 0 14px;
+  font-size: 16px;
+}
+
+.testimonial footer {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  font-size: 14px;
+}
+
+.testimonial footer span {
+  color: var(--muted);
+}
+
+.logo-wall {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 22px 34px;
+  margin: 34px 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.logo-wall li {
+  position: relative;
+  width: 128px;
+  height: 44px;
+}
+
+.logo-wall a {
+  display: block;
+  position: absolute;
+  inset: 0;
+}
+
+.logo-wall img {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+
+@media (min-width: 768px) {
+  .portfolio-grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 24px;
+  }
+
+  .testimonial-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (min-width: 1024px) {
+  .portfolio-grid {
+    grid-template-columns: repeat(3, 1fr);
+  }
+
+  .testimonial-grid {
+    grid-template-columns: repeat(3, 1fr);
+  }
 }
 
 .package-grid {
@@ -1485,13 +1584,50 @@ p {
 }
 
 .admin-notice {
-  margin: 0 0 24px;
+  position: sticky;
+  top: var(--space-3);
+  z-index: 5;
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  margin: 0 0 var(--space-6);
   padding: 14px 16px;
-  border: 1px solid rgba(0, 113, 227, 0.24);
+  border: 1px solid var(--info-border);
   border-radius: var(--radius);
-  color: var(--near-black);
-  background: rgba(0, 113, 227, 0.08);
+  color: var(--info-fg);
+  background: var(--info-bg);
+  box-shadow: var(--shadow-sm);
   font-weight: 700;
+}
+
+.admin-notice__text {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+.admin-notice__dismiss {
+  flex: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  padding: 0;
+  border: 0;
+  border-radius: var(--radius-sm, 8px);
+  color: inherit;
+  background: transparent;
+  cursor: pointer;
+  transition: background var(--dur-fast, 0.15s) var(--ease-out, ease);
+}
+
+.admin-notice__dismiss:hover {
+  background: var(--hover-fill);
+}
+
+.admin-notice__dismiss:focus-visible {
+  outline: 2px solid var(--ring);
+  outline-offset: 2px;
 }
 
 .admin-metrics article,
@@ -1773,108 +1909,11 @@ p {
   gap: 18px;
 }
 
-.tenant-builder__header,
-.tenant-builder__topbar,
-.tenant-builder__footer,
-.repeatable-list__header {
-  display: flex;
-  gap: 16px;
-  align-items: flex-start;
-  justify-content: space-between;
-}
-
-.tenant-builder__header h2,
-.tenant-builder__section h3,
-.package-editor h3 {
-  margin-bottom: 6px;
-}
-
 .tenant-builder__actions {
   display: flex;
   flex-wrap: wrap;
   gap: 10px;
   justify-content: flex-end;
-}
-
-.tenant-builder__topbar {
-  align-items: flex-end;
-  padding: 14px;
-  border: 1px solid var(--line);
-  border-radius: var(--radius);
-  background: rgba(0, 0, 0, 0.02);
-}
-
-.tenant-builder__topbar label {
-  width: min(420px, 100%);
-  display: grid;
-  gap: 8px;
-  color: var(--near-black);
-  font-size: 14px;
-  font-weight: 700;
-}
-
-.tenant-builder__tabs {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
-  padding: 6px;
-  border: 1px solid var(--line);
-  border-radius: var(--radius);
-  background: var(--soft);
-}
-
-.tenant-builder__tabs button,
-.repeatable-list button,
-.package-editor__item > button {
-  min-height: 38px;
-  border: 1px solid var(--line);
-  border-radius: 999px;
-  padding: 8px 13px;
-  background: var(--white);
-  color: var(--near-black);
-  font-weight: 800;
-}
-
-.tenant-builder__tabs button.is-active {
-  border-color: rgba(0, 113, 227, 0.4);
-  color: var(--white);
-  background: var(--blue);
-}
-
-.tenant-builder__form,
-.tenant-builder__stack,
-.tenant-builder__fields,
-.repeatable-list,
-.package-editor {
-  display: grid;
-  gap: 14px;
-}
-
-.tenant-builder__section-grid {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 14px;
-}
-
-.tenant-builder__section {
-  padding: 16px;
-  border: 1px solid var(--line);
-  border-radius: var(--radius);
-  background: rgba(0, 0, 0, 0.015);
-}
-
-.tenant-builder__fields {
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-}
-
-.tenant-builder__fields label,
-.package-editor__grid label,
-.repeatable-list__object label {
-  display: grid;
-  gap: 8px;
-  color: var(--near-black);
-  font-size: 14px;
-  font-weight: 700;
 }
 
 .tenant-builder input,
@@ -1892,97 +1931,6 @@ p {
 
 .tenant-builder textarea {
   resize: vertical;
-}
-
-.repeatable-list {
-  grid-column: 1 / -1;
-  padding: 12px;
-  border: 1px solid var(--line);
-  border-radius: var(--radius);
-  background: var(--white);
-}
-
-.repeatable-list__header {
-  align-items: center;
-}
-
-.repeatable-list__row {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) auto;
-  gap: 8px;
-}
-
-.repeatable-list__object,
-.package-editor__item {
-  padding: 12px;
-  border: 1px solid var(--line);
-  border-radius: var(--radius);
-  background: var(--soft);
-}
-
-.repeatable-list__object {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr)) auto;
-  gap: 10px;
-  align-items: end;
-}
-
-.package-editor__item {
-  display: grid;
-  gap: 14px;
-}
-
-.package-editor__item summary {
-  display: flex;
-  gap: 10px;
-  align-items: center;
-  justify-content: space-between;
-  cursor: pointer;
-}
-
-.package-editor__item summary span {
-  color: var(--muted);
-  font-size: 13px;
-}
-
-.package-editor__grid {
-  display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 12px;
-}
-
-.package-editor__wide {
-  grid-column: 1 / -1;
-}
-
-.tenant-builder__footer {
-  align-items: center;
-  padding-top: 4px;
-}
-
-.tenant-builder__footer .button:disabled {
-  cursor: not-allowed;
-  opacity: 0.48;
-}
-
-.tenant-builder__valid,
-.tenant-builder__errors {
-  margin: 0;
-  font-size: 14px;
-}
-
-.tenant-builder__valid {
-  color: #1b7f3a;
-  font-weight: 800;
-}
-
-.tenant-builder__errors {
-  color: #b00020;
-}
-
-.tenant-builder__errors ul {
-  margin: 6px 0 0;
-  padding-left: 18px;
 }
 
 .api-provider-stack {
@@ -2492,8 +2440,7 @@ p {
 
 .admin-form input,
 .admin-form select,
-.admin-form textarea,
-.lead-table select {
+.admin-form textarea {
   width: 100%;
   border: 1px solid rgba(0, 0, 0, 0.16);
   border-radius: var(--radius);
@@ -2762,13 +2709,11 @@ p {
 }
 
 .admin-list strong,
-.admin-list span,
-.lead-table small {
+.admin-list span {
   display: block;
 }
 
-.admin-list span,
-.lead-table small {
+.admin-list span {
   color: var(--muted);
   font-size: 13px;
 }
@@ -2787,62 +2732,6 @@ p {
   font-family: var(--font-mono, ui-monospace), SFMono-Regular, Menlo, Monaco, Consolas, monospace;
   font-size: 13px;
   line-height: 1.5;
-}
-
-.lead-table {
-  overflow-x: auto;
-}
-
-.lead-table__entry {
-  min-width: 980px;
-  border-bottom: 1px solid var(--line);
-}
-
-.lead-table__head,
-.lead-table__row {
-  min-width: 980px;
-  display: grid;
-  grid-template-columns: 1.2fr 1fr 1.15fr 0.7fr 0.8fr;
-  gap: 12px;
-  align-items: center;
-  padding: 14px 0;
-  border-bottom: 1px solid var(--line);
-}
-
-.lead-table__head {
-  color: var(--muted);
-  font-size: 13px;
-  font-weight: 800;
-  text-transform: uppercase;
-}
-
-.lead-table form {
-  display: flex;
-  gap: 8px;
-  align-items: center;
-}
-
-.lead-table form button {
-  min-height: 38px;
-  border: 1px solid var(--line);
-  border-radius: 999px;
-  padding: 8px 12px;
-  background: var(--white);
-  font-weight: 700;
-}
-
-.lead-table__row {
-  border-bottom: 0;
-}
-
-.lead-table__actions {
-  display: grid;
-  gap: 8px;
-  justify-items: start;
-}
-
-.lead-table__summary {
-  padding: 0 0 14px;
 }
 
 .lead-enrichment {
@@ -2949,11 +2838,7 @@ p {
   .preview-grid,
   .lead-detail-grid,
   .lead-facts,
-  .tenant-summary-grid,
-  .tenant-builder__section-grid,
-  .tenant-builder__fields,
-  .package-editor__grid,
-  .repeatable-list__object {
+  .tenant-summary-grid {
     grid-template-columns: 1fr;
   }
 
@@ -2988,18 +2873,8 @@ p {
     align-items: flex-start;
   }
 
-  .tenant-builder__header,
-  .tenant-builder__topbar,
-  .tenant-builder__footer {
-    display: grid;
-  }
-
   .tenant-builder__actions {
     justify-content: flex-start;
-  }
-
-  .repeatable-list__row {
-    grid-template-columns: 1fr;
   }
 }
 
@@ -3126,6 +3001,29 @@ p {
   --surface-3: #2c2c2e; /* raised sits lighter than surface in dark */
   --fg: #f5f5f7;
   --fg-muted: #9b9ba3;
+  /* Derived tokens MUST be re-declared here. Their :root definitions color-mix
+     over --surface/--fg/--border and are computed once at :root — so they bake in
+     the LIGHT primitives and inherit down unchanged. Re-declaring the same
+     expressions in the dark scope forces them to re-resolve against the dark
+     primitives above (fixes state banners, interaction fills, accent bands that
+     otherwise render light-on-dark). Percentages nudged up: fills/tints need more
+     weight to read on dark, and -fg mixes use less accent so text stays light. */
+  --success-bg: color-mix(in srgb, var(--success) 16%, var(--surface));
+  --success-fg: color-mix(in srgb, var(--success) 45%, var(--fg));
+  --warn-bg: color-mix(in srgb, var(--warn) 18%, var(--surface));
+  --warn-fg: color-mix(in srgb, var(--warn) 50%, var(--fg));
+  --danger-bg: color-mix(in srgb, var(--danger) 18%, var(--surface));
+  --danger-fg: color-mix(in srgb, var(--danger) 48%, var(--fg));
+  --info-bg: color-mix(in srgb, var(--info) 18%, var(--surface));
+  --info-fg: color-mix(in srgb, var(--info) 45%, var(--fg));
+  --info-border: color-mix(in srgb, var(--info) 40%, transparent);
+  --border-subtle: color-mix(in srgb, var(--border) 55%, transparent);
+  --border-strong: color-mix(in srgb, var(--fg) 24%, transparent);
+  --fg-subtle: color-mix(in srgb, var(--fg-muted) 70%, var(--surface));
+  --hover-fill: color-mix(in srgb, var(--fg) 8%, transparent);
+  --active-fill: color-mix(in srgb, var(--fg) 13%, transparent);
+  --accent-band: color-mix(in srgb, var(--blue) 14%, var(--surface));
+  --accent-soft: color-mix(in srgb, var(--blue) 20%, transparent);
   --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.4);
   --shadow: 0 1px 2px rgba(0, 0, 0, 0.45), 0 16px 40px rgba(0, 0, 0, 0.5);
   --shadow-lg: 0 2px 4px rgba(0, 0, 0, 0.45), 0 28px 80px rgba(0, 0, 0, 0.6);
@@ -3134,12 +3032,23 @@ p {
   color: var(--black);
 }
 
+/* Browser autofill forces a pale-blue fill + dark text via -webkit-autofill,
+   which reads as a light patch in the dark shell. Re-skin it to the dark
+   surface (box-shadow inset is the only way to override the UA fill). */
+.v2-admin-shell[data-theme="dark"] input:-webkit-autofill,
+.v2-admin-shell[data-theme="dark"] input:-webkit-autofill:hover,
+.v2-admin-shell[data-theme="dark"] input:-webkit-autofill:focus,
+.v2-admin-shell[data-theme="dark"] textarea:-webkit-autofill,
+.v2-admin-shell[data-theme="dark"] select:-webkit-autofill {
+  -webkit-text-fill-color: var(--fg);
+  -webkit-box-shadow: 0 0 0 1000px var(--surface) inset;
+  caret-color: var(--fg);
+}
+
 /* True-white text where elements sit on a colored fill (the palette swap would
    otherwise render these dark-on-blue). */
 .v2-admin-shell[data-theme="dark"] .button--primary,
-.v2-admin-shell[data-theme="dark"] .button--dark,
-.v2-admin-shell[data-theme="dark"] .v2-action-button,
-.v2-admin-shell[data-theme="dark"] .tenant-builder__tabs button.is-active {
+.v2-admin-shell[data-theme="dark"] .button--dark {
   color: #fff;
 }
 
@@ -3163,10 +3072,6 @@ p {
 .v2-admin-shell[data-theme="dark"] .v2-nav-item:hover {
   background: rgba(255, 255, 255, 0.06);
 }
-.v2-admin-shell[data-theme="dark"] .v2-status-select {
-  background: #2c2c2e;
-  color: var(--black);
-}
 
 /* Inputs (hardcoded light borders). */
 .v2-admin-shell[data-theme="dark"] input,
@@ -3176,8 +3081,6 @@ p {
 }
 
 /* Subtle "tinted" panels that used rgba(0,0,0,.0x) fills. */
-.v2-admin-shell[data-theme="dark"] .tenant-builder__topbar,
-.v2-admin-shell[data-theme="dark"] .tenant-builder__section,
 .v2-admin-shell[data-theme="dark"] .batch-builder__form,
 .v2-admin-shell[data-theme="dark"] .batch-history,
 .v2-admin-shell[data-theme="dark"] .batch-preview,
@@ -3205,7 +3108,6 @@ p {
 }
 
 /* Row separators that used rgba(0,0,0,.0x). */
-.v2-admin-shell[data-theme="dark"] .v2-table td,
 .v2-admin-shell[data-theme="dark"] .outreach-lead-row,
 .v2-admin-shell[data-theme="dark"] .outreach-queue-row,
 .v2-admin-shell[data-theme="dark"] .outreach-list-row,
@@ -3320,29 +3222,29 @@ p {
   border-radius: 999px;
   font-size: 11px;
   text-transform: capitalize;
-  border: 1px solid var(--line);
-  background: #fff;
-  color: var(--muted);
+  border: 1px solid var(--border);
+  background: var(--surface);
+  color: var(--fg-muted);
 }
 
 .research-pill--verified,
 .research-pill--high {
-  background: #ecfdf5;
-  border-color: #a7f3d0;
-  color: #047857;
+  background: var(--success-bg);
+  border-color: color-mix(in srgb, var(--success) 30%, transparent);
+  color: var(--success-fg);
 }
 
 .research-pill--medium {
-  background: #fefce8;
-  border-color: #fde68a;
-  color: #92400e;
+  background: var(--warn-bg);
+  border-color: color-mix(in srgb, var(--warn) 30%, transparent);
+  color: var(--warn-fg);
 }
 
 .research-pill--low,
 .research-pill--unverified {
-  background: #fef2f2;
-  border-color: #fecaca;
-  color: #b91c1c;
+  background: var(--danger-bg);
+  border-color: color-mix(in srgb, var(--danger) 30%, transparent);
+  color: var(--danger-fg);
 }
 
 /* ============================================================
@@ -3416,9 +3318,7 @@ p {
 .v2-admin-shell .batch-preview,
 .v2-admin-shell .tenant-summary-card,
 .v2-admin-shell .lead-enrichment,
-.v2-admin-shell .metric-table,
-.v2-admin-shell .tenant-builder__section,
-.v2-admin-shell .tenant-builder__topbar {
+.v2-admin-shell .metric-table {
   padding: var(--space-5);
   background: var(--surface);
   border: 1px solid var(--border);
@@ -3564,17 +3464,12 @@ p {
 }
 
 /* --- Tables: quiet uppercase headers, roomy rows --- */
-.v2-admin-shell .v2-table th,
-.v2-admin-shell .lead-table__head,
 .v2-admin-shell .team-users-table__row--head {
   font-size: 11px;
   font-weight: 600;
   letter-spacing: 0.04em;
   text-transform: uppercase;
   color: var(--muted);
-}
-.v2-admin-shell .v2-table td {
-  padding: 14px 16px;
 }
 
 /* --- Pills / badges: consistent sizing --- */
@@ -4151,86 +4046,16 @@ summary:focus-visible,
    ========================================================================== */
 
 /* --- Card: flat, hairline; elevation reserved for raised/popover --- */
-.ui-card {
-  background: var(--surface);
-  border: 1px solid var(--border);
-  border-radius: var(--radius);
-  padding: var(--space-5);
-}
-.ui-card--raised {
-  background: var(--surface-3);
-  box-shadow: var(--shadow);
-  border-color: var(--border-subtle);
-}
-.ui-card--accent {
-  background: var(--accent-band);
-  border-color: color-mix(in srgb, var(--blue) 22%, var(--border));
-}
 
 /* --- Eyebrow / kicker: editorial section intro --- */
-.ui-eyebrow {
-  display: inline-flex;
-  align-items: center;
-  gap: var(--space-2);
-  font-size: var(--text-xs);
-  font-weight: 600;
-  letter-spacing: 0.12em;
-  text-transform: uppercase;
-  color: color-mix(in srgb, var(--blue) 72%, var(--fg-muted));
-}
 
 /* --- Display heading helper --- */
-.ui-display {
-  font-family: var(--font-display, var(--font-sans, inherit));
-  font-weight: 720;
-  letter-spacing: -0.025em;
-  line-height: 1.05;
-}
 
 /* --- Badge set (complements .status-pill; for new, generic chips) --- */
-.ui-badge {
-  display: inline-flex;
-  align-items: center;
-  gap: 5px;
-  font-size: var(--text-xs);
-  font-weight: 600;
-  line-height: 1.5;
-  padding: 3px 9px;
-  border-radius: 999px;
-  border: 1px solid transparent;
-}
-.ui-badge--neutral {
-  background: var(--surface-2);
-  color: var(--fg-muted);
-  border-color: var(--border);
-}
-.ui-badge--accent {
-  background: var(--accent-soft);
-  color: color-mix(in srgb, var(--blue) 78%, var(--fg));
-}
-.ui-badge--success { background: var(--success-bg); color: var(--success-fg); }
-.ui-badge--warn { background: var(--warn-bg); color: var(--warn-fg); }
-.ui-badge--danger { background: var(--danger-bg); color: var(--danger-fg); }
 
 /* --- Skeleton: reserves space for async content (CLS guard) --- */
-.ui-skeleton {
-  background: linear-gradient(
-    90deg,
-    var(--surface-2) 25%,
-    color-mix(in srgb, var(--fg) 8%, var(--surface-2)) 37%,
-    var(--surface-2) 63%
-  );
-  background-size: 400% 100%;
-  border-radius: var(--radius-sm);
-  height: 14px;
-  animation: ui-shimmer 1.4s ease infinite;
-}
-.ui-skeleton + .ui-skeleton { margin-top: var(--space-3); }
 @keyframes ui-shimmer {
   to { background-position: -100% 0; }
-}
-@media (prefers-reduced-motion: reduce) {
-  .ui-skeleton { animation: none; }
 }
 
 /* --- Empty state --- */
@@ -4255,17 +4080,6 @@ summary:focus-visible,
 .ui-empty p { margin: var(--space-1) 0 0; font-size: var(--text-sm); color: var(--fg-subtle); }
 
 /* --- Inline error note (for components lacking error UX) --- */
-.ui-error {
-  display: flex;
-  gap: var(--space-2);
-  align-items: flex-start;
-  font-size: var(--text-sm);
-  color: var(--danger-fg);
-  background: var(--danger-bg);
-  border: 1px solid color-mix(in srgb, var(--danger) 30%, transparent);
-  border-radius: var(--radius-sm);
-  padding: var(--space-2) var(--space-3);
-}
 
 /* --- Editorial section band (funnel; Direction C accent device) --- */
 .section--accent {
@@ -4275,7 +4089,6 @@ summary:focus-visible,
   background: var(--blue);
   color: var(--on-blue);
 }
-.section--accent-strong .ui-eyebrow { color: color-mix(in srgb, var(--on-blue) 80%, transparent); }
 
 /* Inline recording-error note (RecordingButton) */
 .rec-player__error {
