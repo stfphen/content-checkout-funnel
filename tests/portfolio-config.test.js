@@ -97,6 +97,7 @@ test("sanitizes references: drops quote-less testimonials and src-less logos", (
   assert.deepEqual(tenant.references.logos[0], {
     name: "Clinic",
     src: "/assets/logo.svg",
+    mediaId: "",
     alt: "Clinic logo",
     link: "https://clinic.example"
   });

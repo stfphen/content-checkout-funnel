@@ -39,6 +39,9 @@ The data layer is `lib/store.js` (82KB) which also has a **JSON-file fallback**
 ### `005_tasks.sql` — tasks
 - **`tasks`** — `team_id`, `lead_id`, title, priority, `due_at`, `assigned_to_user_id`, status. Powers missed-call follow-ups (`createMissedCallTask`). See [[28-Telephony]].
 
+### `007_media_assets.sql` — media library (2026-07-02)
+- **`media_assets`** — `team_id NOT NULL`, `tenant_id` ("" = team-wide), kind (image/video/embed), `url`, `storage_key`, mime/bytes/width/height/duration, `thumbnail_url`, title/alt, `tags` (jsonb industry/format), source, `created_by`. Indexes: btree `(team_id, created_at desc)` + gin(tags). Referenced from `tenants.config` by `mediaId` (`media.heroImageId`, portfolio items, reference logos) — resolved at render by `resolveTenantMediaConfig`. See [[2D-Portfolio-Media]].
+
 ## Entity relationships (mental model)
 ```
 team ─┬─ users (via team_memberships, with role + telephony fields)

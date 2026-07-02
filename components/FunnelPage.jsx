@@ -3,6 +3,7 @@
 import { useMemo, useState } from "react";
 import Image from "next/image";
 import { getTenantTheme } from "../lib/branding";
+import { resolveDesign } from "../lib/tenantBuilder/designDirections";
 import FundingSurveyWidget from "./funding/FundingSurveyWidget";
 import Reveal from "./motion/Reveal";
 import { Stagger, StaggerItem } from "./motion/Stagger";
@@ -50,7 +51,8 @@ function PortfolioMedia({ item }) {
   return <MediaImage src={item.src} alt={alt} sizes="(min-width: 1024px) 33vw, (min-width: 768px) 50vw, 100vw" />;
 }
 
-function PortfolioSection({ portfolio }) {
+function PortfolioSection({ tenant }) {
+  const portfolio = tenant.portfolio;
   if (!portfolio?.items?.length) return null;
 
   return (
@@ -95,7 +97,8 @@ function PortfolioSection({ portfolio }) {
   );
 }
 
-function ReferencesSection({ references }) {
+function ReferencesSection({ tenant }) {
+  const references = tenant.references;
   const hasTestimonials = Boolean(references?.testimonials?.length);
   const hasLogos = Boolean(references?.logos?.length);
   if (!hasTestimonials && !hasLogos) return null;
@@ -147,6 +150,464 @@ function ReferencesSection({ references }) {
   );
 }
 
+/* ---------------------------------------------------------------------------
+ * Hero — one component, three layout variants (design directions):
+ * full-bleed (default, image-backed), split (light two-column with framed
+ * media), typographic (light, type-led, no image). Shared fragments keep the
+ * copy/CTA/stats markup identical across variants.
+ * ------------------------------------------------------------------------- */
+
+function HeroBrandbar({ tenant }) {
+  return (
+    <StaggerItem className="brandbar">
+      {tenant.brand.logo ? (
+        <img className="brandbar__logo" src={tenant.brand.logo} alt={`${tenant.brand.name} logo`} />
+      ) : (
+        <span className="brandbar__wordmark">{tenant.brand.logoText || tenant.brand.name}</span>
+      )}
+      {tenant.brand.tagline ? <span className="brandbar__tagline">{tenant.brand.tagline}</span> : null}
+      <a className="button button--secondary brandbar__login" href="/admin">Log in</a>
+    </StaggerItem>
+  );
+}
+
+function HeroActions({ tenant, ctx }) {
+  return (
+    <StaggerItem className="hero__actions">
+      <button className="button button--primary" onClick={() => ctx.selectPackage(tenant.defaultPackageId)}>
+        {tenant.hero.primaryCta}
+      </button>
+      <button
+        className="button button--secondary"
+        onClick={() => document.getElementById("packages")?.scrollIntoView({ behavior: "smooth" })}
+      >
+        {tenant.hero.secondaryCta}
+      </button>
+      {!ctx.isFundingTenant && tenant.fundingPromo?.enabled ? (
+        <a className="button button--secondary" href={tenant.fundingPromo.link}>
+          {tenant.fundingPromo.cta}
+        </a>
+      ) : null}
+    </StaggerItem>
+  );
+}
+
+function HeroStats({ tenant }) {
+  if (!tenant.hero.stats?.length) return null;
+  return (
+    <StaggerItem as="dl" className="hero__stats" aria-label="Content day highlights">
+      {tenant.hero.stats.map((stat) => (
+        <div key={stat.label}>
+          <dt>{stat.value}</dt>
+          <dd>{stat.label}</dd>
+        </div>
+      ))}
+    </StaggerItem>
+  );
+}
+
+function HeroImage({ tenant, priority }) {
+  if (!tenant.media.heroImage) return null;
+  /* LCP element: optimize local tenant images via next/image (resized
+     WebP/AVIF + preload). Remote tenant URLs (edge case) fall back to a
+     prioritized plain <img> so the image optimizer isn't opened to
+     arbitrary hosts. */
+  if (tenant.media.heroImage.startsWith("/")) {
+    return (
+      <Image
+        className="hero__image"
+        src={tenant.media.heroImage}
+        alt={tenant.media.heroAlt}
+        fill
+        priority={priority}
+        sizes="100vw"
+      />
+    );
+  }
+  return (
+    // eslint-disable-next-line @next/next/no-img-element
+    <img
+      className="hero__image"
+      src={tenant.media.heroImage}
+      alt={tenant.media.heroAlt}
+      fetchPriority={priority ? "high" : undefined}
+      decoding="async"
+    />
+  );
+}
+
+function HeroSection({ tenant, ctx }) {
+  const variant = ctx.design.heroVariant;
+  const ariaLabel = `${tenant.brand.name} sales offer`;
+
+  if (variant === "typographic") {
+    return (
+      <section className="hero hero--typographic hero--onlight" aria-label={ariaLabel}>
+        <Stagger className="hero__content" stagger={0.1} amount={0.1}>
+          <HeroBrandbar tenant={tenant} />
+          <StaggerItem as="p" className="eyebrow">{tenant.brand.eyebrow}</StaggerItem>
+          <StaggerItem as="h1">{tenant.hero.headline}</StaggerItem>
+          <StaggerItem as="p" className="hero__copy">{tenant.hero.subheadline}</StaggerItem>
+          <HeroActions tenant={tenant} ctx={ctx} />
+          <HeroStats tenant={tenant} />
+        </Stagger>
+      </section>
+    );
+  }
+
+  if (variant === "split") {
+    return (
+      <section className="hero hero--split hero--onlight" aria-label={ariaLabel}>
+        <Stagger className="hero__content" stagger={0.1} amount={0.1}>
+          <HeroBrandbar tenant={tenant} />
+          <div className="hero__split-grid">
+            <div>
+              <StaggerItem as="p" className="eyebrow">{tenant.brand.eyebrow}</StaggerItem>
+              <StaggerItem as="h1">{tenant.hero.headline}</StaggerItem>
+              <StaggerItem as="p" className="hero__copy">{tenant.hero.subheadline}</StaggerItem>
+              <HeroActions tenant={tenant} ctx={ctx} />
+              <HeroStats tenant={tenant} />
+            </div>
+            {tenant.media.heroImage ? (
+              <StaggerItem className="hero__media-frame">
+                <HeroImage tenant={tenant} priority />
+              </StaggerItem>
+            ) : null}
+          </div>
+        </Stagger>
+      </section>
+    );
+  }
+
+  return (
+    <section className="hero" aria-label={ariaLabel}>
+      <HeroImage tenant={tenant} priority />
+      <div className="hero__shade" />
+      <Stagger className="hero__content" stagger={0.1} amount={0.1}>
+        <HeroBrandbar tenant={tenant} />
+        <StaggerItem as="p" className="eyebrow">{tenant.brand.eyebrow}</StaggerItem>
+        <StaggerItem as="h1">{tenant.hero.headline}</StaggerItem>
+        <StaggerItem as="p" className="hero__copy">{tenant.hero.subheadline}</StaggerItem>
+        <HeroActions tenant={tenant} ctx={ctx} />
+        <HeroStats tenant={tenant} />
+      </Stagger>
+    </section>
+  );
+}
+
+/* ---------------------------------------------------------------------------
+ * Ordered sections — each self-contained; the render order comes from the
+ * design direction (resolveSectionOrder guarantees hero-first and a checkout
+ * section downstream of the package grid).
+ * ------------------------------------------------------------------------- */
+
+function ProblemSection({ tenant }) {
+  return (
+    <section className="problem section">
+      <Reveal className="section__inner split">
+        <div>
+          <p className="eyebrow">{tenant.problem.eyebrow}</p>
+          <h2>{tenant.problem.headline}</h2>
+        </div>
+        <div className="problem__grid">
+          {tenant.problem.points.map((point) => (
+            <p key={point}>{point}</p>
+          ))}
+        </div>
+      </Reveal>
+    </section>
+  );
+}
+
+function SystemSection({ tenant }) {
+  return (
+    <section className="section section--soft">
+      <div className="section__inner">
+        <Reveal className="section__header">
+          <p className="eyebrow">{tenant.system.eyebrow}</p>
+          <h2>{tenant.system.headline}</h2>
+          <p>{tenant.system.body}</p>
+        </Reveal>
+        <Stagger className="feature-row" aria-label="Included services">
+          {tenant.system.features.map((feature) => (
+            <StaggerItem as="article" key={feature.title}>
+              <span className="icon" aria-hidden="true" />
+              <h3>{feature.title}</h3>
+              <p>{feature.body}</p>
+            </StaggerItem>
+          ))}
+        </Stagger>
+      </div>
+    </section>
+  );
+}
+
+function ProcessSection({ tenant }) {
+  return (
+    <section className="section">
+      <div className="section__inner">
+        <Reveal className="section__header section__header--compact">
+          <p className="eyebrow">{tenant.process.eyebrow}</p>
+          <h2>{tenant.process.headline}</h2>
+        </Reveal>
+        <Stagger as="ol" className="timeline" stagger={0.06}>
+          {tenant.process.steps.map((step, index) => (
+            <StaggerItem as="li" key={step.title}>
+              <span>{String(index + 1).padStart(2, "0")}</span>
+              <div>
+                <h3>{step.title}</h3>
+                <p>{step.body}</p>
+              </div>
+            </StaggerItem>
+          ))}
+        </Stagger>
+      </div>
+    </section>
+  );
+}
+
+function OutputSection({ tenant }) {
+  return (
+    <section className="section section--black" aria-label="Content examples">
+      <Reveal className="section__inner split split--center">
+        <div>
+          <p className="eyebrow">{tenant.output.eyebrow}</p>
+          <h2>{tenant.output.headline}</h2>
+          <p>{tenant.output.body}</p>
+        </div>
+        <div className="content-grid" aria-hidden="true">
+          {tenant.output.tiles.map((tile) => (
+            <div key={tile}>{tile}</div>
+          ))}
+        </div>
+      </Reveal>
+    </section>
+  );
+}
+
+function FundedOpportunitySection({ tenant }) {
+  if (!tenant.fundedOpportunity) return null;
+  return (
+    <section className="section">
+      <Reveal className="section__inner split">
+        <div>
+          <p className="eyebrow">{tenant.fundedOpportunity.eyebrow}</p>
+          <h2>{tenant.fundedOpportunity.headline}</h2>
+          <p>{tenant.fundedOpportunity.body}</p>
+        </div>
+        <div className="problem__grid">
+          {tenant.fundedOpportunity.points.map((point) => (
+            <p key={point}>{point}</p>
+          ))}
+        </div>
+      </Reveal>
+    </section>
+  );
+}
+
+function PackagesSection({ tenant, ctx }) {
+  return (
+    <section id="packages" className="section packages">
+      <div className="section__inner">
+        <Reveal className="section__header">
+          <p className="eyebrow">{tenant.packageSection.eyebrow}</p>
+          <h2>{tenant.packageSection.headline}</h2>
+          <p>{tenant.packageSection.body}</p>
+        </Reveal>
+
+        <Stagger className="package-grid" stagger={0.1}>
+          {tenant.packages.map((pkg) => (
+            <StaggerItem
+              as="article"
+              className={`package ${pkg.featured ? "package--featured" : ""} ${
+                pkg.id === ctx.selectedPackageId ? "is-selected" : ""
+              }`}
+              data-package-card={pkg.id}
+              key={pkg.id}
+            >
+              {pkg.featured ? <span className="package__badge">Most popular</span> : null}
+              <div className="package__top">
+                <h3>{pkg.name}</h3>
+                <p>{pkg.summary}</p>
+              </div>
+              <div className="price">
+                <span>{pkg.price}</span>
+                <small>{pkg.priceQualifier}</small>
+              </div>
+              <p className="price__alt">{pkg.altPrice}</p>
+              <ul>
+                {pkg.features.map((feature) => (
+                  <li key={feature}>{feature}</li>
+                ))}
+              </ul>
+              <button
+                className={`button ${pkg.featured ? "button--primary" : "button--dark"}`}
+                onClick={() => ctx.selectPackage(pkg.id)}
+              >
+                {pkg.cta}
+              </button>
+            </StaggerItem>
+          ))}
+        </Stagger>
+
+        <Reveal className="enterprise-band">
+          <div>
+            <p className="eyebrow">{tenant.enterprise.eyebrow}</p>
+            <h3>{tenant.enterprise.headline}</h3>
+            <p>{tenant.enterprise.body}</p>
+          </div>
+          <button className="button button--secondary" onClick={() => ctx.selectPackage(tenant.enterprise.packageId)}>
+            {tenant.enterprise.cta}
+          </button>
+        </Reveal>
+      </div>
+    </section>
+  );
+}
+
+function FundingPromoSection({ tenant, ctx }) {
+  if (ctx.isFundingTenant || !tenant.fundingPromo?.enabled) return null;
+  return (
+    <section className="section section--soft" id="funding-survey" aria-label="Funding eligibility survey">
+      <Reveal className="section__inner" amount={0.1}>
+        <div className="section__header">
+          <p className="eyebrow">{tenant.fundingPromo.eyebrow}</p>
+          <h2>{tenant.fundingPromo.headline}</h2>
+          <p>{tenant.fundingPromo.body}</p>
+        </div>
+        <FundingSurveyWidget tenant={tenant} />
+      </Reveal>
+    </section>
+  );
+}
+
+function CheckoutSection({ tenant, ctx }) {
+  if (ctx.isFundingTenant) {
+    return (
+      <section className="section section--soft checkout-section" id="funding-survey">
+        <Reveal className="section__inner" amount={0.1}>
+          <FundingSurveyWidget tenant={tenant} />
+        </Reveal>
+      </section>
+    );
+  }
+
+  return (
+    <section className="section section--soft checkout-section">
+      <Reveal className="section__inner checkout-layout" amount={0.1}>
+        <div>
+          <p className="eyebrow">{tenant.checkout.eyebrow}</p>
+          <h2>{tenant.checkout.headline}</h2>
+          <p>{tenant.checkout.body}</p>
+          <div className="selected-package" id="selectedPackage" aria-live="polite">
+            <strong>
+              {ctx.selectedPackage.name} - {ctx.selectedPackage.priceDisplay}
+            </strong>
+            <span>{ctx.selectedPackage.description}</span>
+          </div>
+        </div>
+
+        <form className="checkout-form" id="leadForm" onSubmit={ctx.submitLead}>
+          <label>
+            Business name
+            <input name="business" autoComplete="organization" required />
+          </label>
+          <label>
+            Name
+            <input name="name" autoComplete="name" required />
+          </label>
+          <label>
+            Email
+            <input name="email" type="email" autoComplete="email" required />
+          </label>
+          <label>
+            Phone <span>optional</span>
+            <input name="phone" type="tel" autoComplete="tel" />
+          </label>
+          <label>
+            Website or Instagram
+            <input name="url" autoComplete="url" placeholder="https://" />
+          </label>
+          <label>
+            What do you need content for?
+            <textarea name="notes" rows="4" />
+          </label>
+          <div className="form-actions">
+            <button
+              className="button button--primary"
+              type="submit"
+              disabled={ctx.submitting}
+              aria-busy={ctx.submitting}
+            >
+              {ctx.submitting ? (
+                <>
+                  <span className="spinner" aria-hidden="true" />
+                  Working…
+                </>
+              ) : (
+                tenant.checkout.submitCta
+              )}
+            </button>
+          </div>
+          <p className="form-note" id="formNote">{ctx.formNote}</p>
+        </form>
+      </Reveal>
+    </section>
+  );
+}
+
+function FaqSection({ tenant }) {
+  return (
+    <section className="section objections">
+      <div className="section__inner">
+        <Reveal className="section__header section__header--compact">
+          <p className="eyebrow">{tenant.faq.eyebrow}</p>
+          <h2>{tenant.faq.headline}</h2>
+        </Reveal>
+        <Stagger className="faq-grid" stagger={0.07}>
+          {tenant.faq.items.map((item) => (
+            <StaggerItem as="article" key={item.question}>
+              <h3>{item.question}</h3>
+              <p>{item.answer}</p>
+            </StaggerItem>
+          ))}
+        </Stagger>
+      </div>
+    </section>
+  );
+}
+
+function FinalCtaSection({ tenant, ctx }) {
+  return (
+    <section className="final-cta">
+      <Reveal className="final-cta__inner">
+        <p className="eyebrow">{tenant.finalCta.eyebrow}</p>
+        <h2>{tenant.finalCta.headline}</h2>
+        <p>{tenant.finalCta.body}</p>
+        <button className="button button--primary" onClick={() => ctx.selectPackage(tenant.defaultPackageId)}>
+          {tenant.finalCta.cta}
+        </button>
+      </Reveal>
+    </section>
+  );
+}
+
+const SECTION_COMPONENTS = {
+  hero: HeroSection,
+  problem: ProblemSection,
+  system: SystemSection,
+  process: ProcessSection,
+  output: OutputSection,
+  portfolio: PortfolioSection,
+  references: ReferencesSection,
+  fundedOpportunity: FundedOpportunitySection,
+  packages: PackagesSection,
+  fundingPromo: FundingPromoSection,
+  checkout: CheckoutSection,
+  faq: FaqSection,
+  finalCta: FinalCtaSection
+};
+
 export default function FunnelPage({ tenant }) {
   const [selectedPackageId, setSelectedPackageId] = useState(tenant.defaultPackageId);
   const [formNote, setFormNote] = useState(tenant.checkout.disclaimer);
@@ -154,6 +615,7 @@ export default function FunnelPage({ tenant }) {
   const [submitting, setSubmitting] = useState(false);
   const isFundingTenant = tenant.slug === "funded-growth";
   const theme = useMemo(() => getTenantTheme(tenant.brand), [tenant.brand]);
+  const design = useMemo(() => resolveDesign(tenant.design), [tenant.design]);
 
   const selectedPackage = useMemo(
     () => tenant.packages.find((pkg) => pkg.id === selectedPackageId) || tenant.packages[0],
@@ -286,327 +748,30 @@ export default function FunnelPage({ tenant }) {
     }
   }
 
+  const ctx = {
+    selectedPackage,
+    selectedPackageId,
+    selectPackage,
+    submitLead,
+    formNote,
+    submitting,
+    isFundingTenant,
+    design
+  };
+
   return (
-    <div className="tenant-root" style={theme.vars} data-tenant={tenant.slug}>
+    <div
+      className="tenant-root"
+      style={{ ...theme.vars, ...design.vars }}
+      data-tenant={tenant.slug}
+      data-direction={design.id}
+    >
       <main>
-        <section className="hero" aria-label={`${tenant.brand.name} sales offer`}>
-          {/* LCP element: optimize local tenant images via next/image (resized
-              WebP/AVIF + preload). Remote tenant URLs (edge case) fall back to a
-              prioritized plain <img> so the image optimizer isn't opened to
-              arbitrary hosts. */}
-          {tenant.media.heroImage?.startsWith("/") ? (
-            <Image
-              className="hero__image"
-              src={tenant.media.heroImage}
-              alt={tenant.media.heroAlt}
-              fill
-              priority
-              sizes="100vw"
-            />
-          ) : (
-            // eslint-disable-next-line @next/next/no-img-element
-            <img
-              className="hero__image"
-              src={tenant.media.heroImage}
-              alt={tenant.media.heroAlt}
-              fetchPriority="high"
-              decoding="async"
-            />
-          )}
-          <div className="hero__shade" />
-          <Stagger className="hero__content" stagger={0.1} amount={0.1}>
-            <StaggerItem className="brandbar">
-              {tenant.brand.logo ? (
-                <img className="brandbar__logo" src={tenant.brand.logo} alt={`${tenant.brand.name} logo`} />
-              ) : (
-                <span className="brandbar__wordmark">{tenant.brand.logoText || tenant.brand.name}</span>
-              )}
-              {tenant.brand.tagline ? <span className="brandbar__tagline">{tenant.brand.tagline}</span> : null}
-              <a className="button button--secondary brandbar__login" href="/admin">Log in</a>
-            </StaggerItem>
-            <StaggerItem as="p" className="eyebrow">{tenant.brand.eyebrow}</StaggerItem>
-            <StaggerItem as="h1">{tenant.hero.headline}</StaggerItem>
-            <StaggerItem as="p" className="hero__copy">{tenant.hero.subheadline}</StaggerItem>
-            <StaggerItem className="hero__actions">
-              <button className="button button--primary" onClick={() => selectPackage(tenant.defaultPackageId)}>
-                {tenant.hero.primaryCta}
-              </button>
-              <button
-                className="button button--secondary"
-                onClick={() => document.getElementById("packages")?.scrollIntoView({ behavior: "smooth" })}
-              >
-                {tenant.hero.secondaryCta}
-              </button>
-              {!isFundingTenant && tenant.fundingPromo?.enabled ? (
-                <a className="button button--secondary" href={tenant.fundingPromo.link}>
-                  {tenant.fundingPromo.cta}
-                </a>
-              ) : null}
-            </StaggerItem>
-            <StaggerItem as="dl" className="hero__stats" aria-label="Content day highlights">
-              {tenant.hero.stats.map((stat) => (
-                <div key={stat.label}>
-                  <dt>{stat.value}</dt>
-                  <dd>{stat.label}</dd>
-                </div>
-              ))}
-            </StaggerItem>
-          </Stagger>
-        </section>
-
-        <section className="problem section">
-          <Reveal className="section__inner split">
-            <div>
-              <p className="eyebrow">{tenant.problem.eyebrow}</p>
-              <h2>{tenant.problem.headline}</h2>
-            </div>
-            <div className="problem__grid">
-              {tenant.problem.points.map((point) => (
-                <p key={point}>{point}</p>
-              ))}
-            </div>
-          </Reveal>
-        </section>
-
-        <section className="section section--soft">
-          <div className="section__inner">
-            <Reveal className="section__header">
-              <p className="eyebrow">{tenant.system.eyebrow}</p>
-              <h2>{tenant.system.headline}</h2>
-              <p>{tenant.system.body}</p>
-            </Reveal>
-            <Stagger className="feature-row" aria-label="Included services">
-              {tenant.system.features.map((feature) => (
-                <StaggerItem as="article" key={feature.title}>
-                  <span className="icon" aria-hidden="true" />
-                  <h3>{feature.title}</h3>
-                  <p>{feature.body}</p>
-                </StaggerItem>
-              ))}
-            </Stagger>
-          </div>
-        </section>
-
-        <section className="section">
-          <div className="section__inner">
-            <Reveal className="section__header section__header--compact">
-              <p className="eyebrow">{tenant.process.eyebrow}</p>
-              <h2>{tenant.process.headline}</h2>
-            </Reveal>
-            <Stagger as="ol" className="timeline" stagger={0.06}>
-              {tenant.process.steps.map((step, index) => (
-                <StaggerItem as="li" key={step.title}>
-                  <span>{String(index + 1).padStart(2, "0")}</span>
-                  <div>
-                    <h3>{step.title}</h3>
-                    <p>{step.body}</p>
-                  </div>
-                </StaggerItem>
-              ))}
-            </Stagger>
-          </div>
-        </section>
-
-        <section className="section section--black" aria-label="Content examples">
-          <Reveal className="section__inner split split--center">
-            <div>
-              <p className="eyebrow">{tenant.output.eyebrow}</p>
-              <h2>{tenant.output.headline}</h2>
-              <p>{tenant.output.body}</p>
-            </div>
-            <div className="content-grid" aria-hidden="true">
-              {tenant.output.tiles.map((tile) => (
-                <div key={tile}>{tile}</div>
-              ))}
-            </div>
-          </Reveal>
-        </section>
-
-        <PortfolioSection portfolio={tenant.portfolio} />
-        <ReferencesSection references={tenant.references} />
-
-        {tenant.fundedOpportunity ? (
-          <section className="section">
-            <Reveal className="section__inner split">
-              <div>
-                <p className="eyebrow">{tenant.fundedOpportunity.eyebrow}</p>
-                <h2>{tenant.fundedOpportunity.headline}</h2>
-                <p>{tenant.fundedOpportunity.body}</p>
-              </div>
-              <div className="problem__grid">
-                {tenant.fundedOpportunity.points.map((point) => (
-                  <p key={point}>{point}</p>
-                ))}
-              </div>
-            </Reveal>
-          </section>
-        ) : null}
-
-        <section id="packages" className="section packages">
-          <div className="section__inner">
-            <Reveal className="section__header">
-              <p className="eyebrow">{tenant.packageSection.eyebrow}</p>
-              <h2>{tenant.packageSection.headline}</h2>
-              <p>{tenant.packageSection.body}</p>
-            </Reveal>
-
-            <Stagger className="package-grid" stagger={0.1}>
-              {tenant.packages.map((pkg) => (
-                <StaggerItem
-                  as="article"
-                  className={`package ${pkg.featured ? "package--featured" : ""} ${
-                    pkg.id === selectedPackageId ? "is-selected" : ""
-                  }`}
-                  data-package-card={pkg.id}
-                  key={pkg.id}
-                >
-                  {pkg.featured ? <span className="package__badge">Most popular</span> : null}
-                  <div className="package__top">
-                    <h3>{pkg.name}</h3>
-                    <p>{pkg.summary}</p>
-                  </div>
-                  <div className="price">
-                    <span>{pkg.price}</span>
-                    <small>{pkg.priceQualifier}</small>
-                  </div>
-                  <p className="price__alt">{pkg.altPrice}</p>
-                  <ul>
-                    {pkg.features.map((feature) => (
-                      <li key={feature}>{feature}</li>
-                    ))}
-                  </ul>
-                  <button
-                    className={`button ${pkg.featured ? "button--primary" : "button--dark"}`}
-                    onClick={() => selectPackage(pkg.id)}
-                  >
-                    {pkg.cta}
-                  </button>
-                </StaggerItem>
-              ))}
-            </Stagger>
-
-            <Reveal className="enterprise-band">
-              <div>
-                <p className="eyebrow">{tenant.enterprise.eyebrow}</p>
-                <h3>{tenant.enterprise.headline}</h3>
-                <p>{tenant.enterprise.body}</p>
-              </div>
-              <button className="button button--secondary" onClick={() => selectPackage(tenant.enterprise.packageId)}>
-                {tenant.enterprise.cta}
-              </button>
-            </Reveal>
-          </div>
-        </section>
-
-        {!isFundingTenant && tenant.fundingPromo?.enabled ? (
-          <section className="section section--soft" id="funding-survey" aria-label="Funding eligibility survey">
-            <Reveal className="section__inner" amount={0.1}>
-              <div className="section__header">
-                <p className="eyebrow">{tenant.fundingPromo.eyebrow}</p>
-                <h2>{tenant.fundingPromo.headline}</h2>
-                <p>{tenant.fundingPromo.body}</p>
-              </div>
-              <FundingSurveyWidget tenant={tenant} />
-            </Reveal>
-          </section>
-        ) : null}
-
-        {isFundingTenant ? (
-        <section className="section section--soft checkout-section" id="funding-survey">
-          <Reveal className="section__inner" amount={0.1}>
-            <FundingSurveyWidget tenant={tenant} />
-          </Reveal>
-        </section>
-        ) : (
-        <section className="section section--soft checkout-section">
-          <Reveal className="section__inner checkout-layout" amount={0.1}>
-            <div>
-              <p className="eyebrow">{tenant.checkout.eyebrow}</p>
-              <h2>{tenant.checkout.headline}</h2>
-              <p>{tenant.checkout.body}</p>
-              <div className="selected-package" id="selectedPackage" aria-live="polite">
-                <strong>
-                  {selectedPackage.name} - {selectedPackage.priceDisplay}
-                </strong>
-                <span>{selectedPackage.description}</span>
-              </div>
-            </div>
-
-            <form className="checkout-form" id="leadForm" onSubmit={submitLead}>
-              <label>
-                Business name
-                <input name="business" autoComplete="organization" required />
-              </label>
-              <label>
-                Name
-                <input name="name" autoComplete="name" required />
-              </label>
-              <label>
-                Email
-                <input name="email" type="email" autoComplete="email" required />
-              </label>
-              <label>
-                Phone <span>optional</span>
-                <input name="phone" type="tel" autoComplete="tel" />
-              </label>
-              <label>
-                Website or Instagram
-                <input name="url" autoComplete="url" placeholder="https://" />
-              </label>
-              <label>
-                What do you need content for?
-                <textarea name="notes" rows="4" />
-              </label>
-              <div className="form-actions">
-                <button
-                  className="button button--primary"
-                  type="submit"
-                  disabled={submitting}
-                  aria-busy={submitting}
-                >
-                  {submitting ? (
-                    <>
-                      <span className="spinner" aria-hidden="true" />
-                      Working…
-                    </>
-                  ) : (
-                    tenant.checkout.submitCta
-                  )}
-                </button>
-              </div>
-              <p className="form-note" id="formNote">{formNote}</p>
-            </form>
-          </Reveal>
-        </section>
-        )}
-
-        <section className="section objections">
-          <div className="section__inner">
-            <Reveal className="section__header section__header--compact">
-              <p className="eyebrow">{tenant.faq.eyebrow}</p>
-              <h2>{tenant.faq.headline}</h2>
-            </Reveal>
-            <Stagger className="faq-grid" stagger={0.07}>
-              {tenant.faq.items.map((item) => (
-                <StaggerItem as="article" key={item.question}>
-                  <h3>{item.question}</h3>
-                  <p>{item.answer}</p>
-                </StaggerItem>
-              ))}
-            </Stagger>
-          </div>
-        </section>
-
-        <section className="final-cta">
-          <Reveal className="final-cta__inner">
-            <p className="eyebrow">{tenant.finalCta.eyebrow}</p>
-            <h2>{tenant.finalCta.headline}</h2>
-            <p>{tenant.finalCta.body}</p>
-            <button className="button button--primary" onClick={() => selectPackage(tenant.defaultPackageId)}>
-              {tenant.finalCta.cta}
-            </button>
-          </Reveal>
-        </section>
+        {design.sectionOrder.map((sectionId) => {
+          const Section = SECTION_COMPONENTS[sectionId];
+          if (!Section) return null;
+          return <Section key={sectionId} tenant={tenant} ctx={ctx} />;
+        })}
       </main>
 
       <div className="mobile-action" aria-label="Mobile checkout shortcut">

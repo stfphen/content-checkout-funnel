@@ -413,6 +413,17 @@ button {
   cursor: pointer;
 }
 
+/* Funnel design-direction layer. Direction token specs
+   (lib/tenantBuilder/designDirections.js) inject --fp-* custom properties on
+   .tenant-root; every funnel rule reads them through var(--fp-x, <current
+   literal>) so pages without a direction render byte-identical, and the admin
+   (which never defines --fp-*) always hits the fallbacks. Brand contract
+   tokens (--blue/--blue-dark/--accent) stay untouched. */
+.tenant-root {
+  background: var(--fp-bg, var(--white));
+  color: var(--fp-fg, var(--black));
+}
+
 .hero {
   min-height: 94svh;
   position: relative;
@@ -505,9 +516,10 @@ button {
 .eyebrow {
   margin: 0 0 14px;
   color: inherit;
+  font-family: var(--fp-eyebrow-font, inherit);
   font-size: 13px;
   font-weight: 700;
-  letter-spacing: 0.08em;
+  letter-spacing: var(--fp-eyebrow-tracking, 0.08em);
   text-transform: uppercase;
   opacity: 0.72;
 }
@@ -517,7 +529,7 @@ button {
 .section .eyebrow,
 .section__inner .eyebrow,
 .section__header .eyebrow {
-  color: color-mix(in srgb, var(--blue) 78%, var(--fg-muted));
+  color: var(--fp-eyebrow-color, color-mix(in srgb, var(--blue) 78%, var(--fg-muted)));
   opacity: 1;
 }
 
@@ -531,23 +543,23 @@ p {
 h1,
 h2,
 h3 {
-  font-family: var(--font-display, var(--font-sans, -apple-system, BlinkMacSystemFont,
-        "SF Pro Display", "Helvetica Neue", Arial, sans-serif));
+  font-family: var(--fp-font-display, var(--font-display, var(--font-sans, -apple-system,
+        BlinkMacSystemFont, "SF Pro Display", "Helvetica Neue", Arial, sans-serif)));
 }
 
 h1 {
   width: min(820px, 100%);
   margin-bottom: 22px;
-  font-size: var(--text-7xl);
-  font-weight: 800;
-  line-height: 0.94;
-  letter-spacing: -0.03em;
+  font-size: var(--fp-h1-size, var(--text-7xl));
+  font-weight: var(--fp-h1-weight, 800);
+  line-height: var(--fp-h1-leading, 0.94);
+  letter-spacing: var(--fp-h1-tracking, -0.03em);
 }
 
 h2 {
   margin-bottom: 18px;
-  font-size: var(--text-6xl);
-  font-weight: 800;
+  font-size: var(--fp-h2-size, var(--text-6xl));
+  font-weight: var(--fp-h2-weight, 800);
   line-height: 1;
   letter-spacing: -0.028em;
 }
@@ -561,7 +573,7 @@ h3 {
 }
 
 p {
-  color: var(--muted);
+  color: var(--fp-muted, var(--muted));
   font-size: 18px;
   line-height: 1.55;
 }
@@ -584,7 +596,7 @@ p {
 .button {
   min-height: 46px;
   border: 0;
-  border-radius: 999px;
+  border-radius: var(--fp-radius-button, 999px);
   padding: 12px 22px;
   display: inline-flex;
   align-items: center;
@@ -630,8 +642,8 @@ p {
 }
 
 .button--dark {
-  color: var(--white);
-  background: var(--black);
+  color: var(--fp-button-dark-fg, var(--white));
+  background: var(--fp-button-dark-bg, var(--black));
 }
 
 .hero__stats {
@@ -642,7 +654,7 @@ p {
   gap: 1px;
   overflow: hidden;
   border: 1px solid var(--line-dark);
-  border-radius: var(--radius);
+  border-radius: var(--fp-radius, var(--radius));
   background: var(--line-dark);
   backdrop-filter: blur(16px);
 }
@@ -663,12 +675,113 @@ p {
   font-size: 14px;
 }
 
+/* Hero layout variants (design directions). The default full-bleed hero keeps
+   the rules above untouched; light variants add .hero--onlight so the white
+   image-overlay literals re-point to direction tokens in one place. */
+.hero--onlight {
+  min-height: auto;
+  align-items: start;
+  background: var(--fp-bg, var(--white));
+  color: var(--fp-fg, var(--black));
+}
+
+.hero--onlight .hero__content {
+  color: inherit;
+}
+
+.hero--onlight .hero__copy {
+  color: var(--fp-muted, var(--muted));
+}
+
+.hero--onlight .brandbar__wordmark {
+  color: inherit;
+}
+
+.hero--onlight .brandbar__tagline {
+  color: var(--fp-muted, var(--muted));
+}
+
+.hero--onlight .button--secondary {
+  border-color: var(--fp-border-color, rgba(0, 0, 0, 0.12));
+  color: var(--fp-fg, var(--black));
+  background: transparent;
+}
+
+.hero--onlight .hero__stats {
+  border: var(--fp-border-w, 1px) solid var(--fp-border-color, var(--line));
+  background: var(--fp-border-color, var(--line));
+  backdrop-filter: none;
+}
+
+.hero--onlight .hero__stats div {
+  background: var(--fp-surface, var(--white));
+}
+
+.hero--onlight .hero__stats dd {
+  color: var(--fp-muted, var(--muted));
+}
+
+.hero--typographic .hero__content {
+  padding: 108px 0 88px;
+}
+
+.hero--typographic h1 {
+  width: min(980px, 100%);
+}
+
+.hero--split .hero__content {
+  padding: 96px 0 88px;
+}
+
+.hero__split-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1.02fr) minmax(0, 0.98fr);
+  gap: 56px;
+  align-items: center;
+}
+
+.hero__media-frame {
+  position: relative;
+  min-height: 440px;
+  height: 100%;
+  overflow: hidden;
+  border-radius: calc(var(--fp-radius, var(--radius)) + 8px);
+  box-shadow: var(--fp-shadow-card, var(--shadow));
+}
+
+.hero__media-frame .hero__image {
+  position: absolute;
+  inset: 0;
+  opacity: 1;
+}
+
+@media (max-width: 880px) {
+  .hero--onlight {
+    min-height: auto;
+  }
+
+  .hero--typographic .hero__content,
+  .hero--split .hero__content {
+    padding: 88px 0 64px;
+  }
+
+  .hero__split-grid {
+    grid-template-columns: 1fr;
+    gap: 28px;
+  }
+
+  .hero__media-frame {
+    min-height: 300px;
+    height: auto;
+  }
+}
+
 .section {
-  padding: 96px 0;
+  padding: var(--fp-section-pad, 96px) 0;
 }
 
 .section--soft {
-  background: var(--soft);
+  background: var(--fp-soft, var(--soft));
 }
 
 .section--black {
@@ -713,7 +826,7 @@ p {
 .package-grid,
 .faq-grid {
   display: grid;
-  gap: 16px;
+  gap: var(--fp-grid-gap, 16px);
 }
 
 /* Mobile-first: these funnel grids stack in a single column by default and
@@ -742,16 +855,16 @@ p {
 .feature-row article,
 .package,
 .faq-grid article {
-  border: 1px solid var(--line);
-  border-radius: var(--radius);
-  background: var(--white);
+  border: var(--fp-border-w, 1px) solid var(--fp-border-color, var(--line));
+  border-radius: var(--fp-radius, var(--radius));
+  background: var(--fp-surface, var(--white));
 }
 
 .problem__grid p {
   min-height: 112px;
   margin: 0;
   padding: 22px;
-  color: var(--near-black);
+  color: var(--fp-fg, var(--near-black));
   font-size: 20px;
   font-weight: 700;
   display: flex;
@@ -764,7 +877,7 @@ p {
 
 .feature-row article {
   padding: 28px;
-  box-shadow: 0 18px 50px rgba(0, 0, 0, 0.06);
+  box-shadow: var(--fp-shadow-card, 0 18px 50px rgba(0, 0, 0, 0.06));
 }
 
 .feature-row p,
@@ -788,7 +901,7 @@ p {
   margin: 0;
   padding: 0;
   list-style: none;
-  border-top: 1px solid var(--line);
+  border-top: var(--fp-border-w, 1px) solid var(--fp-border-color, var(--line));
 }
 
 .timeline li {
@@ -796,11 +909,11 @@ p {
   grid-template-columns: 82px 1fr;
   gap: 22px;
   padding: 28px 0;
-  border-bottom: 1px solid var(--line);
+  border-bottom: var(--fp-border-w, 1px) solid var(--fp-border-color, var(--line));
 }
 
 .timeline span {
-  color: var(--muted);
+  color: var(--fp-muted, var(--muted));
   font-weight: 800;
 }
 
@@ -817,7 +930,7 @@ p {
 .content-grid div {
   aspect-ratio: 1;
   border: 1px solid var(--line-dark);
-  border-radius: var(--radius);
+  border-radius: var(--fp-radius, var(--radius));
   display: grid;
   place-items: center;
   color: rgba(255, 255, 255, 0.78);
@@ -1030,7 +1143,7 @@ p {
 
 .price small,
 .price__alt {
-  color: var(--muted);
+  color: var(--fp-muted, var(--muted));
 }
 
 .price__alt {
@@ -1047,7 +1160,7 @@ p {
 }
 
 .package li {
-  color: var(--near-black);
+  color: var(--fp-fg, var(--near-black));
   line-height: 1.42;
 }
 
@@ -1070,7 +1183,7 @@ p {
 .enterprise-band {
   margin-top: 18px;
   padding: 32px;
-  border-radius: var(--radius);
+  border-radius: var(--fp-radius, var(--radius));
   display: grid;
   grid-template-columns: 1fr auto;
   gap: 24px;
@@ -1099,9 +1212,9 @@ p {
   min-height: 120px;
   margin-top: 28px;
   padding: 24px;
-  border: 1px solid var(--line);
-  border-radius: var(--radius);
-  background: var(--white);
+  border: var(--fp-border-w, 1px) solid var(--fp-border-color, var(--line));
+  border-radius: var(--fp-radius, var(--radius));
+  background: var(--fp-surface, var(--white));
 }
 
 .selected-package strong {
@@ -1111,30 +1224,30 @@ p {
 }
 
 .selected-package span {
-  color: var(--muted);
+  color: var(--fp-muted, var(--muted));
   font-size: 15px;
   line-height: 1.45;
 }
 
 .checkout-form {
   padding: 28px;
-  border: 1px solid var(--line);
-  border-radius: var(--radius);
-  background: rgba(255, 255, 255, 0.84);
-  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.08);
+  border: var(--fp-border-w, 1px) solid var(--fp-border-color, var(--line));
+  border-radius: var(--fp-radius, var(--radius));
+  background: var(--fp-surface, rgba(255, 255, 255, 0.84));
+  box-shadow: var(--fp-shadow-form, 0 20px 60px rgba(0, 0, 0, 0.08));
 }
 
 .checkout-form label {
   margin-bottom: 18px;
   display: grid;
   gap: 8px;
-  color: var(--near-black);
+  color: var(--fp-fg, var(--near-black));
   font-size: 14px;
   font-weight: 700;
 }
 
 .checkout-form label span {
-  color: var(--muted);
+  color: var(--fp-muted, var(--muted));
   font-size: 13px;
   font-weight: 600;
 }
@@ -1143,11 +1256,11 @@ p {
 .checkout-form select,
 .checkout-form textarea {
   width: 100%;
-  border: 1px solid rgba(0, 0, 0, 0.16);
-  border-radius: var(--radius);
+  border: 1px solid var(--fp-input-border, rgba(0, 0, 0, 0.16));
+  border-radius: var(--fp-radius, var(--radius));
   padding: 13px 14px;
-  color: var(--black);
-  background: var(--white);
+  color: var(--fp-fg, var(--black));
+  background: var(--fp-input-bg, var(--white));
   outline: 0;
 }
 
@@ -1216,13 +1329,82 @@ p {
   display: none;
 }
 
+/* Direction-specific structural exceptions — only what custom properties can't
+   express. Scoped to [data-direction=...] set on .tenant-root; never touches
+   admin or default-look funnels. */
+[data-direction="bold-brutalist"] h1,
+[data-direction="bold-brutalist"] h2 {
+  text-transform: uppercase;
+}
+
+[data-direction="bold-brutalist"] .timeline span {
+  font-family: var(--font-mono, "SF Mono", "Courier New", monospace);
+}
+
+[data-direction="bold-brutalist"] .button--secondary {
+  border: 2px solid var(--fp-fg, var(--black));
+  color: var(--fp-fg, var(--black));
+  background: transparent;
+}
+
+[data-direction="bold-brutalist"] .package--featured {
+  border-color: var(--fp-fg, var(--black));
+  box-shadow: 8px 8px 0 var(--fp-fg, var(--black));
+}
+
+[data-direction="bold-brutalist"] .package.is-selected {
+  border-color: var(--fp-fg, var(--black));
+  box-shadow: 8px 8px 0 var(--blue);
+}
+
+[data-direction="bold-brutalist"] .icon {
+  border-radius: 0;
+  height: 4px;
+}
+
+[data-direction="editorial-minimal"] .package--featured {
+  border-color: var(--fp-fg, var(--black));
+  box-shadow: none;
+}
+
+[data-direction="editorial-minimal"] .package.is-selected {
+  border-color: var(--blue);
+  box-shadow: none;
+}
+
+[data-direction="editorial-minimal"] .button:hover {
+  transform: none;
+  box-shadow: none;
+}
+
+[data-direction="dark-cinematic"] .button--secondary {
+  color: var(--fp-fg, var(--black));
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  background: rgba(255, 255, 255, 0.08);
+}
+
+[data-direction="dark-cinematic"] .package--featured {
+  border-color: color-mix(in srgb, var(--blue) 65%, transparent);
+}
+
+[data-direction="dark-cinematic"] .mobile-action {
+  border-top-color: rgba(255, 255, 255, 0.14);
+  background: rgba(10, 10, 12, 0.88);
+}
+
+[data-direction="dark-cinematic"] .checkout-form input,
+[data-direction="dark-cinematic"] .checkout-form select,
+[data-direction="dark-cinematic"] .checkout-form textarea {
+  color-scheme: dark;
+}
+
 @media (max-width: 1080px) {
   h1 {
-    font-size: 72px;
+    font-size: var(--fp-h1-size, 72px);
   }
 
   h2 {
-    font-size: 52px;
+    font-size: var(--fp-h2-size, 52px);
   }
 
   .hero__copy {
@@ -1250,12 +1432,12 @@ p {
 
   h1 {
     max-width: 650px;
-    font-size: 56px;
-    line-height: 1;
+    font-size: var(--fp-h1-size, 56px);
+    line-height: var(--fp-h1-leading, 1);
   }
 
   h2 {
-    font-size: 44px;
+    font-size: var(--fp-h2-size, 44px);
     line-height: 1.06;
   }
 
@@ -1288,7 +1470,7 @@ p {
   }
 
   .section {
-    padding: 64px 0;
+    padding: var(--fp-section-pad-sm, 64px) 0;
   }
 
   .problem__grid {
@@ -1324,12 +1506,12 @@ p {
 
   h1 {
     margin-bottom: 16px;
-    font-size: 42px;
-    line-height: 1.02;
+    font-size: var(--fp-h1-size, 42px);
+    line-height: var(--fp-h1-leading, 1.02);
   }
 
   h2 {
-    font-size: 34px;
+    font-size: var(--fp-h2-size, 34px);
   }
 
   h3 {
@@ -1395,7 +1577,7 @@ p {
   }
 
   .section {
-    padding: 54px 0;
+    padding: var(--fp-section-pad-sm, 54px) 0;
   }
 
   .section__header {
@@ -1519,11 +1701,11 @@ p {
   }
 
   h1 {
-    font-size: 38px;
+    font-size: var(--fp-h1-size, 38px);
   }
 
   h2 {
-    font-size: 31px;
+    font-size: var(--fp-h2-size, 31px);
   }
 
   .hero__stats dd {
@@ -1931,6 +2113,333 @@ p {
 
 .tenant-builder textarea {
   resize: vertical;
+}
+
+/* Standalone form label text (for grouped controls like the direction picker
+   that can't live inside a <label>). Mirrors the admin-form label styling. */
+.admin-form__label {
+  display: block;
+  margin-bottom: 10px;
+  color: var(--fg);
+  font-size: 14px;
+  font-weight: 700;
+}
+
+/* Design-direction picker (admin) — data-driven cards over the direction
+   catalog. Uses semantic tokens only so the admin dark theme re-points it. */
+.direction-picker {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(168px, 1fr));
+  gap: 12px;
+}
+
+.direction-card {
+  position: relative;
+  display: grid;
+  gap: 8px;
+  padding: 12px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--surface);
+  cursor: pointer;
+  transition: border-color var(--dur-fast) ease, box-shadow var(--dur) var(--ease-out);
+}
+
+.direction-card:hover {
+  border-color: var(--border-strong);
+}
+
+.direction-card.is-selected {
+  border-color: var(--brand);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--brand) 18%, transparent);
+}
+
+.direction-card input {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.direction-card:focus-within {
+  outline: 3px solid var(--ring);
+  outline-offset: 2px;
+}
+
+.direction-card__preview {
+  display: grid;
+  grid-template-columns: 44px 1fr;
+  grid-template-rows: auto auto;
+  gap: 8px;
+  align-items: center;
+}
+
+.direction-card__sample {
+  grid-row: span 2;
+  display: grid;
+  place-items: center;
+  width: 44px;
+  height: 44px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  font-size: 22px;
+  font-weight: 600;
+  line-height: 1;
+}
+
+.direction-card__swatches {
+  display: flex;
+  gap: 4px;
+}
+
+.direction-card__swatches i {
+  width: 16px;
+  height: 16px;
+  border: 1px solid var(--border);
+  border-radius: 4px;
+}
+
+.direction-card__thumb {
+  display: flex;
+  gap: 3px;
+  align-items: stretch;
+  height: 14px;
+}
+
+.direction-card__thumb i {
+  background: color-mix(in srgb, var(--fg) 24%, transparent);
+  border-radius: 2px;
+}
+
+/* full-bleed: one wide block; split: copy + media columns; typographic: bars. */
+.direction-card__thumb--full-bleed i:first-child {
+  flex: 1;
+}
+
+.direction-card__thumb--full-bleed i:not(:first-child) {
+  display: none;
+}
+
+.direction-card__thumb--split i:first-child {
+  flex: 1.2;
+}
+
+.direction-card__thumb--split i:nth-child(2) {
+  flex: 0.8;
+  background: color-mix(in srgb, var(--brand) 45%, transparent);
+}
+
+.direction-card__thumb--split i:nth-child(3) {
+  display: none;
+}
+
+.direction-card__thumb--typographic {
+  flex-direction: column;
+  gap: 2px;
+}
+
+.direction-card__thumb--typographic i {
+  height: 3px;
+}
+
+.direction-card__thumb--typographic i:first-child {
+  width: 85%;
+}
+
+.direction-card__thumb--typographic i:nth-child(2) {
+  width: 60%;
+}
+
+.direction-card__thumb--typographic i:nth-child(3) {
+  width: 35%;
+}
+
+.direction-card__label {
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--fg);
+}
+
+.direction-card__blurb {
+  font-size: 12px;
+  line-height: 1.4;
+  color: var(--fg-muted);
+}
+
+/* Tenant editor (admin) — draft editing panel: prompt edits, diff summary,
+   per-section forms. Semantic tokens only (dark-mode safe). */
+.tenant-editor__body {
+  display: grid;
+  gap: 22px;
+  margin-top: 18px;
+}
+
+.tenant-editor__diff {
+  margin: 0;
+  padding: 12px 14px;
+  list-style: none;
+  display: grid;
+  gap: 8px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--surface-2);
+  font-size: 13px;
+}
+
+.tenant-editor__diff code {
+  display: block;
+  margin-bottom: 2px;
+  font-weight: 700;
+  color: var(--fg);
+}
+
+.tenant-editor__diff-before {
+  color: var(--danger-fg);
+  text-decoration: line-through;
+  overflow-wrap: anywhere;
+}
+
+.tenant-editor__diff-after {
+  color: var(--success-fg);
+  overflow-wrap: anywhere;
+}
+
+.tenant-editor__sections {
+  display: grid;
+  gap: 10px;
+}
+
+.tenant-editor__section {
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--surface);
+}
+
+.tenant-editor__section summary {
+  padding: 12px 14px;
+  cursor: pointer;
+  font-weight: 700;
+  color: var(--fg);
+}
+
+.tenant-editor__section .admin-form {
+  padding: 4px 14px 14px;
+}
+
+.tenant-editor__media {
+  display: grid;
+  gap: 10px;
+}
+
+/* Media picker — per-slot thumbnail + expandable library grid / dropzone. */
+.media-picker {
+  display: grid;
+  gap: 10px;
+  padding: 12px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--surface);
+}
+
+.media-picker__slot {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.media-picker__label {
+  min-width: 160px;
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--fg);
+}
+
+.media-picker__thumb {
+  width: 72px;
+  height: 48px;
+  object-fit: cover;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  background: var(--surface-2);
+}
+
+.media-picker__empty {
+  font-size: 12px;
+  color: var(--fg-muted);
+}
+
+.media-picker__slot-actions {
+  display: flex;
+  gap: 8px;
+  margin-left: auto;
+}
+
+.media-picker__slot-actions .button {
+  min-height: 34px;
+  padding: 6px 14px;
+  font-size: 13px;
+}
+
+.media-picker__panel {
+  display: grid;
+  gap: 12px;
+  padding-top: 12px;
+  border-top: 1px solid var(--border);
+}
+
+.media-picker__dropzone {
+  display: grid;
+  place-items: center;
+  min-height: 74px;
+  padding: 14px;
+  border: 2px dashed var(--border-strong);
+  border-radius: var(--radius);
+  color: var(--fg-muted);
+  font-size: 13px;
+  text-align: center;
+  cursor: pointer;
+}
+
+.media-picker__dropzone input {
+  display: none;
+}
+
+.media-picker__grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(88px, 1fr));
+  gap: 8px;
+}
+
+.media-picker__asset {
+  padding: 0;
+  border: 2px solid var(--border);
+  border-radius: var(--radius-sm);
+  overflow: hidden;
+  background: var(--surface-2);
+  cursor: pointer;
+  aspect-ratio: 4 / 3;
+}
+
+.media-picker__asset img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.media-picker__asset.is-selected {
+  border-color: var(--brand);
+}
+
+.media-picker__url {
+  display: flex;
+  gap: 8px;
+}
+
+.media-picker__url input {
+  flex: 1;
 }
 
 .api-provider-stack {

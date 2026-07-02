@@ -18,5 +18,6 @@ export const AccountsPanel = dynamic(() => import("./AccountsPanel"), { ssr: fal
 export const CallsTable = dynamic(() => import("./CallsTable"), { ssr: false, loading: PanelFallback });
 export const OutreachQueueBuilder = dynamic(() => import("./OutreachQueueBuilder"), { ssr: false, loading: PanelFallback });
 export const TenantBuilder = dynamic(() => import("./TenantBuilder"), { ssr: false, loading: PanelFallback });
+export const TenantEditor = dynamic(() => import("./TenantEditor"), { ssr: false, loading: PanelFallback });
 export const TenantBrandingSettings = dynamic(() => import("./TenantBrandingSettings"), { ssr: false, loading: PanelFallback });
 export const TenantPhoneSettings = dynamic(() => import("./TenantPhoneSettings"), { ssr: false, loading: PanelFallback });

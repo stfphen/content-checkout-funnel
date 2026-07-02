@@ -10,6 +10,7 @@ import LeadCallPanel from "../../components/admin/LeadCallPanel";
 import {
   OutreachQueueBuilder,
   TenantBuilder,
+  TenantEditor,
   AccountsPanel,
   TenantPhoneSettings,
   TenantBrandingSettings,
@@ -1471,6 +1472,16 @@ export default async function AdminPage({ searchParams }) {
       <AdminTabPanel tabId="tenants">
       <section className="admin-grid">
         <TenantBuilder />
+        <TenantEditor
+          tenants={tenants.map((tenant) => ({
+            id: tenant.id,
+            slug: tenant.slug,
+            status: tenant.status,
+            name: tenant.brand?.name || tenant.slug,
+            lastPublishedAt: tenant.lastPublishedAt || "",
+            hasPublished: Boolean(tenant.publishedConfig)
+          }))}
+        />
         <TenantPhoneSettings
           tenants={tenants.map((tenant) => ({
             id: tenant.id,

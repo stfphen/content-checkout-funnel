@@ -1,5 +1,9 @@
 import FunnelPage from "../../../components/FunnelPage";
-import { getRenderableTenantConfig, getTenantBySlug } from "../../../lib/store";
+import {
+  getRenderableTenantConfig,
+  getTenantBySlug,
+  resolveTenantMediaConfig
+} from "../../../lib/store";
 
 export const dynamic = "force-dynamic";
 
@@ -12,6 +16,9 @@ export default async function TenantPreviewPage({ params, searchParams }) {
   // Tenant Builder); default renders the published config.
   const mode = query?.preview === "draft" ? "draft" : "published";
   const config = getRenderableTenantConfig(tenant, mode);
+  // Media-library references (mediaId) become plain src urls server-side —
+  // FunnelPage is a client component and never talks to the store.
+  const resolved = await resolveTenantMediaConfig(config, { teamId: tenant.teamId });
 
-  return <FunnelPage tenant={config} />;
+  return <FunnelPage tenant={resolved} />;
 }
