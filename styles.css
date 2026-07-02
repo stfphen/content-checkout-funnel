@@ -3359,6 +3359,19 @@ p {
   color: var(--black);
 }
 
+/* Browser autofill forces a pale-blue fill + dark text via -webkit-autofill,
+   which reads as a light patch in the dark shell. Re-skin it to the dark
+   surface (box-shadow inset is the only way to override the UA fill). */
+.v2-admin-shell[data-theme="dark"] input:-webkit-autofill,
+.v2-admin-shell[data-theme="dark"] input:-webkit-autofill:hover,
+.v2-admin-shell[data-theme="dark"] input:-webkit-autofill:focus,
+.v2-admin-shell[data-theme="dark"] textarea:-webkit-autofill,
+.v2-admin-shell[data-theme="dark"] select:-webkit-autofill {
+  -webkit-text-fill-color: var(--fg);
+  -webkit-box-shadow: 0 0 0 1000px var(--surface) inset;
+  caret-color: var(--fg);
+}
+
 /* True-white text where elements sit on a colored fill (the palette swap would
    otherwise render these dark-on-blue). */
 .v2-admin-shell[data-theme="dark"] .button--primary,
@@ -3545,29 +3558,29 @@ p {
   border-radius: 999px;
   font-size: 11px;
   text-transform: capitalize;
-  border: 1px solid var(--line);
-  background: #fff;
-  color: var(--muted);
+  border: 1px solid var(--border);
+  background: var(--surface);
+  color: var(--fg-muted);
 }
 
 .research-pill--verified,
 .research-pill--high {
-  background: #ecfdf5;
-  border-color: #a7f3d0;
-  color: #047857;
+  background: var(--success-bg);
+  border-color: color-mix(in srgb, var(--success) 30%, transparent);
+  color: var(--success-fg);
 }
 
 .research-pill--medium {
-  background: #fefce8;
-  border-color: #fde68a;
-  color: #92400e;
+  background: var(--warn-bg);
+  border-color: color-mix(in srgb, var(--warn) 30%, transparent);
+  color: var(--warn-fg);
 }
 
 .research-pill--low,
 .research-pill--unverified {
-  background: #fef2f2;
-  border-color: #fecaca;
-  color: #b91c1c;
+  background: var(--danger-bg);
+  border-color: color-mix(in srgb, var(--danger) 30%, transparent);
+  color: var(--danger-fg);
 }
 
 /* ============================================================
