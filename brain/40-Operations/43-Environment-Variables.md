@@ -36,6 +36,15 @@ source: .env.example, API_KEYS.md, GO_LIVE_PLAN.md
 ## Payments
 `STRIPE_SECRET_KEY` (`sk_test_`/`sk_live_`), `STRIPE_WEBHOOK_SECRET` (`whsec_`), `STRIPE_PUBLISHABLE_KEY` (optional). [[27-Checkout-Payments]]
 
+## Media library (all optional — defaults shown)
+| Var | Powers | Notes |
+|---|---|---|
+| `MEDIA_STORAGE_PROVIDER` | Storage backend for uploads | default `local` (`public/uploads/`); S3 provider slots in later. [[2D-Portfolio-Media]] |
+| `MEDIA_UPLOAD_DIR` | Local provider root override | default `<cwd>/public/uploads`; the test seam (mirrors `APP_STORE_PATH`). |
+| `MEDIA_MAX_UPLOAD_BYTES` | Upload size cap | default 10 MB. |
+
+⚠️ Deploy: `next.config.mjs` uses `output:"standalone"` — `public/` is snapshotted at build, so runtime uploads need `public/uploads` mounted as a **volume** in the container until the S3 provider ships.
+
 ## Prospecting / email providers (the four exposed keys — rotate)
 `RESEND_API_KEY` (outreach send), `GOOGLE_PLACES_API_KEY` (restrict to Places API + IP 62.72.16.32),
 `HUNTER_API_KEY` (Free=50/mo), `APOLLO_API_KEY`. Read in `lib/integrations/{resend,googlePlaces,hunter,apollo}.js`. [[44-Secrets-And-Rotation]]

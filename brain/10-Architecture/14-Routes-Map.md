@@ -38,7 +38,8 @@ API routes are `route.js` handlers.
 - **Outreach:** `outreach/campaigns`, `outreach/events`, `outreach/queue`, `outreach/queue/send`, `outreach/suppressions`, `outreach/templates`.
 - **Prospecting:** `prospecting/apollo`, `prospecting/google`, `prospecting/hunter`, `prospecting/batches`, `prospecting/batches/import`.
 - **Telephony:** `telephony/outcome`, `telephony/transcribe`, `telephony/delete-call`.
-- **Tenants:** `tenants/generate` (AI), `tenants/import`, `tenants/publish`, `tenants/branding`, `tenants/telephony`.
+- **Tenants:** `tenants/generate` (AI, takes a `direction` field), `tenants/edit` (POST NL-instruction **or** deterministic `patch` mode onto the draft; GET returns the draft snapshot for the editor), `tenants/import`, `tenants/publish`, `tenants/branding`, `tenants/telephony`.
+- **Media:** `media` (GET team library list, POST multipart image upload → `public/uploads/` via `lib/media/`, DELETE with tenant-reference check + `force`). See [[2D-Portfolio-Media]].
 - **Other:** `contractors`, `drafts`, `users`.
 
 ## Telephony provider routes (`/api/telephony/*`)

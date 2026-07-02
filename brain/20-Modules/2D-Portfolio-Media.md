@@ -3,15 +3,28 @@ title: 2D · Portfolio / References & Media Library
 type: module
 tags: [module, tenancy, ai, media]
 status: living
-updated: 2026-07-01
+updated: 2026-07-02
 ---
 
 # Portfolio / References & Media Library
 
-> **Status: P0 SHIPPED (2026-07-01, branch `feature/portfolio-p0`); P1+ still PROPOSED.** P0 = config +
-> render only, items carry a direct `src` (no media library yet). Later phases remain gated behind repo
-> stabilization ([[31-Current-Priorities]]), like [[2C-Enterprise-Prospecting]] was. This note is the plan
-> of record; update it as phases land. Decision rationale in [[52-Decision-Log]] (2026-07-01).
+> **Status: P0 SHIPPED (2026-07-01, `feature/portfolio-p0`); P1 + editor slice of P3 SHIPPED
+> (2026-07-02, `feature/funnel-design-control`); P2 (object storage + hardening) and P4 (AI
+> tag-constrained selection) still PROPOSED.** Decision rationale in [[52-Decision-Log]]
+> (2026-07-01 + 2026-07-02).
+>
+> **What P1 shipped (deviations from the plan below noted):** `media_assets` via migration `007`
+> (+ ensureSchema mirror + `mediaAssets` file-store branch); `lib/media/` seam with the `local`
+> provider writing `public/uploads/<teamId>/<id>.<ext>` (`MEDIA_UPLOAD_DIR` test seam) — uploads
+> are **images only** with magic-byte sniffing (no SVG, 10 MB default), video/embed stay URL-based;
+> `/api/admin/media` POST/GET/DELETE (delete does a tenant-reference check, `force` overrides);
+> `mediaId` slots on `media.heroImageId`, `portfolio.items[]`, `references.logos[]` (sanitize keeps
+> mediaId-only entries) resolved **server-side** by `resolveTenantMediaConfig` in `app/page.jsx` +
+> `app/t/[slug]/page.jsx` — mediaId wins, direct `src` is the fallback, ids are stripped before the
+> client component. Editor slice: `MediaPicker`/`MediaSlots` in the TenantEditor persist via the
+> edit route's deterministic patch mode. **Index deviation:** plain `gin(tags)` + btree
+> `(team_id, created_at desc)` instead of the composite gin (needs `btree_gin`). **Deploy:**
+> `output:"standalone"` needs `public/uploads` as a volume until the S3 provider (P2).
 
 ## Purpose
 Give each tenant funnel a **dynamic "Portfolio & References" section** that shows real work (video/image

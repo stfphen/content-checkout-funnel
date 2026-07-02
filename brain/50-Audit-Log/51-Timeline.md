@@ -12,6 +12,27 @@ Chronological history, reconstructed from repo docs + git. **Append newest entri
 Dates are from doc timestamps / commit themes; treat older "status" claims as point-in-time snapshots.
 
 ## 2026-07
+- **07-02** — **Funnel Design Control upgrade SHIPPED on `feature/funnel-design-control`** (per
+  `docs/PROMPT_FUNNEL_DESIGN_CONTROL.md`; worked in an isolated worktree off `main` to avoid the
+  admin-command-center WIP in the main tree). All four features: **(1) design directions** — 5
+  data-driven token specs (`lib/tenantBuilder/designDirections.js`), `design` block in config,
+  `--fp-*` CSS layer with per-literal fallbacks, FunnelPage section registry + hero variants
+  (full-bleed/split/typographic), picker cards in TenantBuilder, 4 new `next/font` display faces
+  (preload:false); **(2) tenant editing** — `lib/tenantBuilder/editTenant.js` (allowlist merge,
+  clobber-proof via schema, defaultPackageId repair) + `configDiff.js`, `/api/admin/tenants/edit`
+  (NL + deterministic patch modes, GET draft), TenantEditor panel (prompt box, changed-paths diff,
+  per-section forms, direction switcher, publish/republish); **(3) copy limits** —
+  `copyLimits.js` single table → schema maxLength/min-maxItems + advisory warnings (no truncation),
+  SYSTEM_PROMPT rewritten (benefit-led, char budgets, no fabricated media URLs); **(4) media
+  library** — migration `007_media_assets` (+ ensureSchema mirror + file-store branch), `lib/media/`
+  local provider behind `getStorageProvider()`, magic-byte upload validation (no SVG, 10MB),
+  `/api/admin/media` (POST/GET/DELETE + reference check), `mediaId` slots (hero/portfolio/logos)
+  resolved server-side by `resolveTenantMediaConfig` in both public page routes, MediaPicker wired
+  to every slot. **Verified:** `npm test` 246/246, `npm run build` green; dev-server render checks —
+  all 5 direction previews show correct `data-direction`/hero variant/section order, mediaId hero
+  resolves through next/image, default tenant renders with **zero** `--fp-*` vars (pixel-stable).
+  Decisions in [[52-Decision-Log]]; docs: [[16-Design-System]] · [[14-Routes-Map]] ·
+  [[2D-Portfolio-Media]] · [[43-Environment-Variables]]. Merge to `main` pending operator review.
 - **07-02** — **All five tenant funnels now live as DB rows.** Local `tenants` table previously held
   only `dgtlmag`/`dmtv`/`elixr`; added `fundedGrowthTenant` to `scripts/seed-tenants.js` and re-ran
   `npm run seed:tenants` — upserted all 5 (`dgtlmag`, `dmtv`, `elixr`, `on-home-decor`,

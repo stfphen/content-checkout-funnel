@@ -3,7 +3,7 @@ title: 52 · Decision Log
 type: log
 tags: [audit]
 status: living
-updated: 2026-07-01
+updated: 2026-07-02
 ---
 
 # Decision Log
@@ -12,6 +12,12 @@ The "why" behind how things are built. Append new decisions at the top with a da
 
 | Date | Decision | Rationale |
 |---|---|---|
+| 2026-07-02 | **Design directions store only an id (`design.direction`); tokens resolve at render, never denormalized into config.** | Switching direction is a one-field draft edit that restyles without regenerating copy; refining a direction spec centrally updates every tenant on it; configs stay lean. The default direction resolves to **empty vars**, making backwards compatibility structural (existing tenants hit the CSS fallbacks). [[16-Design-System]] |
+| 2026-07-02 | **Direction tokens are a new `--fp-*` namespace consumed via `var(--fp-x, <current literal>)` fallbacks — one component tree, no per-direction stylesheets or forked FunnelPage copies.** | ~85% of the restyle is custom-property parameterization; `[data-direction]` blocks cover only structural exceptions (brutalist uppercase/offset shadows, dark-cinematic input scheme). Brand contract `--blue/--blue-dark/--accent` untouched; directions reference `var(--blue)` so tenant branding varies inside every direction. [[16-Design-System]] |
+| 2026-07-02 | **The design-direction picker is authoritative; the generation model never authors the `design` block.** | Keeps `additionalProperties:false` intact, removes a whole class of invalid output, and the operator's visual choice can't be overridden by the model — it only receives the direction's copy-tone brief so voice matches the visual system. [[2A-Tenant-Builder]] |
+| 2026-07-02 | **Copy limits are advisory warnings, never truncation, and never part of `validateTenantConfig`.** | One table (`copyLimits.js`) drives schema `maxLength` (hard in API-key structured-output mode) and `enforceCopyLimits` warnings (covers subscription mode); publishing existing tenants must not start failing because budgets tightened. [[16-Design-System]] |
+| 2026-07-02 | **Tenant NL edits are full-config-out through the generation schema, merged over the draft via an `EDITABLE_KEYS` allowlist — not JSON-patch.** | Structured output can enforce a fixed shape but not a patch language; `additionalProperties:false` doubles as the clobber-guard (model physically cannot emit checkout/routing/media/domains), and the merge repairs `defaultPackageId` and preserves `brand.appIcon`. Same typed errors + one corrective retry as generation. [[14-Routes-Map]] |
+| 2026-07-02 | **Media library P1 shipped with the local-disk provider (`public/uploads/`) behind `getStorageProvider()`; uploads are images-only with magic-byte sniffing, no SVG.** | Mock-first per project rules; S3 slots in via `MEDIA_STORAGE_PROVIDER` later. `output:"standalone"` means prod needs `public/uploads` as a volume until then. mediaId resolution happens server-side in the page routes (FunnelPage is a client component), unresolved ids degrade to the direct `src`. [[2D-Portfolio-Media]] |
 | 2026-07-01 | **Portfolio media lives in a team-scoped `media_assets` library and is referenced by `mediaId` — never inlined into `tenants.config`.** | One reusable, tagged library lets the same asset serve many tenants and keeps the (already large) tenant config JSON lean; only tiny icons keep the data-URL pattern (`brand.appIcon`). Mirrors the no-hardcoding invariant. [[2D-Portfolio-Media]] · [[15-Multi-Tenancy]] |
 | 2026-07-01 | **AI-assisted portfolio selection is tag-constrained retrieval, not generation** — the model returns existing `mediaId`s, never fabricated URLs. | Prevents hallucinated/broken media and keeps proof truthful; the Tenant Builder picks relevant assets by `industry`/`format` tags and a human approves via draft→publish (same human-in-the-loop as outreach/funding). [[2D-Portfolio-Media]] · [[2A-Tenant-Builder]] |
 | 2026-07-01 | **Media storage uses a provider seam (mock/local/URL-first), degrading to URL/embed when unconfigured.** | Matches the project-wide "every integration degrades to not-configured" rule (cf. telephony `getProvider`); prod target is an S3-compatible store (DO Spaces). Video prefers embeds + poster until the object-store phase. [[2D-Portfolio-Media]] |

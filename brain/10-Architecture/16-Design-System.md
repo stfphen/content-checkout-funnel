@@ -11,6 +11,15 @@ source: DESIGN.md, docs/prompts/ui-ux-overhaul.md, docs/specs/ui-overhaul-audit.
 
 ## Stack additions
 - **Fonts** (`next/font/google`, wired in `app/layout.jsx`): **Geist** (`--font-sans`, body **and** headings) + **Geist Mono** (`--font-mono`, data/numbers/code). One calm technical-premium family for everything; `--font-display` simply **aliases** `--font-sans`. *Never redefine these vars in CSS or they clobber the webfonts.* (Swapped from the earlier Inter/Sora pairing in the Direction C overhaul — see below.)
+- **Design-direction display fonts** (2026-07-02): Fraunces (`--font-fraunces`), Space Grotesk (`--font-grotesk`), Bricolage Grotesque (`--font-bricolage`), Instrument Serif (`--font-instrument`) — all `preload: false`, so a family only downloads on funnels whose direction references it.
+
+## Funnel design directions (`--fp-*` token layer, 2026-07-02)
+Tenant funnels are restyled per-tenant via **named design directions** — data-only token specs in `lib/tenantBuilder/designDirections.js` (premium-agency = default look, editorial-minimal, bold-brutalist, warm-boutique, dark-cinematic).
+- **Config:** `tenant.design = { direction, overrides }` — only the id is stored; tokens resolve at render (`resolveDesign` in `FunnelPage`), so refining a direction restyles every tenant on it and switching direction never touches copy.
+- **CSS contract:** funnel selectors read `var(--fp-x, <previous literal>)`; the vars are injected inline on `.tenant-root` (plus `data-direction` for a few structural exception blocks). The **default direction resolves to empty vars**, so tenants without a `design` block render exactly as before, and the admin (which never defines `--fp-*`) always hits the fallbacks.
+- **Brand tokens stay a contract:** directions never define `--blue`/`--blue-dark`/`--accent`; direction palettes reference `var(--blue)` for accent moments so per-tenant branding persists inside every direction.
+- **Hero layout variants:** `full-bleed` (default markup), `split` (`.hero--split`, framed media column), `typographic` (`.hero--typographic`, no image); light variants share `.hero--onlight`. Section order is also per-direction (`resolveSectionOrder` enforces hero-first + checkout-after-packages).
+- **Copy limits** (Feature 3): `lib/tenantBuilder/copyLimits.js` — one table drives JSON-schema `maxLength`/`minItems`/`maxItems` **and** advisory `enforceCopyLimits` warnings (never truncates, never blocks saves).
 - **framer-motion** — scroll reveals, hero stagger, admin tab transitions.
 - **lucide-react** — admin nav + toggle icons.
 
