@@ -12,6 +12,16 @@ Chronological history, reconstructed from repo docs + git. **Append newest entri
 Dates are from doc timestamps / commit themes; treat older "status" claims as point-in-time snapshots.
 
 ## 2026-07
+- **07-02** — **Narrow-breakpoint QA of populated Pipeline/Calls PASSED — ui-overhaul before-merge
+  checklist complete.** Recreated the iframe harness (temporary `public/qa-harness.html`, same-origin so
+  the admin cookie flows; deleted after), reset the `qa-owner` login via `create-owner` upsert, and seeded
+  12 leads + 10 calls into `qa-team` via a scratch script over `lib/store.js` (no calls seeder exists;
+  `seed-funding-demo` hard-wires `team_default`). At 360/375/414: no horizontal document overflow on
+  either tab (JS `scrollWidth` probe + screenshots); lead cards stack 1-col with ellipsis truncation and
+  usable accordions; calls table stacks into `data-label` cards; Recording (play + Transcribe) and
+  Outcome rows fit — the outcome `<select>` saves on change (no confirm-button crowding; Delete is
+  owner-email-gated away). **No CSS changes needed.** Local migration 006 applied as a side effect
+  (`npm run migrate`). → [[16-Design-System]] checklist closed; branch merge-ready.
 - **07-02** — **Vault dashboard + product map added** (via the newly installed Obsidian skills):
   `00-Index/Vault-Dashboard.base` (Bases views over note frontmatter — living working set, stale radar
   grouped by status, modules, all-notes-by-folder, with a computed `days_stale`) and
