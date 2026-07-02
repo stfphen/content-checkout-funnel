@@ -3,7 +3,7 @@ title: 51 · Project Timeline
 type: log
 tags: [audit]
 status: living
-updated: 2026-07-01
+updated: 2026-07-02
 ---
 
 # Project Timeline
@@ -12,6 +12,14 @@ Chronological history, reconstructed from repo docs + git. **Append newest entri
 Dates are from doc timestamps / commit themes; treat older "status" claims as point-in-time snapshots.
 
 ## 2026-07
+- **07-02** — **`feature/portfolio-p0` MERGED to `main` (`a87a714`) and pushed (`be7babb`); deploy
+  pending operator SSH.** The active line (UI overhaul Phases 0–5 + deferred-items pass + Portfolio P0 +
+  AccountCard surfacing + brain/vault work) merged `--no-ff`; single conflict in this timeline resolved
+  as a chronological union. Hard gate re-run **on the merged tip**: `npm test` 208/208 + `npm run build`
+  green. `docs/DEPLOY_NEXT.md` refreshed for the new tip. Deploy blocked from the Mac: VPS
+  `root@62.72.16.32` rejects key auth (password only — no key for it in `~/.ssh`), so the runbook
+  sequence must be run interactively by the operator. Pre-verified: DNS `@`/`www` → `62.72.16.32` ✅,
+  live site currently 200 on the old snapshot ✅. See [[41-Deployment-Runbook]] / `docs/DEPLOY_NEXT.md`.
 - **07-02** — **Narrow-breakpoint QA of populated Pipeline/Calls PASSED — ui-overhaul before-merge
   checklist complete.** Recreated the iframe harness (temporary `public/qa-harness.html`, same-origin so
   the admin cookie flows; deleted after), reset the `qa-owner` login via `create-owner` upsert, and seeded

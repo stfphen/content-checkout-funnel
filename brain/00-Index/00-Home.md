@@ -49,7 +49,7 @@ review → all tenant-scoped, permissioned, and audit-logged.*
 
 ## 🧭 Status at a glance (2026-07-02)
 - **Current priority:** stabilize the repo before building more features. See [[31-Current-Priorities]].
-- **Active branch:** `feature/portfolio-p0` — carries the full UI/UX overhaul (**Phases 0–5 + deferred-items pass**: dark-token fix, CSS prune, admin code-split), **Portfolio/References P0**, and the AccountCard research/scope surfacing. Unmerged, partially unpushed. See [[16-Design-System]] / [[2D-Portfolio-Media]].
+- **Active branch:** `main` — `feature/portfolio-p0` **merged** (`a87a714`, pushed `be7babb`): full UI/UX overhaul + deferred items, **Portfolio/References P0**, AccountCard surfacing. 208/208 + build green on the merged tip. **Deploy to dgtlmag.com pending** (operator SSH — see `docs/DEPLOY_NEXT.md`). See [[16-Design-System]] / [[2D-Portfolio-Media]].
 - **Deploy target:** `dgtlmag.com` on Hostinger VPS `62.72.16.32`. See [[41-Deployment-Runbook]].
 - **Biggest open risks:** security Top-5 all still open (key rotation C1, SSRF C2, rate limiting H1, enrich IDOR H2, weak DB pw H3) — see [[53-Known-Issues]] / [[61-Security-Review]].
 - **Recently shipped:** UI overhaul deferred items done; Portfolio P0 (config + render); enterprise AccountCard now surfaces research + campaign scope. See [[51-Timeline]].
