@@ -221,6 +221,9 @@ export async function POST(request) {
         const createdLeads = [];
         for (const input of leadInputs) {
           const lead = await createLead(input);
+          // A skipped-duplicate return is an existing lead, not a newly promoted
+          // committee member — don't count or re-log it as a promotion.
+          if (lead.skippedDuplicate) continue;
           createdLeads.push(lead);
           await logAudit({
             userId,
