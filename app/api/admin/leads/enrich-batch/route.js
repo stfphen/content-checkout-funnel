@@ -1,21 +1,26 @@
 import { NextResponse } from "next/server";
-import { getAdminSession } from "../../../../../lib/auth";
+import { permissionDeniedResponse, requireRole } from "../../../../../lib/permissions";
 import { buildBatchEnrichmentNotice, selectLeadsForBatchEnrichment } from "../../../../../lib/enrichment/batch.js";
 import { buildLeadEnrichmentUpdate } from "../../../../../lib/enrichment/lead.js";
 import { enrichWebsite } from "../../../../../lib/enrichment/website.js";
-import { listLeads, updateLeadResearch } from "../../../../../lib/store";
+import { getSessionTeamId, listLeads, updateLeadResearch } from "../../../../../lib/store";
 
 export async function POST(request) {
-  const session = await getAdminSession();
-  if (!session) return NextResponse.redirect(new URL("/admin/login", process.env.PUBLIC_APP_URL || request.url), 303);
+  let session;
+  try {
+    session = await requireRole(["owner", "admin", "sales"]);
+  } catch (error) {
+    return permissionDeniedResponse(error, request);
+  }
 
+  const teamId = getSessionTeamId(session);
   const redirectUrl = new URL("/admin", process.env.PUBLIC_APP_URL || request.url);
   const form = await request.formData();
   const tenantId = String(form.get("tenantId") || "");
   const limit = String(form.get("limit") || "");
   const status = String(form.get("status") || "");
 
-  const leads = await listLeads({ tenantId: tenantId || undefined });
+  const leads = await listLeads({ tenantId: tenantId || undefined, teamId });
   const selection = selectLeadsForBatchEnrichment(leads, { limit, status });
 
   let enriched = 0;
@@ -29,7 +34,7 @@ export async function POST(request) {
       });
 
       const update = buildLeadEnrichmentUpdate(lead, enrichmentResult);
-      const updatedLead = await updateLeadResearch(lead.id, update);
+      const updatedLead = await updateLeadResearch(lead.id, update, { teamId });
       if (!updatedLead) {
         failed += 1;
         continue;

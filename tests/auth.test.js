@@ -80,9 +80,15 @@ function createFakeAuthDb() {
       }
 
       if (normalized.startsWith("update users")) {
-        const [userId, status] = params;
+        const [userId, status, teamId] = params;
         const user = users.find((item) => item.id === userId);
         if (!user) return { rows: [], rowCount: 0 };
+        if (normalized.includes("team_memberships")) {
+          const isMember = memberships.some(
+            (item) => item.user_id === userId && item.team_id === teamId
+          );
+          if (!isMember) return { rows: [], rowCount: 0 };
+        }
         user.status = status;
         user.updated_at = new Date().toISOString();
         return { rows: [user], rowCount: 1 };
@@ -192,7 +198,7 @@ test("database login rejects invalid passwords and inactive users", async () => 
   assert.equal(await createAdminSession("admin@example.com", "wrong password"), null);
   assert.equal(db.sessions.length, 0);
 
-  await updateUserStatus(user.id, "disabled");
+  await updateUserStatus(user.id, "disabled", "team_dgtlmag");
   assert.equal(await createAdminSession("admin@example.com", "correct horse battery staple"), null);
   assert.equal(db.sessions.length, 0);
 });

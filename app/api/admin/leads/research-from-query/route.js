@@ -44,7 +44,7 @@ export async function POST(request) {
   const lead = await createLead({ businessName, city, source: "manual", teamId });
 
   const { metadataPatch, leadFieldUpdates, reviewFlags } = mergeDossierIntoLead({ lead, dossier });
-  await updateLeadResearch(lead.id, { metadata: metadataPatch, status: "researched" });
+  await updateLeadResearch(lead.id, { metadata: metadataPatch, status: "researched" }, { teamId });
   if (Object.keys(leadFieldUpdates).length) {
     await updateLead(lead.id, { ...leadFieldUpdates, pipelineStatus: "researched" }, { teamId });
   }

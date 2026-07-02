@@ -88,9 +88,16 @@ function createFakeUsersDb() {
       }
 
       if (normalized.startsWith("update users")) {
-        const [userId, status] = params;
+        const [userId, status, teamId] = params;
         const user = users.find((item) => item.id === userId);
         if (!user) return { rows: [], rowCount: 0 };
+        // Mirror the `exists (... team_memberships ...)` guard in updateUserStatus.
+        if (normalized.includes("team_memberships")) {
+          const isMember = memberships.some(
+            (item) => item.user_id === userId && item.team_id === teamId
+          );
+          if (!isMember) return { rows: [], rowCount: 0 };
+        }
         user.status = status;
         user.updated_at = new Date().toISOString();
         return { rows: [user], rowCount: 1 };
@@ -164,7 +171,7 @@ test("creates and reads a team user with a password hash", async () => {
   assert.equal(teamUsers[0].role, "admin");
   assert.equal(teamUsers[0].passwordHash, undefined);
 
-  const disabled = await updateUserStatus(user.id, "disabled");
+  const disabled = await updateUserStatus(user.id, "disabled", "team_dgtlmag");
   assert.equal(disabled.status, "disabled");
 
   const membership = await updateUserRole(user.id, "team_dgtlmag", "viewer");
@@ -241,4 +248,29 @@ test("validates required email password role and team", async () => {
       }),
     /Team ID is required/
   );
+});
+
+test("updateUserStatus refuses to change a user outside the acting team", async () => {
+  const db = createFakeUsersDb();
+  __setUsersDbForTests(db);
+
+  const victim = await createUser({
+    email: "victim@teamb.com",
+    password: "correct horse battery staple",
+    teamId: "team_b",
+    role: "sales"
+  });
+
+  // An admin acting for team_a must not be able to disable a team_b user.
+  await assert.rejects(
+    () => updateUserStatus(victim.id, "disabled", "team_a"),
+    /not a member of this team/
+  );
+
+  const stillActive = await findUserById(victim.id);
+  assert.equal(stillActive.status, "active", "victim remains active after the blocked cross-team call");
+
+  // The user's own team can change status.
+  const disabled = await updateUserStatus(victim.id, "disabled", "team_b");
+  assert.equal(disabled.status, "disabled");
 });

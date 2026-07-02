@@ -15,7 +15,15 @@ export async function POST(request) {
   const teamId = getSessionTeamId(session);
   const leadId = String(form.get("leadId"));
   const status = String(form.get("status"));
-  await updateLeadStatus(leadId, status, { teamId });
+
+  const redirectUrl = new URL("/admin", process.env.PUBLIC_APP_URL || request.url);
+  try {
+    await updateLeadStatus(leadId, status, { teamId });
+  } catch (error) {
+    redirectUrl.searchParams.set("notice", error?.message || "Could not update lead status.");
+    return NextResponse.redirect(redirectUrl, 303);
+  }
+
   await logAudit({
     userId: session.user?.id,
     action: "lead.status_changed",
@@ -23,5 +31,5 @@ export async function POST(request) {
     targetId: leadId,
     metadata: { teamId, status }
   });
-  return NextResponse.redirect(new URL("/admin", process.env.PUBLIC_APP_URL || request.url), 303);
+  return NextResponse.redirect(redirectUrl, 303);
 }

@@ -29,7 +29,8 @@ export async function POST(request) {
   const leadId = String(body?.leadId || "");
   if (!leadId) return NextResponse.json({ error: "leadId is required." }, { status: 400 });
 
-  const lead = await getLeadById(leadId);
+  const teamId = getSessionTeamId(session);
+  const lead = await getLeadById(leadId, { teamId });
   if (!lead) return NextResponse.json({ error: "Lead not found." }, { status: 404 });
 
   let result;
@@ -44,10 +45,10 @@ export async function POST(request) {
   }
 
   // Persist the research/provider metadata + advance status (deep-merges).
-  await updateLeadResearch(leadId, { metadata: result.metadataPatch, status: "researched" });
+  await updateLeadResearch(leadId, { metadata: result.metadataPatch, status: "researched" }, { teamId });
   // Apply gap fills (empty fields only — never clobbers existing values).
   if (Object.keys(result.filled).length) {
-    await updateLead(leadId, { ...result.filled, pipelineStatus: "researched" }, { teamId: getSessionTeamId(session) });
+    await updateLead(leadId, { ...result.filled, pipelineStatus: "researched" }, { teamId });
   }
 
   await logAudit({
