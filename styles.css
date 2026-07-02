@@ -2327,6 +2327,121 @@ p {
   padding: 4px 14px 14px;
 }
 
+.tenant-editor__media {
+  display: grid;
+  gap: 10px;
+}
+
+/* Media picker — per-slot thumbnail + expandable library grid / dropzone. */
+.media-picker {
+  display: grid;
+  gap: 10px;
+  padding: 12px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--surface);
+}
+
+.media-picker__slot {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.media-picker__label {
+  min-width: 160px;
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--fg);
+}
+
+.media-picker__thumb {
+  width: 72px;
+  height: 48px;
+  object-fit: cover;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  background: var(--surface-2);
+}
+
+.media-picker__empty {
+  font-size: 12px;
+  color: var(--fg-muted);
+}
+
+.media-picker__slot-actions {
+  display: flex;
+  gap: 8px;
+  margin-left: auto;
+}
+
+.media-picker__slot-actions .button {
+  min-height: 34px;
+  padding: 6px 14px;
+  font-size: 13px;
+}
+
+.media-picker__panel {
+  display: grid;
+  gap: 12px;
+  padding-top: 12px;
+  border-top: 1px solid var(--border);
+}
+
+.media-picker__dropzone {
+  display: grid;
+  place-items: center;
+  min-height: 74px;
+  padding: 14px;
+  border: 2px dashed var(--border-strong);
+  border-radius: var(--radius);
+  color: var(--fg-muted);
+  font-size: 13px;
+  text-align: center;
+  cursor: pointer;
+}
+
+.media-picker__dropzone input {
+  display: none;
+}
+
+.media-picker__grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(88px, 1fr));
+  gap: 8px;
+}
+
+.media-picker__asset {
+  padding: 0;
+  border: 2px solid var(--border);
+  border-radius: var(--radius-sm);
+  overflow: hidden;
+  background: var(--surface-2);
+  cursor: pointer;
+  aspect-ratio: 4 / 3;
+}
+
+.media-picker__asset img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.media-picker__asset.is-selected {
+  border-color: var(--brand);
+}
+
+.media-picker__url {
+  display: flex;
+  gap: 8px;
+}
+
+.media-picker__url input {
+  flex: 1;
+}
+
 .api-provider-stack {
   display: grid;
   gap: 24px;

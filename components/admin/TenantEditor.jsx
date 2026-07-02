@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import DesignDirectionPicker from "./DesignDirectionPicker";
+import MediaSlots from "./MediaSlots";
 
 /**
  * Per-section scalar copy fields editable as plain forms. Arrays (packages,
@@ -323,6 +324,8 @@ export default function TenantEditor({ tenants = [] }) {
               idPrefix="editor-direction"
             />
           </div>
+
+          <MediaSlots draft={draft} tenantId={tenantId} postEdit={postEdit} busy={busy} />
 
           <div className="tenant-editor__sections">
             <span className="admin-form__label">Section copy</span>

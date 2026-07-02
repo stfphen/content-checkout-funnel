@@ -7,6 +7,8 @@ npm-debug.log
 !.env.example
 .next/
 data/
+# Runtime media-library uploads (lib/media/localProvider.js) — never committed.
+public/uploads/
 dist/
 build/
 coverage/
