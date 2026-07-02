@@ -49,7 +49,7 @@ review → all tenant-scoped, permissioned, and audit-logged.*
 
 ## 🧭 Status at a glance (2026-07-02)
 - **Current priority:** stabilize the repo before building more features. See [[31-Current-Priorities]].
-- **Active branch:** `main` tip `195c143` (5 tenant funnels seeded). In-progress `feat/admin-command-center` WIP (AdminTabbedShell + styles) is uncommitted. Audit work is on **`audit/2026-07-02`** (234/234 tests + build green): C2 SSRF, H2 + cross-team IDOR family, M1/M2, login H1, L1, and two functional bugs fixed. **Deploy to dgtlmag.com still pending** (operator SSH — see `docs/DEPLOY_NEXT.md`).
+- **Active branch:** **`audit/2026-07-02`** off `main` tip `195c143` (5 tenant funnels seeded). It carries the audit fixes (234/234 tests + build green: C2 SSRF, H2 + cross-team IDOR family, M1/M2, login H1, L1, two functional bugs) **plus the now-committed admin "Dark Command-Center" reskin Phases B–D** (dark-first admin, `3e935bb` tip). **Deploy to dgtlmag.com still pending** (operator SSH — see `docs/DEPLOY_NEXT.md`).
 - **Deploy target:** `dgtlmag.com` on Hostinger VPS `62.72.16.32`. See [[41-Deployment-Runbook]].
 - **Biggest open risks (post-audit):** ops key rotation C1 + DB password H3; **NEW H4** unsubscribe global-suppression amplification; pg-vs-file-store dedupe parity (prod creating duplicate leads). Code-side C2/H2/M1/M2/L1 + login H1 are **done**. See `docs/audits/2026-07-02-codebase-audit.md` / [[53-Known-Issues]].
 - **Recently shipped:** UI overhaul deferred items done; Portfolio P0 (config + render); enterprise AccountCard now surfaces research + campaign scope. See [[51-Timeline]].

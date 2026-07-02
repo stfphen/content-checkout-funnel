@@ -1,37 +1,33 @@
 filters:
   and:
-    - 'file.ext == "md"'
-
+    - file.ext == "md"
 formulas:
-  days_stale: 'if(updated, (now() - date(updated)).days.round(0), "")'
-
+  days_stale: if(updated, (now() - date(updated)).days.round(0), "")
 properties:
   status:
-    displayName: "Status"
+    displayName: Status
   type:
-    displayName: "Type"
+    displayName: Type
   updated:
-    displayName: "Updated"
+    displayName: Updated
   formula.days_stale:
-    displayName: "Days stale"
-
+    displayName: Days stale
 views:
   - type: table
-    name: "Working set (living)"
+    name: Working set (living)
     filters:
       and:
-        - 'status == "living"'
+        - status == "living"
     order:
       - file.name
       - type
       - updated
       - formula.days_stale
-
   - type: table
-    name: "Stale radar"
+    name: Stale radar
     filters:
       and:
-        - 'status != "living"'
+        - status != "living"
     groupBy:
       property: status
       direction: ASC
@@ -40,20 +36,18 @@ views:
       - type
       - updated
       - formula.days_stale
-
   - type: table
-    name: "Modules"
+    name: Modules
     filters:
       and:
-        - 'file.inFolder("20-Modules")'
+        - file.inFolder("20-Modules")
     order:
       - file.name
       - status
       - updated
       - formula.days_stale
-
   - type: table
-    name: "All notes"
+    name: All notes
     groupBy:
       property: file.folder
       direction: ASC

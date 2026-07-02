@@ -12,6 +12,54 @@ Chronological history, reconstructed from repo docs + git. **Append newest entri
 Dates are from doc timestamps / commit themes; treat older "status" claims as point-in-time snapshots.
 
 ## 2026-07
+- **07-02** — **Admin "Dark Command-Center" reskin Phases B–D shipped** (on `audit/2026-07-02`:
+  `97f1252`, `35916a2`, `3e935bb`; the former uncommitted admin WIP is now committed). Admin-only —
+  funnel + all contracts untouched, no logic/route/data changes. **Phase B:** admin is now
+  **dark-first** (`useAdminTheme` defaults dark; toggle + light still work) with a deep
+  command-center palette (`--bg #08080b` + accent tint, layered surfaces) and new accent/glow/
+  elevation tokens (`--accent-fg/-tint/-line`, `--focus-glow`, `--glow`, `--card-grad`,
+  `--card-shadow/-hi`) derived from `--blue` so any tenant accent works, AA. **Phase C:** bolder
+  shell header + accent eyebrow, glowing sidebar active rail, KPI pills → elevated Geist-Mono metric
+  cards. **Phase D:** panels/cards elevated (`--card-grad` + `--border-strong` + `--card-shadow`),
+  inset inputs with glowing focus ring, uppercase table headers + row hover, hairline pill borders.
+  SSR fix (`35916a2`): shell emits `data-theme="dark"` server-side so admin paints pre-JS (was
+  hidden until the client resolved the theme; no hydration mismatch). Phase-A preview:
+  `docs/specs/admin-command-center-preview.html`. Build clean + node tests green per commit;
+  Phase D verified in-browser (dark). ⚠️ Local dev-server render blocked by an environmental
+  Next.js dev-tools/RSC bug (segment-explorer-node) + `output:standalone` vs `next start`
+  mismatch — verified via production build instead. See [[16-Design-System]] / [[21-Admin-Shell]].
+- **07-02** — **Full codebase audit + security fixes (branch `audit/2026-07-02`, off `195c143`).**
+  Ran the `docs/prompts/codebase-audit.md` sweep with 10 parallel area auditors. Baseline was
+  healthy: `npm test` 208/208, `npm run build` clean, SQL-injection surface clean, secrets never
+  git-committed. **Fixed (all with tests; 234/234 green, build clean):**
+  - **C2 SSRF** — new `lib/enrichment/ssrfGuard.js` (scheme allowlist + private/reserved/metadata
+    IP block + per-redirect-hop revalidation via `safeFetch`); wired into `website.js`. See [[24-Enrichment]].
+  - **H2 + cross-team lead IDOR** (broader than catalogued) — `getLeadById`/`updateLeadResearch`
+    now take `{ teamId }` and filter on both backends; enrich/enrich-batch/research/fill-missing/
+    research-from-query/funding-review routes all pass session team; enrich routes upgraded from
+    bare `getAdminSession` to `requireRole`. New: cross-team `updateUserStatus` lockout closed
+    (team-membership guard). See [[21-Admin-Shell]] / [[15-Multi-Tenancy]].
+  - **M1/M2** — `sanitizePublicLeadInput()` whitelists public fields on `POST /api/leads` **and**
+    `/api/checkout` (checkout had the same hole, uncatalogued); teamId/status/score/assignee no
+    longer client-forgeable.
+  - **H1** — in-process login rate limiter (`lib/rateLimit.js`, 10/min/IP) + bcrypt-timing
+    equalizer on the user-miss path.
+  - **Pipeline correctness (new)** — `updateLeadStatus` validates against `pipelineStatuses`
+    (was silently corrupting/resetting); buying-committee promotion no longer collapses to one lead
+    (email now distinguishes people in `shouldSkipReliableDuplicate`). See [[2C-Enterprise-Prospecting]].
+  - **L1** — `permissionDeniedResponse` returns 401 JSON to fetch/XHR callers (redirect only for
+    navigations); added admin `error.jsx`/`loading.jsx` boundaries.
+  Open items written up in [[53-Known-Issues]] (M3 unsubscribe amplification, Stripe idempotency,
+  file-store write race, DB indexes/dedupe parity, outreach double-send). Full report:
+  `docs/audits/2026-07-02-codebase-audit.md`. C1/H3 (key rotation, DB password) remain ops-side.
+- **07-02** — **Claude AI auth CONFIGURED (subscription path) — local + VPS.** Root cause of all
+  AI features failing was simply no credentials: `aiMode()` was `"off"` everywhere. Minted a
+  long-lived `CLAUDE_CODE_OAUTH_TOKEN` via `claude setup-token`; added to local `.env.local`
+  (smoke-tested: `aiMode()` → `"subscription"`, real `generateJson` round-trip passed) and appended
+  to the VPS `/opt/content-checkout-funnel/.env` by the operator over SSH, app container recreated.
+  Deployed image verified subscription-capable (`@anthropic-ai/claude-agent-sdk` + musl build in
+  node_modules, running as uid 1000 non-root). Prod smoke test (Deep Research in `/admin`) pending
+  operator confirmation. See [[2B-AI-Backend]].
 - **07-02** — **All five tenant funnels now live as DB rows.** Local `tenants` table previously held
   only `dgtlmag`/`dmtv`/`elixr`; added `fundedGrowthTenant` to `scripts/seed-tenants.js` and re-ran
   `npm run seed:tenants` — upserted all 5 (`dgtlmag`, `dmtv`, `elixr`, `on-home-decor`,

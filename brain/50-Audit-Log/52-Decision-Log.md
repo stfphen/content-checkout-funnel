@@ -3,7 +3,7 @@ title: 52 · Decision Log
 type: log
 tags: [audit]
 status: living
-updated: 2026-07-01
+updated: 2026-07-02
 ---
 
 # Decision Log
@@ -12,6 +12,7 @@ The "why" behind how things are built. Append new decisions at the top with a da
 
 | Date | Decision | Rationale |
 |---|---|---|
+| 2026-07-02 | **Admin goes dark-FIRST ("Dark Command-Center" reskin), with SSR emitting `data-theme="dark"` by default.** Approved via Phase-A preview; admin-only, funnel + brand-token/mobile-first contracts untouched; implemented as an appended CSS layer over the Phase-2 flattening, with all new glow/elevation tokens derived from `--blue`. | A bolder, higher-contrast operator surface without touching logic/routes/data; deriving from `--blue` keeps any tenant accent AA-correct; server-side dark default fixes the blank-shell-pre-JS failure mode. [[16-Design-System]] |
 | 2026-07-02 | **Codebase audit ran on `audit/2026-07-02` off `195c143`, around the uncommitted admin-command-center WIP.** Audit fixes never touched `AdminTabbedShell.jsx`/`styles.css`; only code + tests + the audit report + the clean brain notes (53/52/00) were committed. `51-Timeline.md` (which already held AI-auth/tenant WIP) was left uncommitted. | Operator directed audit-around-WIP so in-progress admin work stays intact; committing `51-Timeline` would have swept in that WIP. |
 | 2026-07-02 | **The code-fixable security backlog was fixed now, not deferred to a separate pass** (C2 SSRF, H2 + cross-team IDOR family, M1/M2, login H1, L1) alongside newly-found contained bugs (pipeline status validation, committee-collapse dedupe). | Matches the "stabilize before building" priority and the roadmap's "security Top-5 next"; each fix is contained, test-covered, and low-risk. Architectural/ops items (key rotation, unsubscribe token redesign, file-store mutex, DB indexes/parity) were written up as open issues instead. [[53-Known-Issues]] |
 | 2026-07-02 | **`getLeadById`/`updateLeadResearch` take an *optional* `{teamId}` (filter only when provided), rather than making it required.** | System/event callers (Stripe webhook, telephony follow-ups) legitimately act without a session team; making the param optional closes the admin cross-team hole without breaking those paths. Every admin caller now passes the session team. [[15-Multi-Tenancy]] |
