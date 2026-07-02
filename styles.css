@@ -2267,6 +2267,66 @@ p {
   color: var(--fg-muted);
 }
 
+/* Tenant editor (admin) — draft editing panel: prompt edits, diff summary,
+   per-section forms. Semantic tokens only (dark-mode safe). */
+.tenant-editor__body {
+  display: grid;
+  gap: 22px;
+  margin-top: 18px;
+}
+
+.tenant-editor__diff {
+  margin: 0;
+  padding: 12px 14px;
+  list-style: none;
+  display: grid;
+  gap: 8px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--surface-2);
+  font-size: 13px;
+}
+
+.tenant-editor__diff code {
+  display: block;
+  margin-bottom: 2px;
+  font-weight: 700;
+  color: var(--fg);
+}
+
+.tenant-editor__diff-before {
+  color: var(--danger-fg);
+  text-decoration: line-through;
+  overflow-wrap: anywhere;
+}
+
+.tenant-editor__diff-after {
+  color: var(--success-fg);
+  overflow-wrap: anywhere;
+}
+
+.tenant-editor__sections {
+  display: grid;
+  gap: 10px;
+}
+
+.tenant-editor__section {
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--surface);
+}
+
+.tenant-editor__section summary {
+  padding: 12px 14px;
+  cursor: pointer;
+  font-weight: 700;
+  color: var(--fg);
+}
+
+.tenant-editor__section .admin-form {
+  padding: 4px 14px 14px;
+}
+
 .api-provider-stack {
   display: grid;
   gap: 24px;
