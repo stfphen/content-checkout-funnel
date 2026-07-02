@@ -12,6 +12,18 @@ Chronological history, reconstructed from repo docs + git. **Append newest entri
 Dates are from doc timestamps / commit themes; treat older "status" claims as point-in-time snapshots.
 
 ## 2026-07
+- **07-01** — **Portfolio P0 (config + render) SHIPPED** on `feature/portfolio-p0` (branched from
+  `feature/ui-overhaul`). Per-tenant `portfolio` + `references` config sections with empty-array defaults
+  (`lib/defaultTenant.js`), per-item sanitization (`lib/tenantValidation.js`: `src`/`thumbnail`/`link`
+  limited to root-relative or http(s) — protocol-relative `//` rejected; `mediaType` allowlisted
+  image|video|embed; tags coerced to string arrays; unusable entries dropped) + 3 new `ARRAY_PATHS`
+  entries. Funnel renders new `PortfolioSection`/`ReferencesSection` between output and packages **only
+  when populated** — empty tenants fall back to the `output.tiles` grid unchanged (verified via an
+  isolated `APP_STORE_PATH` dev run: populated tenant shows both sections in order with local images via
+  `next/image` + responsive embed iframe; emptied tenant renders no new markup). Real headings/alt (not
+  the `aria-hidden` tile pattern), Reveal/Stagger motion, mobile-first `min-width` CSS on semantic tokens.
+  Tests **208/208** + build green (`tests/portfolio-config.test.js` added). Direct `src` only — the media
+  library/`mediaId` indirection is P1 → [[2D-Portfolio-Media]].
 - **07-01** — **Portfolio / references + media library DESIGNED (not built).** Planned a per-tenant funnel
   "Portfolio & References" section (real video/image case studies, client logos, testimonials, result
   metrics) that today has no equivalent — the funnel's `output` section renders only `aria-hidden`

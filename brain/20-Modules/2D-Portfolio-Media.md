@@ -8,9 +8,10 @@ updated: 2026-07-01
 
 # Portfolio / References & Media Library
 
-> **Status: PROPOSED — design/plan only, not built.** Gated behind repo stabilization
-> ([[31-Current-Priorities]]), like [[2C-Enterprise-Prospecting]] was. This note is the plan of record;
-> update it as phases land. Decision rationale in [[52-Decision-Log]] (2026-07-01).
+> **Status: P0 SHIPPED (2026-07-01, branch `feature/portfolio-p0`); P1+ still PROPOSED.** P0 = config +
+> render only, items carry a direct `src` (no media library yet). Later phases remain gated behind repo
+> stabilization ([[31-Current-Priorities]]), like [[2C-Enterprise-Prospecting]] was. This note is the plan
+> of record; update it as phases land. Decision rationale in [[52-Decision-Log]] (2026-07-01).
 
 ## Purpose
 Give each tenant funnel a **dynamic "Portfolio & References" section** that shows real work (video/image
@@ -102,8 +103,13 @@ Without them configured, only URL/embed registration works.
   for the object-store phase.
 
 ## Phases (each additive, mock-first, behind an approval gate; tests + build green before merge)
-- **P0 — Config + render.** Add `portfolio`/`references` sections + validation + defaults; render from config
-  (falls back to `output.tiles`). No new infra.
+- ✅ **P0 — Config + render.** SHIPPED 2026-07-01 on `feature/portfolio-p0`: `portfolio`/`references`
+  sections + empty-array defaults (`lib/defaultTenant.js`), per-item sanitization + `ARRAY_PATHS`
+  (`lib/tenantValidation.js`), `PortfolioSection`/`ReferencesSection` in `components/FunnelPage.jsx`
+  (render only when populated; falls back to `output.tiles`), mobile-first CSS, `tests/portfolio-config.test.js`.
+  **P0 deviation from the planned shape:** items carry a **direct `src`/`thumbnail`** (root-relative or
+  http(s), like `media.heroImage`) instead of `mediaId` — the `mediaId` indirection arrives with P1's
+  `media_assets` table. 208/208 tests + build green. No new infra.
 - **P1 — Media Library (no object store).** `media_assets` + admin manager with URL/embed + small data-URL
   upload only; works offline, degrades gracefully.
 - **P2 — Real storage + security.** Object-storage seam, real file/video upload, thumbnailing, + the security
