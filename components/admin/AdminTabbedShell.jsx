@@ -133,7 +133,7 @@ export function AdminTabbedShell({ notice, children, visibleTabs }) {
 
   return (
     <AdminTabsContext.Provider value={activeTab}>
-      <div className="v2-admin-shell" data-active-tab={activeTab} data-theme={theme || undefined}>
+      <div className="v2-admin-shell" data-active-tab={activeTab} data-theme={theme || "dark"}>
         {moreOpen ? (
           <button
             type="button"
