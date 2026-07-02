@@ -4215,3 +4215,60 @@ summary:focus-visible,
   background: var(--blue);
   box-shadow: var(--glow);
 }
+
+/* --- Phase D: elevated panels/cards (reverses the flat "ONE card treatment") --- */
+.v2-admin-shell .admin-panel,
+.v2-admin-shell .outreach-card,
+.v2-admin-shell .funding-lead-card,
+.v2-admin-shell .funding-opportunity-card,
+.v2-admin-shell .api-provider-card,
+.v2-admin-shell .batch-builder__form,
+.v2-admin-shell .batch-history,
+.v2-admin-shell .batch-preview,
+.v2-admin-shell .tenant-summary-card,
+.v2-admin-shell .lead-enrichment,
+.v2-admin-shell .metric-table {
+  background: var(--card-grad);
+  border: 1px solid var(--border-strong);
+  box-shadow: var(--card-shadow);
+}
+
+/* --- Phase D: inputs — inset surface + glowing accent focus ring --- */
+.v2-admin-shell input,
+.v2-admin-shell select,
+.v2-admin-shell textarea {
+  background: var(--surface-2);
+  border-color: var(--border-strong);
+}
+.v2-admin-shell input:focus,
+.v2-admin-shell select:focus,
+.v2-admin-shell textarea:focus {
+  border-color: var(--blue);
+  box-shadow: var(--focus-glow);
+}
+.v2-admin-shell .button:focus-visible {
+  outline: none;
+  box-shadow: var(--focus-glow);
+}
+/* Primary buttons carry a soft accent glow (command-center emphasis). */
+.v2-admin-shell .button--primary:hover {
+  box-shadow: var(--focus-glow);
+}
+
+/* --- Phase D: tables — accent-quiet headers, row hover, defined list cards --- */
+.v2-admin-shell .calls-table th {
+  color: var(--fg-subtle);
+  letter-spacing: 0.08em;
+}
+.v2-admin-shell .calls-table tbody tr:hover {
+  background: var(--hover-fill);
+}
+.v2-admin-shell .admin-list div {
+  background: var(--surface-2);
+  border-color: var(--border-strong);
+}
+
+/* --- Phase D: status pills — a hairline border for definition on deep bg --- */
+.v2-admin-shell .status-pill {
+  border: 1px solid color-mix(in srgb, currentColor 30%, transparent);
+}
