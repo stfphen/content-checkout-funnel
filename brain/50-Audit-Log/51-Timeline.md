@@ -12,6 +12,13 @@ Chronological history, reconstructed from repo docs + git. **Append newest entri
 Dates are from doc timestamps / commit themes; treat older "status" claims as point-in-time snapshots.
 
 ## 2026-07
+- **07-02** — **All five tenant funnels now live as DB rows.** Local `tenants` table previously held
+  only `dgtlmag`/`dmtv`/`elixr`; added `fundedGrowthTenant` to `scripts/seed-tenants.js` and re-ran
+  `npm run seed:tenants` — upserted all 5 (`dgtlmag`, `dmtv`, `elixr`, `on-home-decor`,
+  `funded-growth`) into `team_default`. Verified each `/t/<slug>` renders its own branding from
+  Postgres; `npm test` 208/208. In-code configs stay as seed source + fresh-DB fallback.
+  ⚠️ Production (VPS) must re-run `npm run seed:tenants` at deploy for parity — see
+  [[41-Deployment-Runbook]]. Catalog updated: [[63-Tenants-Catalog]].
 - **07-02** — **`feature/portfolio-p0` MERGED to `main` (`a87a714`) and pushed (`be7babb`); deploy
   pending operator SSH.** The active line (UI overhaul Phases 0–5 + deferred-items pass + Portfolio P0 +
   AccountCard surfacing + brain/vault work) merged `--no-ff`; single conflict in this timeline resolved

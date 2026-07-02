@@ -54,6 +54,7 @@ docker compose up -d content-funnel-postgres
 docker compose run --rm --no-deps content-funnel npm run migrate
 read -s -p "Owner password: " OWNER_PASSWORD; echo
 docker compose run --rm --no-deps -e OWNER_PASSWORD="$OWNER_PASSWORD" content-funnel npm run create-owner
+docker compose run --rm --no-deps content-funnel npm run seed:tenants        # all 5 tenant funnels as DB rows (dgtlmag, dmtv, elixr, on-home-decor, funded-growth)
 docker compose run --rm --no-deps content-funnel npm run seed:funding-demo   # optional demo data
 docker compose up -d --build
 ```

@@ -57,12 +57,13 @@ docker compose config
 docker compose build content-funnel
 docker compose up -d content-funnel-postgres
 docker compose run --rm --no-deps content-funnel npm run migrate     # includes 006
+docker compose run --rm --no-deps content-funnel npm run seed:tenants # all 5 tenant funnels as DB rows
 docker compose up -d --build
 curl -I https://dgtlmag.com/                       # expect 200
 ```
 
 ## Post-deploy smoke checks
 - `https://dgtlmag.com/` 200 + hero renders (next/image optimizer working).
-- `/t/dmtv` (or any tenant) — accent + funnel sections correct.
+- `/t/dmtv`, `/t/elixr`, `/t/on-home-decor` — accent + funnel sections correct (served from DB rows).
 - `/admin` → login → tabs navigate; dark-mode toggle; Accounts tab present.
 - Funding survey renders on the funded-growth tenant.

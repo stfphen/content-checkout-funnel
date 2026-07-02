@@ -51,14 +51,17 @@ async function main() {
   const { dmtvTenant } = await import("../lib/tenants/dmtv.js");
   const { elixrTenant } = await import("../lib/tenants/elixr.js");
   const { onHomeDecorTenant } = await import("../lib/tenants/onHomeDecor.js");
+  const { fundedGrowthTenant } = await import("../lib/funding/tenant.js");
 
   // DGTL Content Day is the built-in default tenant; persist it so it shows up as
-  // an explicit, editable tenant row alongside DMTV, ELiXR, and ON Home Decor.
+  // an explicit, editable tenant row alongside the other brands. Funded Growth is
+  // included so every tenant funnel lives in the database, not just in code.
   const tenants = [
     { label: "DGTL Content Day", config: defaultTenant },
     { label: "DMTV", config: dmtvTenant },
     { label: "ELiXR Gallery", config: elixrTenant },
-    { label: "ON Home Decor", config: onHomeDecorTenant }
+    { label: "ON Home Decor", config: onHomeDecorTenant },
+    { label: "DGTL Funded Growth Studio", config: fundedGrowthTenant }
   ];
 
   for (const { label, config } of tenants) {
