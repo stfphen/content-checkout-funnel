@@ -1,20 +1,27 @@
-# Deploy-Ready Snapshot — main @ cd0597e (2026-07-01)
+# Deploy-Ready Snapshot — main @ a87a714 (2026-07-02)
 
-> Prepared during repo consolidation. Full procedure: `brain/40-Operations/41-Deployment-Runbook.md`.
+> Prepared during repo consolidation; refreshed after merging `feature/portfolio-p0`.
+> Full procedure: `brain/40-Operations/41-Deployment-Runbook.md`.
 > This file records what THIS tip ships, the gate status, and the exact commands.
 
 ## What this tip ships (vs. the VPS's last known snapshot)
 - **Full UI/UX overhaul (Direction C)** — token foundation + primitives, admin/funnel reskin,
-  hero via `next/image` → funnel Lighthouse **100 desktop / 92 mobile** (was 86/75).
+  hero via `next/image` → funnel Lighthouse **100 desktop / 92 mobile** (was 86/75) — **plus the
+  deferred-items pass**: dark-mode derived-token fix, sticky dismissible funding notice, CSS dead-rule
+  prune (styles.css 94.8→86.1 kB), admin code-split (/admin first-load 169→151 kB). Narrow-breakpoint
+  QA of populated Pipeline/Calls passed 07-02.
+- **Portfolio/References P0** — per-tenant `portfolio` + `references` config sections (defaults +
+  sanitization) rendered on the funnel; empty tenants unchanged. Config-only, no upload surface.
 - **Enterprise prospecting MVP** — Accounts tab, `lib/enterpriseProspecting/`, EDGAR/OpenCorporates
-  adapters, **migration 006**, seeds, 31 feature tests.
+  adapters, **migration 006**, seeds, 31 feature tests — plus AccountCard research/campaign-scope
+  surfacing (`8b550fe`).
 - Funding-program docs, mobile-first overhaul, telephony, funding program (already on the line).
 
 ## Hard gate (runbook §0) — status
 | Gate | Status |
 |---|---|
-| `npm test` green | ✅ 202/202 at `13457df`; delta `13457df..cd0597e` is **docs/brain-only** (verified `git diff --stat` — 11 files, 0 app code) |
-| `npm run build` succeeds | ✅ same basis |
+| `npm test` green | ✅ **208/208 at `a87a714`** (run on the merged tip, 2026-07-02) |
+| `npm run build` succeeds | ✅ same run |
 | DNS `@`/`www` → `62.72.16.32` | ⬜ verify at deploy time |
 | VPS `.env` has real secrets (never clobber) | ⬜ verify at deploy time |
 | Fresh Postgres dump (`scripts/backup-db.sh`) | ⬜ run on VPS before deploy |
