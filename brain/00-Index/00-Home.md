@@ -47,13 +47,13 @@ review → all tenant-scoped, permissioned, and audit-logged.*
 - [[42-Go-Live-Plan]] — the 12-phase production plan.
 - [[29-Funding-Program]] — the biggest/newest subsystem.
 
-## 🧭 Status at a glance (2026-07-02)
-- **Current priority:** stabilize the repo before building more features. See [[31-Current-Priorities]].
-- **Active branch:** **`audit/2026-07-02`** off `main` tip `195c143` (5 tenant funnels seeded). It carries the audit fixes (234/234 tests + build green: C2 SSRF, H2 + cross-team IDOR family, M1/M2, login H1, L1, two functional bugs) **plus the now-committed admin "Dark Command-Center" reskin Phases B–D** (dark-first admin, `3e935bb` tip). **Deploy to dgtlmag.com still pending** (operator SSH — see `docs/DEPLOY_NEXT.md`).
-- **Deploy target:** `dgtlmag.com` on Hostinger VPS `62.72.16.32`. See [[41-Deployment-Runbook]].
-- **Biggest open risks (post-audit):** ops key rotation C1 + DB password H3; **NEW H4** unsubscribe global-suppression amplification; pg-vs-file-store dedupe parity (prod creating duplicate leads). Code-side C2/H2/M1/M2/L1 + login H1 are **done**. See `docs/audits/2026-07-02-codebase-audit.md` / [[53-Known-Issues]].
-- **Recently shipped:** UI overhaul deferred items done; Portfolio P0 (config + render); enterprise AccountCard now surfaces research + campaign scope. See [[51-Timeline]].
-- **Next big build:** merge + deploy the active line → security Top-5 → Sprint-2 productization. See [[33-Sprint-2-Productization]].
+## 🧭 Status at a glance (2026-07-02, post-consolidation)
+- **Current priority:** redeploy the consolidated tip, then the remaining ops/security items. See [[31-Current-Priorities]].
+- **Active branch:** `main` @ `716e5b2`, **pushed** — consolidation merged `audit/2026-07-02` (security fixes C2/H1/H2/M1/M2/L1 + admin **Dark Command-Center** reskin) and `feature/funnel-design-control` (design directions, tenant editor, copy limits, media library + migration 007). **272/272 tests + build green + runtime smoke on the merged tip.**
+- **Deploy target:** `dgtlmag.com` on Hostinger VPS `62.72.16.32` — **redeploy pending operator SSH**; refreshed sequence in `docs/DEPLOY_NEXT.md` (needs migrations 006+007, seed:tenants, `public/uploads` volume). See [[41-Deployment-Runbook]].
+- **Biggest open risks:** C1 key rotation + H3 DB password (ops), **H4** unsubscribe global-suppression amplification, pg-vs-file-store dedupe parity (HIGH), outreach double-send / Stripe idempotency / batch-import idempotency; `npm audit` 2 moderate accepted (L6). See [[53-Known-Issues]].
+- **Recently shipped:** Funnel Design Control (5 design directions, draft editor, media library) · codebase audit fixes · dark-first admin. See [[51-Timeline]] / [[16-Design-System]] / [[2D-Portfolio-Media]].
+- **Next big build:** redeploy → remaining security/ops items → PR #2 (prospect enrichment) decision → Sprint-2 productization. See [[33-Sprint-2-Productization]].
 
 ---
 *Maintained as a living document. When project reality changes, update the relevant note and add a line to [[51-Timeline]].*

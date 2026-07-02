@@ -12,6 +12,20 @@ Chronological history, reconstructed from repo docs + git. **Append newest entri
 Dates are from doc timestamps / commit themes; treat older "status" claims as point-in-time snapshots.
 
 ## 2026-07
+- **07-02 (late)** — **Repo CONSOLIDATED: everything merged to `main` @ `716e5b2` and PUSHED; redeploy-ready.**
+  Sequence: committed the audit tree's doc WIP + a chore commit tracking the taste-skill pack /
+  audit docs / brand asset (root `.obsidian/` + `.claude/worktrees/` gitignored) → merged
+  `audit/2026-07-02` (`718e472`, clean) → merged `feature/funnel-design-control` (`716e5b2`; only
+  the two brain logs conflicted, resolved as chronological unions — styles.css/store.js/16-Design-System
+  auto-merged). **Gates: 272/272 tests (208 base + 26 audit + 38 funnel), clean build, migration 007
+  applied to local pg, runtime smoke green** (default funnel pixel-stable with 0 `--fp-*` vars, DB
+  tenants render, dark-cinematic preview correct, admin login 200). Removed a stale clean `/tmp`
+  deploy-main worktree (operator-approved) that was blocking the main checkout. `npm audit` = 2
+  moderate, **accepted as L6** (postcss via next; no non-breaking fix). `docs/DEPLOY_NEXT.md`
+  refreshed for `716e5b2` (migrations 006+007, seed:tenants, **`public/uploads` volume**, MEDIA_*
+  vars, dark-first admin note). Remaining before/at redeploy: operator SSH deploy, C1/H3 rotations,
+  H4 unsubscribe, pg dedupe parity; PR #2 (`origin/feature/prospect-enrichment-integration`) still
+  open on GitHub. Historical `backup/*`/`wip/*`/`rescue/*` branches untouched per the 07-01 decision.
 - **07-02** — **Funnel Design Control upgrade SHIPPED on `feature/funnel-design-control`** (per
   `docs/PROMPT_FUNNEL_DESIGN_CONTROL.md`; worked in an isolated worktree off `main` to avoid the
   admin-command-center WIP in the main tree). All four features: **(1) design directions** — 5
