@@ -29,7 +29,8 @@ export async function POST(request) {
   const leadId = String(body?.leadId || "");
   if (!leadId) return NextResponse.json({ error: "leadId is required." }, { status: 400 });
 
-  const lead = await getLeadById(leadId);
+  const teamId = getSessionTeamId(session);
+  const lead = await getLeadById(leadId, { teamId });
   if (!lead) return NextResponse.json({ error: "Lead not found." }, { status: 404 });
 
   let dossier;
@@ -50,10 +51,10 @@ export async function POST(request) {
   const { metadataPatch, leadFieldUpdates, reviewFlags } = mergeDossierIntoLead({ lead, dossier });
 
   // Always persist the dossier + advance status; deep-merges under metadata.research.
-  await updateLeadResearch(leadId, { metadata: metadataPatch, status: "researched" });
+  await updateLeadResearch(leadId, { metadata: metadataPatch, status: "researched" }, { teamId });
   // Apply only the high-confidence gap fills (empty fields). Never clobbers existing values.
   if (Object.keys(leadFieldUpdates).length) {
-    await updateLead(leadId, { ...leadFieldUpdates, pipelineStatus: "researched" }, { teamId: getSessionTeamId(session) });
+    await updateLead(leadId, { ...leadFieldUpdates, pipelineStatus: "researched" }, { teamId });
   }
 
   await logAudit({

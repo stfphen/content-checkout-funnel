@@ -18,7 +18,7 @@ export async function POST(request) {
   const checkedItemIds = form.getAll("items").map((value) => String(value));
 
   const teamId = getSessionTeamId(session);
-  const lead = await getLeadById(leadId);
+  const lead = await getLeadById(leadId, { teamId });
 
   if (lead) {
     const existingMetadata = lead.sourceMetadata || lead.metadata || {};

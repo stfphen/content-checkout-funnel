@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { createLead, getTenantByIdOrSlug, updateLeadResearch } from "../../../lib/store";
+import { sanitizePublicLeadInput } from "../../../lib/leadUtils";
 import { createCheckoutSession, packageHasStripePrice } from "../../../lib/payments/stripe";
 
 export const runtime = "nodejs";
@@ -20,7 +21,9 @@ export async function POST(request) {
     tenant?.packages?.find((item) => item.id === payload.packageId) || null;
 
   // Always capture the lead first (so an abandoned payment still leaves a lead).
-  const lead = await createLead(payload);
+  // Sanitize the untrusted body: the buyer may set contact/tenant fields, but the
+  // owning team and all internal fields are derived server-side (never forged).
+  const lead = await createLead(sanitizePublicLeadInput(payload, { source: "public_form" }));
 
   // Direct Payment Link takes precedence (no Stripe SDK needed).
   if (pkg?.paymentLink) {

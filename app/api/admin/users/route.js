@@ -60,7 +60,7 @@ export async function POST(request) {
       }
 
       const status = action === "deactivate" ? "disabled" : "active";
-      await updateUserStatus(userId, status);
+      await updateUserStatus(userId, status, teamId);
       await logAudit({
         userId: session.user?.id,
         action: action === "deactivate" ? "user.deactivated" : "user.reactivated",

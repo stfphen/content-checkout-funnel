@@ -24,7 +24,13 @@ source: DESIGN.md, docs/prompts/ui-ux-overhaul.md, docs/specs/ui-overhaul-audit.
 ## Dark mode (admin only)
 - Scoped to `.v2-admin-shell[data-theme="dark"]` — the public funnel never has this ancestor (light = best for conversion + tenant branding).
 - Mechanism: the dark scope **re-points palette tokens** so existing `var(--white)` etc. flip automatically; brand tokens stay put so tenant accents still pop.
-- Toggle in `AdminTabbedShell.jsx`: persisted to `localStorage` (`admin-theme`), defaulted from `prefers-color-scheme`, resolved post-mount (no hydration flash; shell hidden until resolved).
+- Toggle in `AdminTabbedShell.jsx`: persisted to `localStorage` (`admin-theme`). **Since the command-center reskin (07-02) the admin is dark-FIRST:** SSR emits `data-theme="dark"` (`theme || "dark"`, `35916a2`) so the shell paints immediately pre-JS; the post-mount effect switches to light only if that's the stored preference. (Previously defaulted from `prefers-color-scheme` with the shell hidden until resolved — that caused a blank admin when client JS was slow.)
+
+## Admin "Dark Command-Center" reskin (Phases B–D, 07-02, on `audit/2026-07-02`)
+Bold dark-first admin reskin, approved via the Phase-A preview (`docs/specs/admin-command-center-preview.html`). Admin-only; funnel + all contracts (brand tokens, mobile-first, fonts) untouched; no logic/route/data changes. Appended as a command-center CSS layer that wins over the Phase-2 flattening block.
+- **Tokens (Phase B):** deep palette in `.v2-admin-shell[data-theme=dark]` (`--bg #08080b` + accent tint, layered surfaces) + new accent/glow/elevation tokens — `--accent-fg/-tint/-line`, `--focus-glow`, `--glow`, `--card-grad`, `--card-shadow/-hi` — all derived from `--blue` so any tenant accent works, AA.
+- **Shell/KPI (Phase C):** bigger H1 + bright accent eyebrow; sidebar active item gets glowing accent rail + tint; `.v2-metric-pill` → elevated cards with big Geist-Mono numerals.
+- **Surfaces (Phase D):** panels/cards elevated (`--card-grad` + `--border-strong` + `--card-shadow`); inputs inset (`--surface-2`) with `--focus-glow` focus ring; tables get `--fg-subtle` uppercase headers + row hover; status pills get hairline `currentColor` borders.
 
 ## Motion conventions
 - `components/motion/Reveal.jsx` — wrap a section's inner container; fades/slides up once on scroll.

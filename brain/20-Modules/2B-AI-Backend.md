@@ -3,7 +3,7 @@ title: 2B · AI Backend (Claude transport)
 type: module
 tags: [module, ai]
 status: stable
-updated: 2026-06-27
+updated: 2026-07-02
 source: docs/CLAUDE_AI_SETUP.md
 ---
 
@@ -17,6 +17,13 @@ only the enrichment sales brief ([[24-Enrichment]]).
 ## Key files (`lib/ai/`)
 - `claudeBackend.js` — the transport. `aiMode`, `aiNotConfiguredError`, `runWebResearch`, `generateJson`. `DEFAULT_MODEL = LEAD_RESEARCH_MODEL || "claude-opus-4-8"`.
 - `aiParse.js` — `isPlainObject`, `str`, `extractText`, `parseModelJson`, `collectCitations`.
+
+## Status (2026-07-02)
+**Configured — subscription path live on local AND VPS.** `CLAUDE_CODE_OAUTH_TOKEN` (minted via
+`claude setup-token`) is in local `.env.local` and the VPS `/opt/content-checkout-funnel/.env`;
+VPS app container recreated with it. Local verified end-to-end (real `generateJson` call).
+Deployed image confirmed subscription-capable (Agent SDK + musl CLI build present, non-root uid 1000).
+Token is a secret — never commit; `.env*` is gitignored.
 
 ## `aiMode()` — picks ONE path at runtime (claudeBackend.js:16-20)
 1. **`CLAUDE_CODE_OAUTH_TOKEN`** set → **"subscription"** (preferred; uses Claude Max/Pro via `@anthropic-ai/claude-agent-sdk`, **no per-token billing**).
