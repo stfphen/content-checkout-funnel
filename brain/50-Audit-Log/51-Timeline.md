@@ -12,6 +12,19 @@ Chronological history, reconstructed from repo docs + git. **Append newest entri
 Dates are from doc timestamps / commit themes; treat older "status" claims as point-in-time snapshots.
 
 ## 2026-07
+- **07-01 (late)** — **Repo CONSOLIDATED and PUSHED; deploy-ready.** `main` fast-forwarded from
+  `83ea5d6` → **`cd0597e`** (enterprise-prospecting MVP + full UI/UX overhaul + brain syncs +
+  funding-program docs merge) and **pushed to `origin/main`** — the delta since the last
+  verified-green build (`13457df`, 202/202 tests) was proven docs/brain-only. Cleanup (conservative,
+  per operator): full **all-refs backup bundle** at `~/content-funnel-backup-2026-07-01.bundle`;
+  deleted 6 git-verified-merged branches (`integration/ui-overhaul`, `feature/ui-overhaul`,
+  `feature/mobile-first`, `feature/per-tenant-app-icon`, `feat/enterprise-prospecting-mvp`,
+  `feature/funding-program-docs`); removed the `funding-program-docs` worktree after merging;
+  **kept** all `backup/*`/`*-wip`/`rescue/*`/divergent branches and all remotes.
+  `feature/portfolio-p0` (active concurrent session) untouched — its portfolio work merges later.
+  Deploy prep: `docs/DEPLOY_NEXT.md` records gate status, migration-006 requirement, new env vars
+  (`SEC_EDGAR_USER_AGENT`, `OPENCORPORATES_API_TOKEN`), and the exact VPS sequence. Roadmap item 1
+  (repo recovery) **done**; item 2 (sync VPS) is next. See [[31-Current-Priorities]] · [[41-Deployment-Runbook]].
 - **07-01** — **Portfolio / references + media library DESIGNED (not built).** Planned a per-tenant funnel
   "Portfolio & References" section (real video/image case studies, client logos, testimonials, result
   metrics) that today has no equivalent — the funnel's `output` section renders only `aria-hidden`
