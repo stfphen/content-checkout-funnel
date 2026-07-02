@@ -13,3 +13,8 @@ coverage/
 *.tgz
 backups/
 *.dump
+
+# Local Obsidian workspace at repo root (brain/.obsidian is the tracked vault config)
+/.obsidian/
+# Claude Code worktrees
+/.claude/worktrees/
