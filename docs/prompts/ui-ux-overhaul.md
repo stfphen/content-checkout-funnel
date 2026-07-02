@@ -1,17 +1,18 @@
 # Prompt: Full UI/UX + Performance Overhaul — Content Checkout Funnel
 
 > Paste everything below the line into terminal Claude from the repo root. This is a **gated,
-> multi-phase workflow**. Claude must **stop for explicit approval** after Phase 1 (audit +
-> design language), Phase 2 (foundation plan), and the first reskinned surface in Phase 3
-> before continuing. Aesthetic is **agnostic** — Claude proposes the look, the human approves it.
+> multi-phase workflow**. Claude must **stop for explicit approval** after Phase 0 (preflight /
+> repo-state report), Phase 1 (audit + design language), Phase 2 (foundation plan), and the first
+> reskinned surface in Phase 3 before continuing. Aesthetic is **agnostic** — Claude proposes the
+> look, the human approves it.
 
 ---
 
 Work in the **Content Checkout Funnel** repo. Before anything else: read `CLAUDE.md`, read
 `brain/00-Index/00-Home.md` and follow its start-of-session checklist, and read
-`brain/10-Architecture/16-Design-System.md`, `brain/20-Modules/21-Admin-Shell.md`, and the
-prior overhaul prompt `docs/prompts/mobile-first-ui-overhaul.md`. Run `git status --short --branch`
-first. Treat every guardrail below as **non-negotiable**.
+`brain/10-Architecture/16-Design-System.md`, `brain/20-Modules/21-Admin-Shell.md`, and the prior
+overhaul prompt `docs/prompts/mobile-first-ui-overhaul.md`. Treat every guardrail below as
+**non-negotiable**. Do not write or change any application code until I approve Phase 0 and Phase 1.
 
 ## Mission
 Give the entire product — the **admin backend** (`/admin` shell + every tab/component) **and** the
@@ -19,6 +20,33 @@ Give the entire product — the **admin backend** (`/admin` shell + every tab/co
 the polish of best-in-class modern SaaS, plus a measurable **performance** improvement. This is a
 reskin and refinement, **not** a rewrite of business logic, data flow, or routes. Nothing about what
 the app *does* should change — only how it looks, feels, and performs.
+
+## Phase 0 — Preflight: discover what's already done and what's uncommitted (NO code, do this FIRST)
+The working tree may contain in-flight work from other efforts. Before proposing anything, find out
+the exact state of the repo and report it back to me. Run and read:
+- `git status --short --branch` — current branch, ahead/behind, staged/modified/untracked.
+- `git stash list` — any stashed work.
+- `git log --oneline -20` — what's already committed.
+- `git diff --stat` and `git diff --stat --cached` — size/shape of uncommitted changes.
+- List untracked files/dirs (the `??` entries), and for any untracked dir, list its contents.
+- `npm run build` and `npm test` (`node --test tests/*.test.js`) — capture whether the tree is
+  currently green; record the numbers as the starting baseline. (There is **no** `npm run lint`.)
+
+Then produce a short **Repo-State Report** that:
+1. **Buckets every change** by what effort it belongs to (e.g. enterprise-prospecting MVP, mobile
+   bugfixes, the brain vault, this UI work) — infer from paths, recent commits, and
+   `brain/50-Audit-Log/51-Timeline.md`. State which buckets are committed vs. uncommitted vs. stashed.
+2. **Flags collisions with this overhaul.** The redesign will touch shared files — especially
+   `styles.css`, `components/admin/AdminTabbedShell.jsx`, and `app/admin/page.jsx`. If any of those
+   already have uncommitted changes, say so explicitly; we must not edit the same files on top of
+   unsaved in-flight work or in two worktrees at once.
+3. **Reports the build/test baseline** you measured (pass/fail, counts, any pre-existing failures).
+4. **Recommends a safe starting point** and asks me to choose, e.g.: (a) I commit/stash the in-flight
+   work first, then you branch from clean; (b) you branch from the current `main` HEAD and rebase
+   later; (c) proceed on top of the working tree as-is. **Do not** commit, stash, reset, or clean
+   anything yourself — just recommend and wait.
+
+**Stop. Show me the Repo-State Report and your recommended starting point, and wait for my decision.**
 
 ## Non-negotiable contracts (do NOT break these)
 1. **Per-tenant brand tokens are a contract.** `--blue`, `--blue-dark`, `--accent` are injected at
@@ -64,8 +92,8 @@ The look is intentionally **not** prescribed. Propose a direction and prove it a
   don't animate.
 - Optimize fonts (already `next/font`) and any images/icons (`lucide-react` — import per-icon).
 - Eliminate layout thrash / CLS; reserve space for async content with skeletons.
-- **Targets:** Lighthouse Performance ≥ 90 on the funnel; admin first-load JS reduced vs. baseline;
-  no Core Web Vitals regressions. State the baseline you measured against.
+- **Targets:** Lighthouse Performance ≥ 90 on the funnel; admin first-load JS reduced vs. the
+  Phase-0 baseline; no Core Web Vitals regressions.
 
 ## Surface inventory (everything in scope)
 **Admin** — `app/admin/page.jsx` (shell) + `app/admin/login/page.jsx`;
@@ -74,7 +102,8 @@ Tenants / Funding / Calls + bottom nav + dark toggle); tables (`CallsTable.jsx`,
 `.admin-list`); forms (`.admin-form`, lead/contact edit); `DialPad.jsx`, `LeadCallPanel.jsx`,
 `RecordingButton.jsx`, `LeadDeepResearch.jsx`, `ResearchFromQuery.jsx`, `FillMissingButton.jsx`,
 `OutreachQueueBuilder.jsx`, `TenantBuilder.jsx`, `TenantBrandingSettings.jsx`,
-`TenantPhoneSettings.jsx`; the funding review notice/banner.
+`TenantPhoneSettings.jsx`; the funding review notice/banner. (Also reskin any newer admin panels you
+find in Phase 0, e.g. an Accounts tab, if present.)
 **Public** — `components/FunnelPage.jsx` (funnel + survey), checkout/package flows, the funding
 survey widget set (`components/funding/*`), `app/t/[slug]/page.jsx` tenant preview.
 **Foundation** — `styles.css` (`:root` tokens + all rules), `app/layout.jsx`,
@@ -91,11 +120,11 @@ Produce **`docs/specs/ui-overhaul-audit.md`**:
   **without touching the brand-token contract**.
 - **Design language proposal:** the direction you recommend (type scale, spacing rhythm, radii,
   elevation, color/neutrals, motion principles), justified against the quality bars — plus 1–2
-  alternatives so the human can choose. Optionally build a single throwaway static preview
+  alternatives so I can choose. Optionally build a single throwaway static preview
   (`docs/specs/ui-preview.html`) showing the proposed primitives (buttons/inputs/cards/table/badges)
   in light + dark against a sample tenant accent. **No changes to app code.**
-- **Performance baseline:** current `npm run build` output (admin + funnel first-load JS),
-  `styles.css` size, and a Lighthouse run on the funnel. Record the numbers.
+- **Performance baseline:** carry over the Phase-0 `npm run build` numbers (admin + funnel
+  first-load JS), the `styles.css` size, and a Lighthouse run on the funnel.
 
 **Stop. Show me the audit + the proposed design language and ask me to pick a direction.**
 
@@ -103,8 +132,8 @@ Produce **`docs/specs/ui-overhaul-audit.md`**:
 Write the **ordered build plan** (lowest-risk foundation first): token refactor → primitives →
 admin shell → admin tabs → funnel → checkout → performance pass. Each item: scope, files,
 acceptance criteria, theming/regression risk. **Stop and show me the plan.**
-After approval, implement **only the foundation** on a feature branch off the integration branch:
-the refreshed token set in `styles.css :root`, the dark re-point block, typography, and a small,
+After approval, implement **only the foundation** on the feature branch agreed in Phase 0: the
+refreshed token set in `styles.css :root`, the dark re-point block, typography, and a small,
 documented set of reusable primitives/utility classes. Verify light + dark + a non-default tenant
 accent still render correctly. Small, focused commits.
 
@@ -122,7 +151,7 @@ funnel **light**, conversion-focused, and correct for arbitrary tenant branding.
 mobile-first work already shipped.
 
 ## Phase 5 — Performance pass
-Execute the performance bars above. Re-measure against the Phase 1 baseline and **report the
+Execute the performance bars above. Re-measure against the Phase-0 baseline and **report the
 before/after numbers** (build output, first-load JS, CSS size, Lighthouse).
 
 ## Acceptance (all must pass)
@@ -131,7 +160,8 @@ before/after numbers** (build output, first-load JS, CSS size, Lighthouse).
 - AA contrast, visible focus, keyboard nav, ≥44px touch targets; reduced-motion honored.
 - All component states present (default/empty/loading/error). No behavior, data, or route changes.
 - No overflow/clipping 360–1280px or at short heights; admin nav works everywhere.
-- Performance improved vs. baseline with no Core Web Vitals regression; funnel Lighthouse ≥ 90.
+- Performance improved vs. the Phase-0 baseline with no Core Web Vitals regression; funnel
+  Lighthouse ≥ 90.
 
 ## Verification (report exact commands + results)
 `npm run build` (the lint gate — there is **no** `npm run lint` script) · `npm test`
@@ -142,6 +172,7 @@ and a high-level diff. On failure, keep going or report the blocker — **do not
 ## Guardrails (hard stops)
 Tenant-aware + mock-data-first; no new business APIs; never auto-send outreach; keep admin nav
 working at all times. Small branches, small commits, one integration branch. **Never** delete
-worktrees, reset branches, force-push, or `git clean` without my explicit confirmation. Never edit
+worktrees, reset branches, force-push, `git stash`, or `git clean` without my explicit confirmation
+— this matters especially because of the uncommitted in-flight work surfaced in Phase 0. Never edit
 the same files in two worktrees at once. When the work is meaningful, update the project brain
 (Timeline / Decision-Log / affected Design-System note) per `CLAUDE.md`.

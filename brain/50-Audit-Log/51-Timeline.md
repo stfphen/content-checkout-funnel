@@ -25,9 +25,12 @@ Dates are from doc timestamps / commit themes; treat older "status" claims as po
   SSR fix (`35916a2`): shell emits `data-theme="dark"` server-side so admin paints pre-JS (was
   hidden until the client resolved the theme; no hydration mismatch). Phase-A preview:
   `docs/specs/admin-command-center-preview.html`. Build clean + node tests green per commit;
-  Phase D verified in-browser (dark). ⚠️ Local dev-server render blocked by an environmental
-  Next.js dev-tools/RSC bug (segment-explorer-node) + `output:standalone` vs `next start`
-  mismatch — verified via production build instead. See [[16-Design-System]] / [[21-Admin-Shell]].
+  Phases C–D verified in-browser in **both dark + light** (elevated cards, glowing input focus,
+  KPI header, readable pills); the **public funnel confirmed untouched** (no `.v2-admin-shell`, stays
+  light, tenant accent `#C9A9A6` intact). ⚠️ Local dev-server was flaky — an environmental Next.js
+  dev-tools/RSC bug (`segment-explorer-node`, cleared by a clean `.next`) + `output:standalone` vs
+  `next start` mismatch + very slow hydration (cold loads need an interaction to reveal panels here;
+  fine in prod). Build clean + `node --test` **234/234**. See [[16-Design-System]] / [[21-Admin-Shell]].
 - **07-02** — **Full codebase audit + security fixes (branch `audit/2026-07-02`, off `195c143`).**
   Ran the `docs/prompts/codebase-audit.md` sweep with 10 parallel area auditors. Baseline was
   healthy: `npm test` 208/208, `npm run build` clean, SQL-injection surface clean, secrets never
