@@ -48,9 +48,9 @@ function useAdminTheme() {
       initial = null;
     }
     if (initial !== "light" && initial !== "dark") {
-      initial = window.matchMedia?.("(prefers-color-scheme: dark)").matches
-        ? "dark"
-        : "light";
+      // Command-center admin is dark-first: default to dark regardless of OS
+      // preference. The toggle still persists an explicit light choice.
+      initial = "dark";
     }
     setTheme(initial);
   }, []);

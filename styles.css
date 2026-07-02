@@ -2987,20 +2987,21 @@ p {
    never has this ancestor, so it is completely unaffected.
    ============================================================ */
 .v2-admin-shell[data-theme="dark"] {
-  --white: #1c1c1e;
-  --soft: #161618;
-  --soft-2: #2c2c2e;
-  --black: #f5f5f7;
-  --near-black: #e6e6eb;
-  --muted: #9b9ba3;
-  --line: rgba(255, 255, 255, 0.12);
-  --border: rgba(255, 255, 255, 0.12);
-  --bg: #0c0c0e;
-  --surface: #1c1c1e;
-  --surface-2: #161618;
-  --surface-3: #2c2c2e; /* raised sits lighter than surface in dark */
-  --fg: #f5f5f7;
-  --fg-muted: #9b9ba3;
+  /* Command-center deep palette (dark-first admin). */
+  --white: #121218;
+  --soft: #0e0e13;
+  --soft-2: #20202b;
+  --black: #eef0f6;
+  --near-black: #dfe0e8;
+  --muted: #9a9ba7;
+  --line: rgba(255, 255, 255, 0.09);
+  --border: rgba(255, 255, 255, 0.09);
+  --bg: #08080b;
+  --surface: #121218;
+  --surface-2: #17171f;
+  --surface-3: #20202b; /* raised sits lighter than surface in dark */
+  --fg: #eef0f6;
+  --fg-muted: #9a9ba7;
   /* Derived tokens MUST be re-declared here. Their :root definitions color-mix
      over --surface/--fg/--border and are computed once at :root — so they bake in
      the LIGHT primitives and inherit down unchanged. Re-declaring the same
@@ -3024,11 +3025,27 @@ p {
   --active-fill: color-mix(in srgb, var(--fg) 13%, transparent);
   --accent-band: color-mix(in srgb, var(--blue) 14%, var(--surface));
   --accent-soft: color-mix(in srgb, var(--blue) 20%, transparent);
+  /* Command-center accent-highlight + elevation tokens. All derive from --blue
+     (the admin accent; = the tenant accent when the shell is branded), so any
+     brand works and stays AA. --ring stays a COLOR (used in outline:); the glow
+     is a separate box-shadow token. */
+  --accent-fg: color-mix(in srgb, var(--blue) 60%, #ffffff);
+  --accent-tint: color-mix(in srgb, var(--blue) 16%, var(--surface));
+  --accent-line: color-mix(in srgb, var(--blue) 52%, transparent);
+  --ring: color-mix(in srgb, var(--blue) 60%, transparent);
+  --focus-glow: 0 0 0 3px color-mix(in srgb, var(--blue) 32%, transparent),
+    0 0 20px color-mix(in srgb, var(--blue) 24%, transparent);
+  --glow: 0 0 22px color-mix(in srgb, var(--blue) 26%, transparent);
+  --card-grad: linear-gradient(180deg, var(--surface-2), var(--surface));
+  --card-shadow: 0 1px 0 rgba(255, 255, 255, 0.04) inset, 0 10px 30px rgba(0, 0, 0, 0.55);
+  --card-shadow-hi: 0 1px 0 rgba(255, 255, 255, 0.06) inset, 0 18px 50px rgba(0, 0, 0, 0.6);
+  --bg-tint: radial-gradient(1200px 600px at 78% -12%, color-mix(in srgb, var(--blue) 10%, transparent), transparent 70%);
   --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.4);
   --shadow: 0 1px 2px rgba(0, 0, 0, 0.45), 0 16px 40px rgba(0, 0, 0, 0.5);
   --shadow-lg: 0 2px 4px rgba(0, 0, 0, 0.45), 0 28px 80px rgba(0, 0, 0, 0.6);
   --glass-dark: rgba(28, 28, 30, 0.82);
-  background: #0c0c0e;
+  background-color: var(--bg);
+  background-image: var(--bg-tint);
   color: var(--black);
 }
 
@@ -4095,4 +4112,106 @@ summary:focus-visible,
   font-size: var(--text-xs);
   color: var(--danger-fg);
   white-space: nowrap;
+}
+
+/* ============================================================================
+   === ADMIN COMMAND-CENTER (bold, dark-first reskin) ===
+   Appended last so it wins the cascade over the "Phase 2 normalization" block
+   that flattens the admin. Scoped to .v2-admin-shell (admin only — funnel
+   untouched). Consumes tokens from :root (light) + the dark scope (deep). The
+   new command-center tokens get LIGHT defaults here so the light toggle stays
+   usable; .v2-admin-shell[data-theme="dark"] overrides them (higher specificity).
+   ========================================================================== */
+
+/* Light-mode defaults for the command-center tokens. */
+.v2-admin-shell {
+  --accent-fg: color-mix(in srgb, var(--blue) 78%, #000000);
+  --accent-tint: color-mix(in srgb, var(--blue) 10%, var(--surface));
+  --accent-line: color-mix(in srgb, var(--blue) 45%, transparent);
+  --focus-glow: 0 0 0 3px color-mix(in srgb, var(--blue) 22%, transparent);
+  --glow: 0 6px 20px color-mix(in srgb, var(--blue) 20%, transparent);
+  --card-grad: var(--surface);
+  --card-shadow: 0 1px 2px rgba(10, 12, 20, 0.05), 0 6px 20px rgba(10, 12, 20, 0.06);
+  --card-shadow-hi: 0 2px 6px rgba(10, 12, 20, 0.08), 0 16px 40px rgba(10, 12, 20, 0.1);
+}
+
+/* Header — confident hierarchy + bright accent eyebrow (reverses Phase-2 shrink). */
+.v2-admin-shell .v2-view-header h1 {
+  font-size: clamp(30px, 3.4vw, 40px);
+  font-weight: 720;
+  letter-spacing: -0.03em;
+  line-height: 1.04;
+}
+.v2-admin-shell .v2-view-header .eyebrow,
+.v2-admin-shell .admin-header .eyebrow {
+  color: var(--accent-fg);
+  opacity: 1;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+}
+
+/* Sidebar active item — glowing accent rail + tint + accent text/icon. */
+.v2-admin-shell .v2-nav-item.is-active {
+  color: var(--accent-fg);
+  background: var(--accent-tint);
+  box-shadow: inset 0 0 0 1px var(--accent-line), var(--glow);
+}
+.v2-admin-shell .v2-nav-item.is-active svg {
+  color: var(--accent-fg);
+  opacity: 1;
+}
+
+/* KPI header — the signature command-center element (reverses the flat stat cards). */
+.v2-admin-shell .admin-metrics {
+  gap: var(--space-4);
+}
+.v2-admin-shell .admin-metrics .v2-metric-pill {
+  position: relative;
+  overflow: hidden;
+  padding: var(--space-5) var(--space-5) var(--space-4);
+  background: var(--card-grad);
+  border: 1px solid var(--border-strong);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--card-shadow);
+  transition: box-shadow var(--dur) var(--ease-out), transform var(--dur) var(--ease-out);
+}
+.v2-admin-shell .admin-metrics .v2-metric-pill::after {
+  content: "";
+  position: absolute;
+  inset: 0 0 auto 0;
+  height: 2px;
+  background: linear-gradient(90deg, var(--blue), transparent 72%);
+  opacity: 0.55;
+}
+.v2-admin-shell .admin-metrics .v2-metric-pill:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--card-shadow-hi);
+}
+.v2-admin-shell .admin-metrics .v2-metric-count {
+  font-family: var(--font-mono);
+  font-size: clamp(30px, 3vw, 44px);
+  font-weight: 680;
+  line-height: 1;
+  letter-spacing: -0.03em;
+  color: var(--fg);
+}
+.v2-admin-shell .admin-metrics .v2-metric-label {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: var(--space-3);
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--fg-subtle);
+}
+.v2-admin-shell .admin-metrics .v2-metric-label::before {
+  content: "";
+  flex: none;
+  width: 7px;
+  height: 7px;
+  border-radius: 999px;
+  background: var(--blue);
+  box-shadow: var(--glow);
 }
