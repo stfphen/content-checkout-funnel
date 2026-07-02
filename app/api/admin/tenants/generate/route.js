@@ -47,6 +47,7 @@ export async function POST(request) {
   const prompt = String(form.get("prompt") || "");
   const brandName = String(form.get("brandName") || "").trim();
   const slug = String(form.get("slug") || "").trim();
+  const direction = String(form.get("direction") || "").trim();
 
   const documents = [];
   for (const entry of form.getAll("documents")) {
@@ -59,7 +60,7 @@ export async function POST(request) {
 
   let generated;
   try {
-    generated = await generateTenantConfig({ prompt, brandName, slug, documents });
+    generated = await generateTenantConfig({ prompt, brandName, slug, direction, documents });
   } catch (error) {
     const status =
       error?.name === "TenantBuilderNotConfigured"
@@ -96,6 +97,7 @@ export async function POST(request) {
     metadata: {
       teamId,
       slug: tenant.slug,
+      direction: tenant.design?.direction || "",
       documentCount: documents.length,
       hasPrompt: Boolean(prompt.trim())
     }

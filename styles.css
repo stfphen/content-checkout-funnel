@@ -2115,6 +2115,158 @@ p {
   resize: vertical;
 }
 
+/* Standalone form label text (for grouped controls like the direction picker
+   that can't live inside a <label>). Mirrors the admin-form label styling. */
+.admin-form__label {
+  display: block;
+  margin-bottom: 10px;
+  color: var(--fg);
+  font-size: 14px;
+  font-weight: 700;
+}
+
+/* Design-direction picker (admin) — data-driven cards over the direction
+   catalog. Uses semantic tokens only so the admin dark theme re-points it. */
+.direction-picker {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(168px, 1fr));
+  gap: 12px;
+}
+
+.direction-card {
+  position: relative;
+  display: grid;
+  gap: 8px;
+  padding: 12px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--surface);
+  cursor: pointer;
+  transition: border-color var(--dur-fast) ease, box-shadow var(--dur) var(--ease-out);
+}
+
+.direction-card:hover {
+  border-color: var(--border-strong);
+}
+
+.direction-card.is-selected {
+  border-color: var(--brand);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--brand) 18%, transparent);
+}
+
+.direction-card input {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.direction-card:focus-within {
+  outline: 3px solid var(--ring);
+  outline-offset: 2px;
+}
+
+.direction-card__preview {
+  display: grid;
+  grid-template-columns: 44px 1fr;
+  grid-template-rows: auto auto;
+  gap: 8px;
+  align-items: center;
+}
+
+.direction-card__sample {
+  grid-row: span 2;
+  display: grid;
+  place-items: center;
+  width: 44px;
+  height: 44px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  font-size: 22px;
+  font-weight: 600;
+  line-height: 1;
+}
+
+.direction-card__swatches {
+  display: flex;
+  gap: 4px;
+}
+
+.direction-card__swatches i {
+  width: 16px;
+  height: 16px;
+  border: 1px solid var(--border);
+  border-radius: 4px;
+}
+
+.direction-card__thumb {
+  display: flex;
+  gap: 3px;
+  align-items: stretch;
+  height: 14px;
+}
+
+.direction-card__thumb i {
+  background: color-mix(in srgb, var(--fg) 24%, transparent);
+  border-radius: 2px;
+}
+
+/* full-bleed: one wide block; split: copy + media columns; typographic: bars. */
+.direction-card__thumb--full-bleed i:first-child {
+  flex: 1;
+}
+
+.direction-card__thumb--full-bleed i:not(:first-child) {
+  display: none;
+}
+
+.direction-card__thumb--split i:first-child {
+  flex: 1.2;
+}
+
+.direction-card__thumb--split i:nth-child(2) {
+  flex: 0.8;
+  background: color-mix(in srgb, var(--brand) 45%, transparent);
+}
+
+.direction-card__thumb--split i:nth-child(3) {
+  display: none;
+}
+
+.direction-card__thumb--typographic {
+  flex-direction: column;
+  gap: 2px;
+}
+
+.direction-card__thumb--typographic i {
+  height: 3px;
+}
+
+.direction-card__thumb--typographic i:first-child {
+  width: 85%;
+}
+
+.direction-card__thumb--typographic i:nth-child(2) {
+  width: 60%;
+}
+
+.direction-card__thumb--typographic i:nth-child(3) {
+  width: 35%;
+}
+
+.direction-card__label {
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--fg);
+}
+
+.direction-card__blurb {
+  font-size: 12px;
+  line-height: 1.4;
+  color: var(--fg-muted);
+}
+
 .api-provider-stack {
   display: grid;
   gap: 24px;

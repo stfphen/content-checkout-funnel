@@ -1,6 +1,8 @@
 "use client";
 
 import { useRef, useState } from "react";
+import { DEFAULT_DIRECTION_ID } from "../../lib/tenantBuilder/designDirections";
+import DesignDirectionPicker from "./DesignDirectionPicker";
 
 function slugify(value) {
   return String(value || "")
@@ -15,6 +17,7 @@ export default function TenantBuilder() {
   const [slug, setSlug] = useState("");
   const [slugEdited, setSlugEdited] = useState(false);
   const [prompt, setPrompt] = useState("");
+  const [direction, setDirection] = useState(DEFAULT_DIRECTION_ID);
   const [status, setStatus] = useState("idle"); // idle | loading | done | error
   const [error, setError] = useState("");
   const [result, setResult] = useState(null); // { tenant, warnings }
@@ -37,6 +40,7 @@ export default function TenantBuilder() {
     formData.set("prompt", prompt);
     formData.set("brandName", brandName);
     formData.set("slug", effectiveSlug);
+    formData.set("direction", direction);
     const files = fileRef.current?.files || [];
     for (const file of files) {
       formData.append("documents", file);
@@ -107,6 +111,11 @@ export default function TenantBuilder() {
             placeholder="Who is this client, what do they sell, who is the audience, what packages and pricing, tone, key differentiators..."
           />
         </label>
+
+        <div>
+          <span className="admin-form__label">Design direction</span>
+          <DesignDirectionPicker value={direction} onChange={setDirection} idPrefix="builder-direction" />
+        </div>
 
         <label>
           Reference files (optional) — briefs or existing landing pages / configs
