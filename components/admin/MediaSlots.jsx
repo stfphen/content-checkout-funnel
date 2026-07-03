@@ -1,6 +1,7 @@
 "use client";
 
 import MediaPicker from "./MediaPicker";
+import YouTubeHeroInput from "./YouTubeHeroInput";
 
 /**
  * Every media slot of the tenant draft, each backed by a MediaPicker and
@@ -28,6 +29,10 @@ export default function MediaSlots({ draft, tenantId, postEdit, busy }) {
       },
       "media"
     );
+  }
+
+  function saveHeroVideo(heroVideo) {
+    return postEdit({ patch: { media: { heroVideo } } }, "media");
   }
 
   function savePortfolioItem(index, selection) {
@@ -73,6 +78,12 @@ export default function MediaSlots({ draft, tenantId, postEdit, busy }) {
         disabled={disabled}
         value={{ mediaId: draft.media?.heroImageId || "", src: draft.media?.heroImage || "" }}
         onSelect={saveHero}
+      />
+
+      <YouTubeHeroInput
+        current={draft.media?.heroVideo}
+        disabled={disabled}
+        onSave={saveHeroVideo}
       />
 
       {items.map((item, index) => (

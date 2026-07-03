@@ -167,3 +167,71 @@ test("manual patch can swap the hero to a library asset and back to a URL", () =
   assert.equal(portfolioSwap.valid, true);
   assert.equal(portfolioSwap.config.portfolio.items[0].mediaId, "media_p1");
 });
+
+test("heroVideo config survives normalize, sanitize, patch, resolver, and draft round trip", async (t) => {
+  const heroVideo = {
+    url: "https://www.youtube.com/watch?v=dQw4w9WgXcQ",
+    kind: "video",
+    videoId: "dQw4w9WgXcQ",
+    playlistId: ""
+  };
+
+  // normalize fills the empty default and keeps authored blocks wholesale.
+  assert.deepEqual(normalizeTenantConfig({}).media.heroVideo, {
+    url: "",
+    kind: "",
+    videoId: "",
+    playlistId: ""
+  });
+  assert.deepEqual(normalizeTenantConfig({ media: { heroVideo } }).media.heroVideo, heroVideo);
+
+  // sanitize keeps valid blocks and coerces garbage to empty.
+  assert.deepEqual(sanitizeTenantConfig({ ...defaultTenant, media: { ...defaultTenant.media, heroVideo } }).media.heroVideo, heroVideo);
+  const junk = sanitizeTenantConfig({
+    ...defaultTenant,
+    media: { ...defaultTenant.media, heroVideo: { kind: "video", videoId: "nope", url: "https://evil.example" } }
+  });
+  assert.deepEqual(junk.media.heroVideo, { url: "", kind: "", videoId: "", playlistId: "" });
+
+  // manual patch (the picker path) one-level merges media and preserves siblings.
+  const base = normalizeTenantConfig({
+    id: "tenant_yt",
+    slug: "yt",
+    domains: ["yt.local"],
+    brand: { name: "YT Co" }
+  });
+  const patched = applyManualPatch(base, { media: { heroVideo } });
+  assert.equal(patched.valid, true);
+  assert.deepEqual(patched.config.media.heroVideo, heroVideo);
+  assert.equal(patched.config.media.heroImage, base.media.heroImage);
+  const cleared = applyManualPatch(patched.config, {
+    media: { heroVideo: { url: "", kind: "", videoId: "", playlistId: "" } }
+  });
+  assert.equal(cleared.config.media.heroVideo.kind, "");
+
+  // resolver: heroVideo passes through untouched alongside heroImageId resolution.
+  const { createMediaAsset, resolveTenantMediaConfig, saveTenantDraftConfig, getTenantByIdOrSlug, getRenderableTenantConfig } =
+    await withTempStore(t);
+  const asset = await createMediaAsset({ url: "/uploads/team_a/h.png", alt: "A" }, { teamId: "team_a" });
+  const config = normalizeTenantConfig({
+    media: { heroImage: "/assets/x.png", heroImageId: asset.id, heroAlt: "", heroVideo }
+  });
+  const resolved = await resolveTenantMediaConfig(config, { teamId: "team_a" });
+  assert.equal(resolved.media.heroImage, "/uploads/team_a/h.png");
+  assert.deepEqual(resolved.media.heroVideo, heroVideo);
+
+  // draft save/load round trip.
+  const saved = await saveTenantDraftConfig(
+    null,
+    {
+      ...defaultTenant,
+      id: "tenant_yt_rt",
+      slug: "yt-rt",
+      domains: ["yt-rt.local"],
+      media: { ...defaultTenant.media, heroVideo }
+    },
+    { teamId: "team_default" }
+  );
+  const loaded = await getTenantByIdOrSlug(saved.id, { teamId: "team_default" });
+  assert.deepEqual(getRenderableTenantConfig(loaded, "draft").media.heroVideo, heroVideo);
+});

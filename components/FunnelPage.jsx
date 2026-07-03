@@ -7,6 +7,7 @@ import { resolveDesign } from "../lib/tenantBuilder/designDirections";
 import FundingSurveyWidget from "./funding/FundingSurveyWidget";
 import Reveal from "./motion/Reveal";
 import { Stagger, StaggerItem } from "./motion/Stagger";
+import YouTubeHeroPlayer from "./YouTubeHeroPlayer";
 
 // Same rule as the hero image: local "/"-prefixed assets go through next/image
 // (resized WebP/AVIF); remote tenant URLs fall back to a plain <img> so the
@@ -268,9 +269,10 @@ function HeroSection({ tenant, ctx }) {
               <HeroActions tenant={tenant} ctx={ctx} />
               <HeroStats tenant={tenant} />
             </div>
-            {tenant.media.heroImage ? (
+            {tenant.media.heroImage || tenant.media.heroVideo?.kind ? (
               <StaggerItem className="hero__media-frame">
                 <HeroImage tenant={tenant} priority />
+                <YouTubeHeroPlayer video={tenant.media.heroVideo} />
               </StaggerItem>
             ) : null}
           </div>
@@ -282,6 +284,9 @@ function HeroSection({ tenant, ctx }) {
   return (
     <section className="hero" aria-label={ariaLabel}>
       <HeroImage tenant={tenant} priority />
+      {/* Paint order is DOM order: image (poster/LCP) → looping video → shade
+          (keeps darkening whichever is visible) → content. */}
+      <YouTubeHeroPlayer video={tenant.media.heroVideo} />
       <div className="hero__shade" />
       <Stagger className="hero__content" stagger={0.1} amount={0.1}>
         <HeroBrandbar tenant={tenant} />

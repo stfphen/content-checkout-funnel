@@ -39,7 +39,7 @@ API routes are `route.js` handlers.
 - **Prospecting:** `prospecting/apollo`, `prospecting/google`, `prospecting/hunter`, `prospecting/batches`, `prospecting/batches/import`.
 - **Telephony:** `telephony/outcome`, `telephony/transcribe`, `telephony/delete-call`.
 - **Tenants:** `tenants/generate` (AI, takes a `direction` field), `tenants/edit` (POST NL-instruction **or** deterministic `patch` mode onto the draft; GET returns the draft snapshot for the editor), `tenants/import`, `tenants/publish`, `tenants/branding`, `tenants/telephony`.
-- **Media:** `media` (GET team library list, POST multipart image upload → `public/uploads/` via `lib/media/`, DELETE with tenant-reference check + `force`). See [[2D-Portfolio-Media]].
+- **Media:** `media` (GET team library list, POST multipart image upload → `public/uploads/` via `lib/media/`, DELETE with tenant-reference check + `force`); `media/youtube-resolve` (POST — classify a pasted YouTube video/playlist/channel link into a `heroVideo` block; channel handles resolve via optional `YOUTUBE_API_KEY` or an SSRF-guarded page fetch). See [[2D-Portfolio-Media]].
 - **Other:** `contractors`, `drafts`, `users`.
 
 ## Telephony provider routes (`/api/telephony/*`)

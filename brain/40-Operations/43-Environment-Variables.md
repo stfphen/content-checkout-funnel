@@ -42,6 +42,7 @@ source: .env.example, API_KEYS.md, GO_LIVE_PLAN.md
 | `MEDIA_STORAGE_PROVIDER` | Storage backend for uploads | default `local` (`public/uploads/`); S3 provider slots in later. [[2D-Portfolio-Media]] |
 | `MEDIA_UPLOAD_DIR` | Local provider root override | default `<cwd>/public/uploads`; the test seam (mirrors `APP_STORE_PATH`). |
 | `MEDIA_MAX_UPLOAD_BYTES` | Upload size cap | default 10 MB. |
+| `YOUTUBE_API_KEY` | YouTube Data API v3 for resolving `@handle`//`user/` channel links in the hero-video picker | Optional — without it, resolution falls back to an SSRF-guarded fetch of the public channel page (works today; the API path is the stable one). `/c/` custom URLs always use the page fallback. [[2D-Portfolio-Media]] |
 
 ⚠️ Deploy: `next.config.mjs` uses `output:"standalone"` — `public/` is snapshotted at build, so runtime uploads need `public/uploads` mounted as a **volume** in the container until the S3 provider ships.
 
