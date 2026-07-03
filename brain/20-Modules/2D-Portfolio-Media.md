@@ -25,6 +25,12 @@ updated: 2026-07-02
 > edit route's deterministic patch mode. **Index deviation:** plain `gin(tags)` + btree
 > `(team_id, created_at desc)` instead of the composite gin (needs `btree_gin`). **Deploy:**
 > `output:"standalone"` needs `public/uploads` as a volume until the S3 provider (P2).
+>
+> **2026-07-03 — YouTube hero media shipped:** `media.heroVideo` (video loop / ordered playlist
+> loop / shuffled channel uploads) via `lib/media/youtube.js` (parser+sanitizer),
+> `lib/media/youtubeResolve.js` + `/api/admin/media/youtube-resolve` (save-time resolution),
+> `components/YouTubeHeroPlayer.jsx` (IFrame API, PLAYING-gated reveal, image fallback) and the
+> `YouTubeHeroInput` editor slot. Config-direct, not a `media_assets` row ([[52-Decision-Log]]).
 
 ## Purpose
 Give each tenant funnel a **dynamic "Portfolio & References" section** that shows real work (video/image

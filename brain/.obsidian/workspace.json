@@ -13,12 +13,12 @@
             "state": {
               "type": "markdown",
               "state": {
-                "file": "00-Index/CLAUDE-Operating-Rules.md",
+                "file": "30-Roadmap/32-Near-Term-Roadmap.md",
                 "mode": "source",
                 "source": false
               },
               "icon": "lucide-file",
-              "title": "CLAUDE-Operating-Rules"
+              "title": "32-Near-Term-Roadmap"
             }
           },
           {
@@ -196,11 +196,16 @@
   },
   "active": "324ef09f1fc86117",
   "lastOpenFiles": [
-    "50-Audit-Log/52-Decision-Log.md.tmp.54542.4dd07a823d53",
+    "30-Roadmap/32-Near-Term-Roadmap.md",
+    "30-Roadmap/34-Do-Not-Start-Yet.md",
+    "30-Roadmap/31-Current-Priorities.md",
+    "30-Roadmap/30-Roadmap-MOC.md",
+    "00-Index/Product-Map.canvas",
+    "00-Index/02-Glossary.md",
     "00-Index/CLAUDE-Operating-Rules.md",
+    "50-Audit-Log/52-Decision-Log.md.tmp.54542.4dd07a823d53",
     "00-Index/Repo-Docs-Index.md",
     "00-Index/Vault-Dashboard.base",
-    "00-Index/Product-Map.canvas",
     "10-Architecture/13-Data-Model.md",
     "10-Architecture/16-Design-System.md.tmp.21354.44668a3cd12e",
     "20-Modules/2D-Portfolio-Media.md",

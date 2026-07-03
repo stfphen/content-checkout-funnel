@@ -12,6 +12,22 @@ Chronological history, reconstructed from repo docs + git. **Append newest entri
 Dates are from doc timestamps / commit themes; treat older "status" claims as point-in-time snapshots.
 
 ## 2026-07
+- **07-03** — **YouTube hero media SHIPPED (`feature/youtube-hero` → merged to `main`).** Tenant hero
+  can now loop a **single video**, a **playlist in order**, or a **channel's uploads shuffled**
+  (uploads playlist `UU…`, 200-item embed cap), configured in the Tenant Editor media slots:
+  paste link → Detect (`/api/admin/media/youtube-resolve`; handles resolve via optional
+  `YOUTUBE_API_KEY` or SSRF-guarded page fetch — live-verified against real YouTube incl.
+  `@handle → UU…`) → video-vs-playlist choice for dual URLs → save via the audited edit-route
+  media patch. Config: `media.heroVideo {url,kind,videoId,playlistId}` (sanitize coerces invalid
+  to empty; media block now sanitized for the first time). Render: `YouTubeHeroPlayer` (IFrame API
+  all kinds, reveal only on PLAYING, idle-deferred so the image stays LCP/poster, watchdog+onError
+  → silent image fallback, reduced-motion = image only), wired into full-bleed (under the shade)
+  and split hero variants; `.hero__video` cq-unit cover CSS. **286/286 tests + build green.**
+  ⚠️ Verification note: this Mac's network/Chrome blocks googlevideo.com media delivery (even
+  youtube.com itself can't play), so live playback could not be eyeballed locally — instead the
+  blocked environment proved the graceful-degradation path end-to-end (player ready → no media →
+  watchdog → image stays, zero errors). Playback needs an eyeball check on an unblocked network
+  after deploy. Draft previews seeded: `/t/verify-yt-{video,playlist,channel}?preview=draft`.
 - **07-03** — **REDEPLOYED: dgtlmag.com now runs `main` @ `14a746b`** — the consolidated tip is fully
   in production (security fixes C2/H1/H2/M1/M2, admin Dark Command-Center, funnel design control +
   media library). Pre-deploy: added the missing `./uploads:/app/public/uploads` compose mount
