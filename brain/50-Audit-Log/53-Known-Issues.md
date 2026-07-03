@@ -61,7 +61,9 @@ Latest sweep: `docs/audits/2026-07-02-codebase-audit.md` (branch `audit/2026-07-
 - **`team_default` workaround** — built-in tenants tied to one team; blocks clean multi-team onboarding. [[15-Multi-Tenancy]] / [[33-Sprint-2-Productization]]
 - **No `lint` script** despite the mobile prompt referencing `npm run lint`. [[11-Tech-Stack]]
 - **2 moderate npm advisories** (`npm install`) — not yet addressed.
-- **VPS drift risk** — VPS has run snapshots far behind `main`; add an uptime monitor (Phase 12) to catch 502s automatically. [[42-Go-Live-Plan]]
+- **VPS drift risk** — largely resolved 2026-07-02: VPS deployed at `main@814f861` (smoke green), one
+  deploy behind the current tip (`716e5b2` redeploy pending — migrations 007 + uploads volume). Still
+  missing: an uptime monitor (Phase 12) to catch 502s automatically. [[42-Go-Live-Plan]]
 - Provider hardening (retries/rate-limits/quota) outstanding. [[23-Prospecting]]
 - **PLANNED-SURFACE (watch): media upload endpoints** — the proposed portfolio/media library
   ([[2D-Portfolio-Media]]) adds a file-upload surface (`POST /api/admin/media`). It must ship **after** the

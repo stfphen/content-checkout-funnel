@@ -12,6 +12,19 @@ Chronological history, reconstructed from repo docs + git. **Append newest entri
 Dates are from doc timestamps / commit themes; treat older "status" claims as point-in-time snapshots.
 
 ## 2026-07
+- **07-02 (night)** — **DEPLOYED: dgtlmag.com now runs `main` @ `814f861`** (first production sync since
+  the months-old snapshot — ships the UI overhaul, Portfolio P0, enterprise MVP, migration 006). Operator
+  ran the tar-bundle sequence (runbook Path A; DB backed up first, `.env` preserved). Two failed attempts
+  first: (1) `seed:tenants` hit `tenants_slug_key` — prod already had an `on-home-decor` row under a
+  different id; **fixed in `lib/store.js` `upsertTenantConfig`** (PG path now resolves by `(team_id, slug)`
+  before the id-keyed insert, matching file-store semantics; verified against a decoy collision on local
+  pg; 208/208 + build) — and the `&&` chain meant `up -d --build` never ran; (2) second run's paste showed
+  fully-cached layers + `curl` connection-reset, which was just boot timing. **External smoke green:** all
+  5 tenant funnels + `/admin/login` 200, `www` 200/TLS, new-build hero via `/_next/image`, funded-growth
+  funding markup, portfolio section correctly absent (no tenant populated). Unverified from outside:
+  whether the VPS `seed:tenants` re-run used the fixed image (tenants render from built-ins either way).
+  **VPS is one deploy behind current `main`** — the `716e5b2` redeploy (migrations 007, uploads volume)
+  is the next ship. → [[41-Deployment-Runbook]] · `docs/DEPLOY_NEXT.md` · [[53-Known-Issues]].
 - **07-02 (late)** — **Repo CONSOLIDATED: everything merged to `main` @ `716e5b2` and PUSHED; redeploy-ready.**
   Sequence: committed the audit tree's doc WIP + a chore commit tracking the taste-skill pack /
   audit docs / brand asset (root `.obsidian/` + `.claude/worktrees/` gitignored) → merged
