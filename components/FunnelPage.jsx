@@ -1,26 +1,19 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import Image from "next/image";
 import { getTenantTheme } from "../lib/branding";
 import { resolveDesign } from "../lib/tenantBuilder/designDirections";
 import FundingSurveyWidget from "./funding/FundingSurveyWidget";
 import Reveal from "./motion/Reveal";
 import { Stagger, StaggerItem } from "./motion/Stagger";
-import YouTubeHeroPlayer from "./YouTubeHeroPlayer";
-
-// Same rule as the hero image: local "/"-prefixed assets go through next/image
-// (resized WebP/AVIF); remote tenant URLs fall back to a plain <img> so the
-// image optimizer isn't opened to arbitrary hosts.
-function MediaImage({ src, alt, className, sizes }) {
-  if (src?.startsWith("/")) {
-    return <Image className={className} src={src} alt={alt} fill sizes={sizes} />;
-  }
-  return (
-    // eslint-disable-next-line @next/next/no-img-element
-    <img className={className} src={src} alt={alt} loading="lazy" decoding="async" />
-  );
-}
+// Variant-capable sections live in components/funnel/sections/ (each renders
+// one of its registered compositions per ctx.design.sectionVariants); the
+// single-composition sections below stay in this file until they grow
+// variants.
+import HeroSection from "./funnel/sections/HeroSection";
+import PackagesSection from "./funnel/sections/PackagesSection";
+import ReferencesSection from "./funnel/sections/ReferencesSection";
+import { MediaImage } from "./funnel/sections/shared";
 
 function PortfolioMedia({ item }) {
   const alt = item.alt || item.title || "Portfolio piece";
@@ -94,208 +87,6 @@ function PortfolioSection({ tenant }) {
           ))}
         </Stagger>
       </div>
-    </section>
-  );
-}
-
-function ReferencesSection({ tenant }) {
-  const references = tenant.references;
-  const hasTestimonials = Boolean(references?.testimonials?.length);
-  const hasLogos = Boolean(references?.logos?.length);
-  if (!hasTestimonials && !hasLogos) return null;
-
-  return (
-    <section className="section section--soft references" aria-labelledby="references-heading">
-      <div className="section__inner">
-        <Reveal className="section__header section__header--compact">
-          <p className="eyebrow">{references.eyebrow}</p>
-          <h2 id="references-heading">{references.headline}</h2>
-        </Reveal>
-        {hasTestimonials ? (
-          <Stagger className="testimonial-grid" stagger={0.07}>
-            {references.testimonials.map((entry, index) => (
-              <StaggerItem as="blockquote" className="testimonial" key={`${entry.name}-${index}`}>
-                <p>{entry.quote}</p>
-                <footer>
-                  {entry.name ? <strong>{entry.name}</strong> : null}
-                  {entry.role || entry.company ? (
-                    <span>{[entry.role, entry.company].filter(Boolean).join(", ")}</span>
-                  ) : null}
-                </footer>
-              </StaggerItem>
-            ))}
-          </Stagger>
-        ) : null}
-        {hasLogos ? (
-          <Reveal as="ul" className="logo-wall" aria-label="Client logos">
-            {references.logos.map((logo, index) => {
-              const image = (
-                <MediaImage src={logo.src} alt={logo.alt || logo.name || "Client logo"} sizes="160px" />
-              );
-              return (
-                <li key={logo.src || index}>
-                  {logo.link ? (
-                    <a href={logo.link} target="_blank" rel="noopener noreferrer">
-                      {image}
-                    </a>
-                  ) : (
-                    image
-                  )}
-                </li>
-              );
-            })}
-          </Reveal>
-        ) : null}
-      </div>
-    </section>
-  );
-}
-
-/* ---------------------------------------------------------------------------
- * Hero — one component, three layout variants (design directions):
- * full-bleed (default, image-backed), split (light two-column with framed
- * media), typographic (light, type-led, no image). Shared fragments keep the
- * copy/CTA/stats markup identical across variants.
- * ------------------------------------------------------------------------- */
-
-function HeroBrandbar({ tenant }) {
-  return (
-    <StaggerItem className="brandbar">
-      {tenant.brand.logo ? (
-        <img className="brandbar__logo" src={tenant.brand.logo} alt={`${tenant.brand.name} logo`} />
-      ) : (
-        <span className="brandbar__wordmark">{tenant.brand.logoText || tenant.brand.name}</span>
-      )}
-      {tenant.brand.tagline ? <span className="brandbar__tagline">{tenant.brand.tagline}</span> : null}
-      <a className="button button--secondary brandbar__login" href="/admin">Log in</a>
-    </StaggerItem>
-  );
-}
-
-function HeroActions({ tenant, ctx }) {
-  return (
-    <StaggerItem className="hero__actions">
-      <button className="button button--primary" onClick={() => ctx.selectPackage(tenant.defaultPackageId)}>
-        {tenant.hero.primaryCta}
-      </button>
-      <button
-        className="button button--secondary"
-        onClick={() => document.getElementById("packages")?.scrollIntoView({ behavior: "smooth" })}
-      >
-        {tenant.hero.secondaryCta}
-      </button>
-      {!ctx.isFundingTenant && tenant.fundingPromo?.enabled ? (
-        <a className="button button--secondary" href={tenant.fundingPromo.link}>
-          {tenant.fundingPromo.cta}
-        </a>
-      ) : null}
-    </StaggerItem>
-  );
-}
-
-function HeroStats({ tenant }) {
-  if (!tenant.hero.stats?.length) return null;
-  return (
-    <StaggerItem as="dl" className="hero__stats" aria-label="Content day highlights">
-      {tenant.hero.stats.map((stat) => (
-        <div key={stat.label}>
-          <dt>{stat.value}</dt>
-          <dd>{stat.label}</dd>
-        </div>
-      ))}
-    </StaggerItem>
-  );
-}
-
-function HeroImage({ tenant, priority }) {
-  if (!tenant.media.heroImage) return null;
-  /* LCP element: optimize local tenant images via next/image (resized
-     WebP/AVIF + preload). Remote tenant URLs (edge case) fall back to a
-     prioritized plain <img> so the image optimizer isn't opened to
-     arbitrary hosts. */
-  if (tenant.media.heroImage.startsWith("/")) {
-    return (
-      <Image
-        className="hero__image"
-        src={tenant.media.heroImage}
-        alt={tenant.media.heroAlt}
-        fill
-        priority={priority}
-        sizes="100vw"
-      />
-    );
-  }
-  return (
-    // eslint-disable-next-line @next/next/no-img-element
-    <img
-      className="hero__image"
-      src={tenant.media.heroImage}
-      alt={tenant.media.heroAlt}
-      fetchPriority={priority ? "high" : undefined}
-      decoding="async"
-    />
-  );
-}
-
-function HeroSection({ tenant, ctx }) {
-  const variant = ctx.design.heroVariant;
-  const ariaLabel = `${tenant.brand.name} sales offer`;
-
-  if (variant === "typographic") {
-    return (
-      <section className="hero hero--typographic hero--onlight" aria-label={ariaLabel}>
-        <Stagger className="hero__content" stagger={0.1} amount={0.1}>
-          <HeroBrandbar tenant={tenant} />
-          <StaggerItem as="p" className="eyebrow">{tenant.brand.eyebrow}</StaggerItem>
-          <StaggerItem as="h1">{tenant.hero.headline}</StaggerItem>
-          <StaggerItem as="p" className="hero__copy">{tenant.hero.subheadline}</StaggerItem>
-          <HeroActions tenant={tenant} ctx={ctx} />
-          <HeroStats tenant={tenant} />
-        </Stagger>
-      </section>
-    );
-  }
-
-  if (variant === "split") {
-    return (
-      <section className="hero hero--split hero--onlight" aria-label={ariaLabel}>
-        <Stagger className="hero__content" stagger={0.1} amount={0.1}>
-          <HeroBrandbar tenant={tenant} />
-          <div className="hero__split-grid">
-            <div>
-              <StaggerItem as="p" className="eyebrow">{tenant.brand.eyebrow}</StaggerItem>
-              <StaggerItem as="h1">{tenant.hero.headline}</StaggerItem>
-              <StaggerItem as="p" className="hero__copy">{tenant.hero.subheadline}</StaggerItem>
-              <HeroActions tenant={tenant} ctx={ctx} />
-              <HeroStats tenant={tenant} />
-            </div>
-            {tenant.media.heroImage || tenant.media.heroVideo?.kind ? (
-              <StaggerItem className="hero__media-frame">
-                <HeroImage tenant={tenant} priority />
-                <YouTubeHeroPlayer video={tenant.media.heroVideo} />
-              </StaggerItem>
-            ) : null}
-          </div>
-        </Stagger>
-      </section>
-    );
-  }
-
-  return (
-    <section className="hero" aria-label={ariaLabel}>
-      <HeroImage tenant={tenant} priority />
-      {/* Paint order is DOM order: image (poster/LCP) → looping video → shade
-          (keeps darkening whichever is visible) → content. */}
-      <YouTubeHeroPlayer video={tenant.media.heroVideo} />
-      <div className="hero__shade" />
-      <Stagger className="hero__content" stagger={0.1} amount={0.1}>
-        <HeroBrandbar tenant={tenant} />
-        <StaggerItem as="p" className="eyebrow">{tenant.brand.eyebrow}</StaggerItem>
-        <StaggerItem as="h1">{tenant.hero.headline}</StaggerItem>
-        <StaggerItem as="p" className="hero__copy">{tenant.hero.subheadline}</StaggerItem>
-        <HeroActions tenant={tenant} ctx={ctx} />
-        <HeroStats tenant={tenant} />
-      </Stagger>
     </section>
   );
 }
@@ -406,66 +197,6 @@ function FundedOpportunitySection({ tenant }) {
           ))}
         </div>
       </Reveal>
-    </section>
-  );
-}
-
-function PackagesSection({ tenant, ctx }) {
-  return (
-    <section id="packages" className="section packages">
-      <div className="section__inner">
-        <Reveal className="section__header">
-          <p className="eyebrow">{tenant.packageSection.eyebrow}</p>
-          <h2>{tenant.packageSection.headline}</h2>
-          <p>{tenant.packageSection.body}</p>
-        </Reveal>
-
-        <Stagger className="package-grid" stagger={0.1}>
-          {tenant.packages.map((pkg) => (
-            <StaggerItem
-              as="article"
-              className={`package ${pkg.featured ? "package--featured" : ""} ${
-                pkg.id === ctx.selectedPackageId ? "is-selected" : ""
-              }`}
-              data-package-card={pkg.id}
-              key={pkg.id}
-            >
-              {pkg.featured ? <span className="package__badge">Most popular</span> : null}
-              <div className="package__top">
-                <h3>{pkg.name}</h3>
-                <p>{pkg.summary}</p>
-              </div>
-              <div className="price">
-                <span>{pkg.price}</span>
-                <small>{pkg.priceQualifier}</small>
-              </div>
-              <p className="price__alt">{pkg.altPrice}</p>
-              <ul>
-                {pkg.features.map((feature) => (
-                  <li key={feature}>{feature}</li>
-                ))}
-              </ul>
-              <button
-                className={`button ${pkg.featured ? "button--primary" : "button--dark"}`}
-                onClick={() => ctx.selectPackage(pkg.id)}
-              >
-                {pkg.cta}
-              </button>
-            </StaggerItem>
-          ))}
-        </Stagger>
-
-        <Reveal className="enterprise-band">
-          <div>
-            <p className="eyebrow">{tenant.enterprise.eyebrow}</p>
-            <h3>{tenant.enterprise.headline}</h3>
-            <p>{tenant.enterprise.body}</p>
-          </div>
-          <button className="button button--secondary" onClick={() => ctx.selectPackage(tenant.enterprise.packageId)}>
-            {tenant.enterprise.cta}
-          </button>
-        </Reveal>
-      </div>
     </section>
   );
 }
