@@ -3,7 +3,7 @@ title: 00 · Home (Master MOC)
 type: moc
 tags: [moc, home]
 status: living
-updated: 2026-07-02
+updated: 2026-07-03
 ---
 
 # 🏠 Home — Content Checkout Funnel
@@ -47,13 +47,13 @@ review → all tenant-scoped, permissioned, and audit-logged.*
 - [[42-Go-Live-Plan]] — the 12-phase production plan.
 - [[29-Funding-Program]] — the biggest/newest subsystem.
 
-## 🧭 Status at a glance (2026-07-02, post-consolidation)
-- **Current priority:** redeploy the consolidated tip, then the remaining ops/security items. See [[31-Current-Priorities]].
-- **Active branch:** `main` @ `716e5b2`, **pushed** — consolidation merged `audit/2026-07-02` (security fixes C2/H1/H2/M1/M2/L1 + admin **Dark Command-Center** reskin) and `feature/funnel-design-control` (design directions, tenant editor, copy limits, media library + migration 007). **272/272 tests + build green + runtime smoke on the merged tip.**
-- **Deploy target:** `dgtlmag.com` on Hostinger VPS `62.72.16.32` — **LIVE at the current tip `main@14a746b` (2026-07-03, smoke green: 5 funnels + admin 200, migrations 006+007, 5/5 tenants seeded, uploads volume mounted)**. Production is no longer behind `main`. See `docs/DEPLOY_NEXT.md` / [[41-Deployment-Runbook]].
+## 🧭 Status at a glance (2026-07-03)
+- **Current priority:** merge the DMTV showcase branch, then the remaining ops/security items. See [[31-Current-Priorities]].
+- **Active branch:** `claude/dmtv-website-redesign-7xlpzn` @ `52a86e6` — DMTV Studio showcase page via a generic tenant `template` registry (**292/292 tests + build green**, unmerged). Meanwhile `main` advanced to `b3d7e65`: YouTube hero polish (`7db08ab` — video-only display, aspect-aware cover, hidden-tab watchdog) merged and deployed; that deploy + polish are logged in **main's** copy of [[51-Timeline]] (not duplicated here — resolve as chronological union on merge).
+- **Deploy target:** `dgtlmag.com` on Hostinger VPS `62.72.16.32` — **LIVE at `main@44187af` (2026-07-03 evening: YouTube hero shipped, smoke green, zero-downtime cutover)**. Production tracks `main`. See `docs/DEPLOY_NEXT.md` / [[41-Deployment-Runbook]].
 - **Biggest open risks:** C1 key rotation + H3 DB password (ops), **H4** unsubscribe global-suppression amplification, pg-vs-file-store dedupe parity (HIGH), outreach double-send / Stripe idempotency / batch-import idempotency; `npm audit` 2 moderate accepted (L6). See [[53-Known-Issues]].
-- **Recently shipped:** Funnel Design Control (5 design directions, draft editor, media library) · codebase audit fixes · dark-first admin. See [[51-Timeline]] / [[16-Design-System]] / [[2D-Portfolio-Media]].
-- **Next big build:** redeploy → remaining security/ops items → PR #2 (prospect enrichment) decision → Sprint-2 productization. See [[33-Sprint-2-Productization]].
+- **Recently shipped:** YouTube hero media (video/playlist/channel loops) · DMTV Studio showcase (template registry) · Funnel Design Control · dark-first admin. See [[51-Timeline]] / [[16-Design-System]] / [[2D-Portfolio-Media]] / [[63-Tenants-Catalog]].
+- **Next big build:** merge DMTV showcase → remaining security/ops items → PR #2 (prospect enrichment) decision → Sprint-2 productization. See [[33-Sprint-2-Productization]].
 
 ---
 *Maintained as a living document. When project reality changes, update the relevant note and add a line to [[51-Timeline]].*
