@@ -66,12 +66,26 @@ async function main() {
     { label: "DGTL Funded Growth Studio", config: fundedGrowthTenant }
   ];
 
-  for (const { label, config } of tenants) {
+  // --only slug[,slug…] seeds a subset. Production rows are edited through the
+  // Tenant Editor, so a full re-seed would overwrite those edits; use --only to
+  // add new tenants without touching existing ones.
+  const onlyIndex = process.argv.indexOf("--only");
+  let selected = tenants;
+  if (onlyIndex !== -1) {
+    const slugs = new Set((process.argv[onlyIndex + 1] || "").split(",").map((s) => s.trim()).filter(Boolean));
+    selected = tenants.filter(({ config }) => slugs.has(config.slug));
+    const missing = [...slugs].filter((slug) => !tenants.some(({ config }) => config.slug === slug));
+    if (!slugs.size || missing.length) {
+      throw new Error(`--only expects known slugs; unknown: ${missing.join(", ") || "(none given)"}. Known: ${tenants.map((t) => t.config.slug).join(", ")}`);
+    }
+  }
+
+  for (const { label, config } of selected) {
     const saved = await upsertTenantConfig({ ...config, teamId: TEAM_ID, status: "active" }, { teamId: TEAM_ID });
     console.log(`[seed-tenants] upserted: ${saved.slug} (${saved.id}) — ${label} -> /t/${saved.slug}`);
   }
 
-  console.log(`[seed-tenants] Done. ${tenants.length} tenants active on team ${TEAM_ID}.`);
+  console.log(`[seed-tenants] Done. ${selected.length} tenants active on team ${TEAM_ID}.`);
 }
 
 if (import.meta.url === pathToFileURL(process.argv[1] || "").href) {
