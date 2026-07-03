@@ -41,6 +41,10 @@ services:
       TEAM_SLUG: ${TEAM_SLUG:-}
     depends_on:
       - content-funnel-postgres
+    volumes:
+      # Media-library uploads. output:"standalone" snapshots public/ at build
+      # time, so runtime uploads must live on a mount or they vanish on rebuild.
+      - ./uploads:/app/public/uploads
     networks:
       - traefik-public
       - content-funnel-internal
