@@ -12,6 +12,14 @@ Chronological history, reconstructed from repo docs + git. **Append newest entri
 Dates are from doc timestamps / commit themes; treat older "status" claims as point-in-time snapshots.
 
 ## 2026-07
+- **07-03 (evening)** — **DEPLOYED: dgtlmag.com now runs `main` @ `44187af`** (YouTube hero feature +
+  polish; operator ran scp + ssh with the pre-built clean bundle — first bundle to correctly
+  **exclude `.env`/`.env.local`**, and **no `seed:tenants`** so Tenant-Editor edits on prod rows
+  survive). Cutover watched externally: new-code marker (`/api/admin/media/youtube-resolve`)
+  flipped 404→405 at 18:02 with zero downtime (site 200 throughout). **Post-deploy smoke green:**
+  all 5 funnels + www/TLS + admin login 200; youtube-resolve returns 401 JSON unauthenticated;
+  default funnel pixel-stable (0 `--fp-*` vars); hero image LCP intact. `YOUTUBE_API_KEY` verified
+  locally (Data API path); operator to confirm it's in the VPS `.env`. → `docs/DEPLOY_NEXT.md`.
 - **07-03 (later)** — **YouTube hero polish (`fix/youtube-hero-polish` → `main`).** (1) A playing video
   now **replaces** the hero image outright: iframe at full opacity, poster fades to 0 via a
   `data-video-playing` attribute the player stamps on the hero container (chose the attribute over
