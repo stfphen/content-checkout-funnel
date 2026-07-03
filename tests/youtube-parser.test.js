@@ -138,6 +138,17 @@ test("sanitizeHeroVideo keeps valid blocks and scrubs cross-field noise", () => 
   assert.equal(scrubbed.videoId, VID);
 });
 
+test("sanitizeHeroVideo passes through a valid aspect and drops junk", () => {
+  const base = { kind: "video", videoId: VID, url: "" };
+  assert.equal(sanitizeHeroVideo({ ...base, aspect: 4 / 3 }).aspect, Math.round((4 / 3) * 10000) / 10000);
+  assert.equal(sanitizeHeroVideo({ ...base, aspect: "1.7778" }).aspect, 1.7778);
+  for (const junk of [0, -2, "1e99", "nope", Infinity, 100, 0.1]) {
+    assert.ok(!("aspect" in sanitizeHeroVideo({ ...base, aspect: junk })), String(junk));
+  }
+  // Playlist/channel blocks can carry an aspect too (harmless), unknown = omitted:
+  assert.ok(!("aspect" in sanitizeHeroVideo({ kind: "playlist", playlistId: LIST })));
+});
+
 test("hasHeroVideo reflects playability", () => {
   assert.equal(hasHeroVideo(EMPTY_HERO_VIDEO), false);
   assert.equal(hasHeroVideo(undefined), false);
@@ -145,4 +156,35 @@ test("hasHeroVideo reflects playability", () => {
   assert.equal(hasHeroVideo({ kind: "playlist", playlistId: LIST }), true);
   assert.equal(hasHeroVideo({ kind: "channel", playlistId: UPLOADS }), true);
   assert.equal(hasHeroVideo({ kind: "channel", playlistId: "" }), false);
+});
+
+test("coverSize crops in-player bars: the video region always covers the container", async () => {
+  const { coverSize, FRAME_ASPECT } = await import("../lib/media/youtube.js");
+
+  const cases = [
+    // [containerW, containerH, aspect]
+    [1600, 900, 16 / 9],   // 16:9 hero, 16:9 video → exact fit
+    [1600, 900, 4 / 3],    // desktop hero, 4:3 classic → pillarbox cropped
+    [390, 844, 16 / 9],    // mobile portrait, 16:9 video
+    [390, 844, 4 / 3],     // mobile portrait, 4:3
+    [1600, 900, 9 / 16],   // desktop hero, vertical short
+    [1600, 900, 2.4],      // ultrawide cinema → letterbox cropped
+    [520, 440, 0]          // split media frame, unknown aspect (defaults 16:9)
+  ];
+
+  for (const [w, h, a] of cases) {
+    const { width, height } = coverSize(w, h, a);
+    const aspect = a > 0 ? a : FRAME_ASPECT;
+    // The frame is 16:9:
+    assert.ok(Math.abs(width / height - FRAME_ASPECT) < 0.01, `frame aspect ${w}x${h}@${a}`);
+    // The video region inside that frame (contain-fit) covers the container:
+    const videoW = Math.min(width, height * aspect);
+    const videoH = videoW / aspect;
+    assert.ok(videoW >= w - 1, `videoW ${videoW} covers ${w} (@${a})`);
+    assert.ok(videoH >= h - 1, `videoH ${videoH} covers ${h} (@${a})`);
+  }
+
+  // 16:9 content on a 16:9 container is NOT oversized (no needless crop):
+  const exact = coverSize(1600, 900, 16 / 9);
+  assert.ok(exact.width <= 1601 && exact.height <= 901);
 });

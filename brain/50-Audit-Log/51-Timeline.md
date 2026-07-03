@@ -12,6 +12,21 @@ Chronological history, reconstructed from repo docs + git. **Append newest entri
 Dates are from doc timestamps / commit themes; treat older "status" claims as point-in-time snapshots.
 
 ## 2026-07
+- **07-03 (later)** — **YouTube hero polish (`fix/youtube-hero-polish` → `main`).** (1) A playing video
+  now **replaces** the hero image outright: iframe at full opacity, poster fades to 0 via a
+  `data-video-playing` attribute the player stamps on the hero container (chose the attribute over
+  `:has()` — Chrome 149 showed a dynamic-invalidation quirk, and attributes survive React re-renders
+  + old Safari). Shade gradient stays for headline legibility. (2) **True cover scaling**: cq-unit CSS
+  replaced by JS sizing (`coverSize()` in `lib/media/youtube.js`, unit-tested; ResizeObserver for
+  rotation/mobile) that is **content-aspect-aware** — oEmbed dims are captured at resolve time into
+  `heroVideo.aspect`, so 4:3 classics/verticals get YouTube's in-player bars cropped, not letterboxed
+  (verified live: oEmbed reports 1.3333 for a 4:3 video). (3) **Hidden-tab bug fixed**: the playback
+  watchdog now waits for `visibilitychange → visible` before its clock starts — previously a
+  background-tab visitor would arrive to a killed video. (4) `YOUTUBE_API_KEY=` added to
+  `.env.example`. 289/289 + build green; CSS/geometry verified in-browser (transition-free computed
+  checks; window occlusion pauses transitions). **Correction to yesterday's note:** the "googlevideo
+  blocked" diagnosis was wrong — the automation Chrome window was merely occluded
+  (`visibilityState: hidden` pauses embeds/autoplay/transitions); nothing is blocked on this network.
 - **07-03** — **YouTube hero media SHIPPED (`feature/youtube-hero` → merged to `main`).** Tenant hero
   can now loop a **single video**, a **playlist in order**, or a **channel's uploads shuffled**
   (uploads playlist `UU…`, 200-item embed cap), configured in the Tenant Editor media slots:

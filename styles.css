@@ -445,18 +445,19 @@ button {
   object-fit: cover;
   object-position: center;
   opacity: 0.72;
+  transition: opacity 700ms ease;
 }
 
 /* Looping YouTube hero background (components/YouTubeHeroPlayer.jsx). The
-   wrapper clips a 16:9 iframe oversized to cover its container (cq units so
-   the same rules cover the full-bleed hero AND the split media frame). The
-   iframe is revealed (opacity) only once real playback starts; the hero image
-   stays underneath as poster/fallback. Non-interactive by design. */
+   component sizes the iframe itself (ResizeObserver + aspect-aware cover math
+   that also crops YouTube's in-player letter/pillarbox bars — see the
+   coverSize() helper), so no CSS sizing here. The iframe is revealed only once
+   real playback starts; the hero image stays underneath as poster/fallback and
+   fades out while the video is playing. Non-interactive by design. */
 .hero__video {
   position: absolute;
   inset: 0;
   overflow: hidden;
-  container-type: size;
   pointer-events: none;
   border-radius: inherit;
 }
@@ -468,23 +469,21 @@ button {
   transform: translate(-50%, -50%);
   border: 0;
   pointer-events: none;
-  width: 100%;
-  height: 100%;
-  /* cover a 16:9 stream: oversize whichever axis falls short */
-  width: max(100cqw, 177.7778cqh);
-  height: max(100cqh, 56.25cqw);
   opacity: 0;
   transition: opacity 700ms ease;
 }
 
-/* Full-bleed: match the image's 0.72 tonal treatment under the shade. */
+/* A playing YouTube hero replaces the image outright: full-opacity video,
+   poster faded away (the .hero__shade gradient stays on top for text
+   legibility, exactly as it darkened the image). The player stamps
+   data-video-playing on the hero/media-frame container when real playback
+   starts (an attribute React doesn't manage, so re-renders keep it). */
 .hero__video.is-playing iframe {
-  opacity: 0.72;
+  opacity: 1;
 }
 
-/* Split frame: the image there renders at full opacity. */
-.hero__media-frame .hero__video.is-playing iframe {
-  opacity: 1;
+[data-video-playing] .hero__image {
+  opacity: 0;
 }
 
 @media (prefers-reduced-motion: reduce) {
