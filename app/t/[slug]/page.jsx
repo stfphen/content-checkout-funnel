@@ -1,4 +1,4 @@
-import FunnelPage from "../../../components/FunnelPage";
+import { resolveTemplate } from "../../../components/templates/registry";
 import {
   getRenderableTenantConfig,
   getTenantBySlug,
@@ -6,6 +6,15 @@ import {
 } from "../../../lib/store";
 
 export const dynamic = "force-dynamic";
+
+export async function generateMetadata({ params }) {
+  const { slug } = await params;
+  const tenant = await getTenantBySlug(slug);
+  const config = getRenderableTenantConfig(tenant, "published");
+  const template = resolveTemplate(config);
+  // Funnel tenants return {} and keep inheriting the layout's static metadata.
+  return template.buildMetadata ? template.buildMetadata(config) : {};
+}
 
 export default async function TenantPreviewPage({ params, searchParams }) {
   const { slug } = await params;
@@ -17,8 +26,9 @@ export default async function TenantPreviewPage({ params, searchParams }) {
   const mode = query?.preview === "draft" ? "draft" : "published";
   const config = getRenderableTenantConfig(tenant, mode);
   // Media-library references (mediaId) become plain src urls server-side —
-  // FunnelPage is a client component and never talks to the store.
+  // the page templates are client components and never talk to the store.
   const resolved = await resolveTenantMediaConfig(config, { teamId: tenant.teamId });
 
-  return <FunnelPage tenant={resolved} />;
+  const { Component } = resolveTemplate(resolved);
+  return <Component tenant={resolved} />;
 }

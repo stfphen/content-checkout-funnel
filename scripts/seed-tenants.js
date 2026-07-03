@@ -49,6 +49,7 @@ async function main() {
   const { upsertTenantConfig } = await import("../lib/store.js");
   const { defaultTenant } = await import("../lib/defaultTenant.js");
   const { dmtvTenant } = await import("../lib/tenants/dmtv.js");
+  const { dmtvStudioTenant } = await import("../lib/tenants/dmtvStudio.js");
   const { elixrTenant } = await import("../lib/tenants/elixr.js");
   const { onHomeDecorTenant } = await import("../lib/tenants/onHomeDecor.js");
   const { fundedGrowthTenant } = await import("../lib/funding/tenant.js");
@@ -59,6 +60,7 @@ async function main() {
   const tenants = [
     { label: "DGTL Content Day", config: defaultTenant },
     { label: "DMTV", config: dmtvTenant },
+    { label: "DMTV Studio Showcase", config: dmtvStudioTenant },
     { label: "ELiXR Gallery", config: elixrTenant },
     { label: "ON Home Decor", config: onHomeDecorTenant },
     { label: "DGTL Funded Growth Studio", config: fundedGrowthTenant }
