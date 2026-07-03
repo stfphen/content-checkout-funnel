@@ -12,6 +12,18 @@ Chronological history, reconstructed from repo docs + git. **Append newest entri
 Dates are from doc timestamps / commit themes; treat older "status" claims as point-in-time snapshots.
 
 ## 2026-07
+- **07-03** — **REDEPLOYED: dgtlmag.com now runs `main` @ `14a746b`** — the consolidated tip is fully
+  in production (security fixes C2/H1/H2/M1/M2, admin Dark Command-Center, funnel design control +
+  media library). Pre-deploy: added the missing `./uploads:/app/public/uploads` compose mount
+  (`14a746b`; standalone output snapshots `public/` at build time) with `chown 1000:1000` for the
+  non-root `node` user; wipe now preserves `.env` + `uploads/` + `backups/`. VPS run clean end-to-end:
+  DB backup → migration **007** applied → **seed:tenants 5/5** (the `upsertTenantConfig` slug fix
+  proved out on the previously-colliding `on-home-decor`) → container recreated → local 200.
+  **External smoke green:** all 5 funnels + `/admin/login` 200; hero via `/_next/image`; default funnel
+  pixel-stable (0 `--fp-*` vars in served HTML). Note: `data-theme="dark"` only renders on the authed
+  admin shell (`AdminTabbedShell`), not the login page — eyeball the dark command-center at next login.
+  Remaining ops: C1 key rotation + H3 strong `POSTGRES_PASSWORD` (operator deferred, "later"),
+  Stripe webhook registration, uptime monitor. → [[41-Deployment-Runbook]] · [[53-Known-Issues]].
 - **07-02 (night)** — **DEPLOYED: dgtlmag.com now runs `main` @ `814f861`** (first production sync since
   the months-old snapshot — ships the UI overhaul, Portfolio P0, enterprise MVP, migration 006). Operator
   ran the tar-bundle sequence (runbook Path A; DB backed up first, `.env` preserved). Two failed attempts
