@@ -26,7 +26,7 @@ function TypographicHero({ tenant, ctx }) {
         <StaggerItem as="h1">{tenant.hero.headline}</StaggerItem>
         <StaggerItem as="p" className="hero__copy">{tenant.hero.subheadline}</StaggerItem>
         <HeroActions tenant={tenant} ctx={ctx} />
-        <HeroStats tenant={tenant} />
+        <HeroStats tenant={tenant} ctx={ctx} />
       </Stagger>
     </section>
   );
@@ -43,7 +43,7 @@ function SplitHero({ tenant, ctx }) {
             <StaggerItem as="h1">{tenant.hero.headline}</StaggerItem>
             <StaggerItem as="p" className="hero__copy">{tenant.hero.subheadline}</StaggerItem>
             <HeroActions tenant={tenant} ctx={ctx} />
-            <HeroStats tenant={tenant} />
+            <HeroStats tenant={tenant} ctx={ctx} />
           </div>
           {tenant.media.heroImage || tenant.media.heroVideo?.kind ? (
             <StaggerItem className="hero__media-frame">
@@ -71,7 +71,7 @@ function FullBleedHero({ tenant, ctx }) {
         <StaggerItem as="h1">{tenant.hero.headline}</StaggerItem>
         <StaggerItem as="p" className="hero__copy">{tenant.hero.subheadline}</StaggerItem>
         <HeroActions tenant={tenant} ctx={ctx} />
-        <HeroStats tenant={tenant} />
+        <HeroStats tenant={tenant} ctx={ctx} />
       </Stagger>
     </section>
   );

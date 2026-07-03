@@ -51,8 +51,11 @@ export function HeroActions({ tenant, ctx }) {
   );
 }
 
-export function HeroStats({ tenant }) {
+export function HeroStats({ tenant, ctx }) {
   if (!tenant.hero.stats?.length) return null;
+  // When the references section renders the "stat-band" variant, the numbers
+  // live there and only there; a page must not repeat its stats twice.
+  if (ctx?.design?.sectionVariants?.references === "stat-band") return null;
   return (
     <StaggerItem as="dl" className="hero__stats" aria-label="Content day highlights">
       {tenant.hero.stats.map((stat) => (
