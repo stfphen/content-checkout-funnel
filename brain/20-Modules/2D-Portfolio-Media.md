@@ -31,6 +31,9 @@ updated: 2026-07-02
 > `lib/media/youtubeResolve.js` + `/api/admin/media/youtube-resolve` (save-time resolution),
 > `components/YouTubeHeroPlayer.jsx` (IFrame API, PLAYING-gated reveal, image fallback) and the
 > `YouTubeHeroInput` editor slot. Config-direct, not a `media_assets` row ([[52-Decision-Log]]).
+> **07-03 polish:** playing video fully replaces the poster (`data-video-playing` attribute fade);
+> aspect-aware JS cover sizing (`coverSize()` + `heroVideo.aspect` from oEmbed) crops in-player
+> bars for non-16:9 content, ResizeObserver-driven for mobile; watchdog waits for tab visibility.
 
 ## Purpose
 Give each tenant funnel a **dynamic "Portfolio & References" section** that shows real work (video/image

@@ -37,9 +37,12 @@ function fakeFetch(routes) {
   return impl;
 }
 
-test("video URL resolves without network beyond oEmbed, includes meta", async () => {
+test("video URL resolves without network beyond oEmbed, includes meta + aspect", async () => {
   const fetchImpl = fakeFetch([
-    ["/oembed", () => jsonResponse({ title: "Great video", thumbnail_url: "https://i.ytimg.com/x.jpg" })]
+    [
+      "/oembed",
+      () => jsonResponse({ title: "Great video", thumbnail_url: "https://i.ytimg.com/x.jpg", width: 480, height: 360 })
+    ]
   ]);
   const result = await resolveYouTubeInput(`https://youtu.be/${VID}`, { fetchImpl });
 
@@ -47,11 +50,18 @@ test("video URL resolves without network beyond oEmbed, includes meta", async ()
     url: `https://youtu.be/${VID}`,
     kind: "video",
     videoId: VID,
-    playlistId: ""
+    playlistId: "",
+    aspect: Math.round((480 / 360) * 10000) / 10000
   });
   assert.equal(result.meta.title, "Great video");
   assert.equal(result.meta.thumbnail, "https://i.ytimg.com/x.jpg");
   assert.equal(fetchImpl.calls.length, 1);
+});
+
+test("missing oEmbed dims yield no aspect on the heroVideo", async () => {
+  const fetchImpl = fakeFetch([["/oembed", () => jsonResponse({ title: "t" })]]);
+  const result = await resolveYouTubeInput(`https://youtu.be/${VID}`, { fetchImpl });
+  assert.ok(!("aspect" in result.heroVideo));
 });
 
 test("prefer switches a watch?v&list URL between video and playlist", async () => {

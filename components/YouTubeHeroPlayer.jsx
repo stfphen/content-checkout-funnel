@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import { useReducedMotion } from "framer-motion";
-import { hasHeroVideo } from "../lib/media/youtube";
+import { coverSize, hasHeroVideo } from "../lib/media/youtube";
 
 /**
  * Muted, looping, non-interactive YouTube background for the funnel hero.
@@ -61,6 +61,7 @@ function idleCall(fn) {
 export default function YouTubeHeroPlayer({ video }) {
   const reducedMotion = useReducedMotion();
   const targetRef = useRef(null);
+  const wrapperRef = useRef(null);
   const [playing, setPlaying] = useState(false);
   const [failed, setFailed] = useState(false);
 
@@ -68,6 +69,7 @@ export default function YouTubeHeroPlayer({ video }) {
   const kind = video?.kind;
   const videoId = video?.videoId || "";
   const playlistId = video?.playlistId || "";
+  const aspect = Number(video?.aspect) || 0;
 
   useEffect(() => {
     if (!playable || reducedMotion || typeof window === "undefined") return undefined;
@@ -75,8 +77,33 @@ export default function YouTubeHeroPlayer({ video }) {
     let cancelled = false;
     let player = null;
     let watchdog = null;
+    let resizeObserver = null;
+    let visibilityHandler = null;
     const listConfigured = { current: false };
     const errorSkips = { current: 0 };
+
+    // The image-fade hook: stamp the nearest hero container so CSS can fade
+    // the poster out ([data-video-playing] .hero__image). An attribute React
+    // doesn't render survives re-renders; removed on any teardown/failure.
+    const setContainerPlaying = (on) => {
+      const container = wrapperRef.current?.closest(".hero, .hero__media-frame");
+      if (!container) return;
+      if (on) container.setAttribute("data-video-playing", "true");
+      else container.removeAttribute("data-video-playing");
+    };
+
+    // JS cover sizing (not CSS units): resilient across browsers and lets the
+    // math crop in-player bars using the stored content aspect.
+    const sizeIframe = () => {
+      const wrapper = wrapperRef.current;
+      const iframe = wrapper?.querySelector("iframe");
+      if (!wrapper || !iframe) return;
+      const rect = wrapper.getBoundingClientRect();
+      if (!rect.width || !rect.height) return;
+      const { width, height } = coverSize(rect.width, rect.height, aspect);
+      iframe.style.width = `${width}px`;
+      iframe.style.height = `${height}px`;
+    };
 
     // Every YT call goes through this so a torn-down player can't throw into React.
     const safe = (fn) => {
@@ -90,12 +117,29 @@ export default function YouTubeHeroPlayer({ video }) {
     const fail = () => {
       if (cancelled) return;
       window.clearTimeout(watchdog);
+      setContainerPlaying(false);
       safe(() => player?.destroy());
       player = null;
       setFailed(true);
     };
 
     const cancelIdle = idleCall(async () => {
+      // Hidden/occluded tabs pause embeds and transitions (Chrome defers
+      // YouTube autoplay until visible) — starting the watchdog there would
+      // kill the video before a background-tab visitor ever sees the page.
+      // Wait for visibility before the clock starts.
+      if (document.visibilityState === "hidden") {
+        await new Promise((resolve) => {
+          visibilityHandler = () => {
+            if (document.visibilityState !== "hidden") resolve();
+          };
+          document.addEventListener("visibilitychange", visibilityHandler);
+        });
+        document.removeEventListener("visibilitychange", visibilityHandler);
+        visibilityHandler = null;
+        if (cancelled) return;
+      }
+
       let YT;
       try {
         YT = await loadYouTubeApi();
@@ -138,6 +182,11 @@ export default function YouTubeHeroPlayer({ video }) {
                   iframe.tabIndex = -1;
                   iframe.referrerPolicy = "strict-origin-when-cross-origin";
                 }
+                sizeIframe();
+                if (wrapperRef.current && typeof ResizeObserver === "function") {
+                  resizeObserver = new ResizeObserver(sizeIframe);
+                  resizeObserver.observe(wrapperRef.current);
+                }
               });
             },
             onStateChange: (event) => {
@@ -162,6 +211,8 @@ export default function YouTubeHeroPlayer({ video }) {
                   if (jumped) return;
                 }
               }
+              safe(sizeIframe);
+              setContainerPlaying(true);
               setPlaying(true);
             },
             onError: () => {
@@ -184,17 +235,23 @@ export default function YouTubeHeroPlayer({ video }) {
       cancelled = true;
       cancelIdle();
       window.clearTimeout(watchdog);
+      if (visibilityHandler) {
+        document.removeEventListener("visibilitychange", visibilityHandler);
+        visibilityHandler = null;
+      }
+      resizeObserver?.disconnect();
+      setContainerPlaying(false);
       safe(() => player?.destroy());
       player = null;
     };
-  }, [playable, reducedMotion, kind, videoId, playlistId]);
+  }, [playable, reducedMotion, kind, videoId, playlistId, aspect]);
 
   // reducedMotion is null on the server/first paint — render the (empty,
   // invisible) wrapper then; only a confirmed `true` suppresses the video.
   if (!playable || reducedMotion === true || failed) return null;
 
   return (
-    <div className={`hero__video${playing ? " is-playing" : ""}`} aria-hidden="true">
+    <div ref={wrapperRef} className={`hero__video${playing ? " is-playing" : ""}`} aria-hidden="true">
       <div ref={targetRef} />
     </div>
   );
