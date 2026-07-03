@@ -43,11 +43,12 @@
 # On Mac (bundle is built for you at /tmp/content-funnel-clean.tgz if this doc is fresh)
 cd /Users/emery/content-checkout-funnel
 git checkout main && git pull                      # tip must be abd333e
-COPYFILE_DISABLE=1 tar --exclude="./.git" --exclude=".DS_Store" --exclude="._*" \
-  --exclude="./node_modules" --exclude="./.next" --exclude="./data" \
-  --exclude="./public/uploads" --exclude="./.env" --exclude="./.env.local" \
-  --exclude="./.claude" --exclude="./.agents" --exclude="./.obsidian" \
+COPYFILE_DISABLE=1 tar --exclude=".git" --exclude=".DS_Store" --exclude="._*" \
+  --exclude="node_modules" --exclude=".next" --exclude="data" \
+  --exclude="public/uploads" --exclude=".env" --exclude=".env.local" \
+  --exclude=".claude" --exclude=".agents" --exclude=".obsidian" \
   -czf /tmp/content-funnel-clean.tgz .
+# (BSD tar: patterns must be bare names — "./"-prefixed excludes don't match children.)
 scp /tmp/content-funnel-clean.tgz root@62.72.16.32:/root/content-funnel-clean.tgz
 
 # On VPS
