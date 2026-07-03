@@ -1,9 +1,21 @@
 import assert from "node:assert/strict";
 import test from "node:test";
+import { existsSync, readdirSync, readFileSync } from "node:fs";
+import path from "node:path";
+import { fileURLToPath } from "node:url";
 import {
   DEFAULT_SECTION_ORDER,
+  HERO_VARIANTS,
+  listDesignDirections,
   resolveDesign
 } from "../lib/tenantBuilder/designDirections.js";
+import {
+  SECTION_VARIANTS,
+  VARIANT_SECTION_IDS,
+  resolveSectionVariants,
+  sanitizeSectionVariants
+} from "../lib/tenantBuilder/sectionVariants.js";
+import { listVerticalPresets } from "../lib/tenantBuilder/verticalPresets.js";
 
 /**
  * Frozen snapshots of resolveDesign output per direction, captured from the
@@ -237,4 +249,145 @@ test("resolveDesign with no design block is frozen to the premium-agency default
   assert.equal(resolved.heroVariant, "full-bleed");
   assert.deepEqual(resolved.sectionOrder, DEFAULT_SECTION_ORDER);
   assert.deepEqual(resolved.vars, {});
+  assert.equal(resolved.verticalPresetId, null);
+  assert.deepEqual(resolved.sectionVariants, {
+    hero: "full-bleed",
+    packages: "cards",
+    references: "testimonial-grid"
+  });
+});
+
+test("section variant registry is closed: unique ids, default is a member", () => {
+  for (const [sectionId, spec] of Object.entries(SECTION_VARIANTS)) {
+    assert.ok(DEFAULT_SECTION_ORDER.includes(sectionId), `${sectionId} must be a funnel section`);
+    assert.equal(new Set(spec.ids).size, spec.ids.length, `${sectionId} ids unique`);
+    assert.ok(spec.ids.includes(spec.defaultId), `${sectionId} defaultId must be a member`);
+    for (const id of spec.ids) {
+      assert.ok(typeof id === "string" && id.trim(), `${sectionId} variant ids are strings`);
+    }
+  }
+});
+
+test("hero variant ids contain the frozen HERO_VARIANTS set", () => {
+  for (const heroVariant of HERO_VARIANTS) {
+    assert.ok(SECTION_VARIANTS.hero.ids.includes(heroVariant), heroVariant);
+  }
+  assert.equal(SECTION_VARIANTS.hero.defaultId, "full-bleed");
+});
+
+test("resolveSectionVariants applies explicit > preset > direction > default per section", () => {
+  const defaults = resolveSectionVariants(undefined, undefined, undefined);
+  assert.deepEqual(defaults, {
+    hero: "full-bleed",
+    packages: "cards",
+    references: "testimonial-grid"
+  });
+
+  // Direction contributes the hero tier only.
+  assert.equal(resolveSectionVariants(undefined, undefined, "typographic").hero, "typographic");
+  assert.equal(resolveSectionVariants(undefined, undefined, "typographic").packages, "cards");
+
+  // Preset beats direction.
+  const preset = resolveSectionVariants(undefined, { hero: "split", packages: "comparison" }, "typographic");
+  assert.equal(preset.hero, "split");
+  assert.equal(preset.packages, "comparison");
+
+  // Explicit beats preset.
+  const explicit = resolveSectionVariants(
+    { hero: "full-bleed", references: "logo-wall" },
+    { hero: "split", references: "stat-band" },
+    "typographic"
+  );
+  assert.equal(explicit.hero, "full-bleed");
+  assert.equal(explicit.references, "logo-wall");
+
+  // Unknown ids fall through tier by tier instead of breaking the section.
+  const hostile = resolveSectionVariants(
+    { hero: "banner-nope", packages: 42 },
+    { hero: "also-nope", packages: "comparison" },
+    "split"
+  );
+  assert.equal(hostile.hero, "split");
+  assert.equal(hostile.packages, "comparison");
+  assert.equal(resolveSectionVariants({ hero: "x" }, { hero: "y" }, "z").hero, "full-bleed");
+});
+
+test("sanitizeSectionVariants keeps only known section/variant pairs", () => {
+  assert.deepEqual(sanitizeSectionVariants(undefined), {});
+  assert.deepEqual(sanitizeSectionVariants(null), {});
+  assert.deepEqual(sanitizeSectionVariants([]), {});
+  assert.deepEqual(sanitizeSectionVariants("cards"), {});
+  assert.deepEqual(
+    sanitizeSectionVariants({
+      packages: "comparison",
+      references: "not-a-variant",
+      hero: 7,
+      faq: "cards",
+      "--fp-bg": "#fff"
+    }),
+    { packages: "comparison" }
+  );
+});
+
+test("resolveDesign keeps heroVariant identical to sectionVariants.hero everywhere", () => {
+  const presetIds = [undefined, ...listVerticalPresets().map((preset) => preset.id)];
+  for (const direction of listDesignDirections()) {
+    for (const verticalPreset of presetIds) {
+      const resolved = resolveDesign({ direction: direction.id, verticalPreset });
+      assert.equal(
+        resolved.heroVariant,
+        resolved.sectionVariants.hero,
+        `${direction.id} × ${verticalPreset || "no-preset"}`
+      );
+      assert.ok(HERO_VARIANTS.includes(resolved.heroVariant));
+    }
+  }
+});
+
+test("resolveDesign lets a vertical preset own sectionOrder and variant prefs", () => {
+  const resolved = resolveDesign({
+    direction: "warm-boutique",
+    verticalPreset: "professional-services-b2b"
+  });
+  assert.equal(resolved.verticalPresetId, "professional-services-b2b");
+  const preset = listVerticalPresets().find((p) => p.id === "professional-services-b2b");
+  assert.deepEqual(resolved.sectionOrder, preset.sectionOrder);
+  assert.equal(resolved.sectionVariants.references, "logo-wall");
+  assert.equal(resolved.sectionVariants.packages, "comparison");
+  // Explicit tenant variants still win over the preset.
+  const overridden = resolveDesign({
+    direction: "warm-boutique",
+    verticalPreset: "professional-services-b2b",
+    sectionVariants: { packages: "single-offer" }
+  });
+  assert.equal(overridden.sectionVariants.packages, "single-offer");
+});
+
+test("resolveDesign ignores unknown vertical presets", () => {
+  const resolved = resolveDesign({ direction: "dark-cinematic", verticalPreset: "vaporwave" });
+  assert.equal(resolved.verticalPresetId, null);
+  const frozen = FROZEN_DIRECTIONS["dark-cinematic"];
+  assert.deepEqual(resolved.sectionOrder, frozen.sectionOrder);
+  assert.equal(resolved.heroVariant, frozen.heroVariant);
+});
+
+test("variant ids referenced by funnel section components exist in the registry", () => {
+  const sectionsDir = path.join(
+    path.dirname(fileURLToPath(import.meta.url)),
+    "..",
+    "components",
+    "funnel",
+    "sections"
+  );
+  if (!existsSync(sectionsDir)) return; // extraction hasn't landed yet
+  const known = new Set(Object.values(SECTION_VARIANTS).flatMap((spec) => spec.ids));
+  for (const file of readdirSync(sectionsDir).filter((name) => name.endsWith(".jsx"))) {
+    const source = readFileSync(path.join(sectionsDir, file), "utf8");
+    for (const match of source.matchAll(/VARIANTS\s*=\s*\{([^}]*)\}/g)) {
+      for (const key of match[1].matchAll(/["']?([a-z][a-z-]+)["']?\s*:/g)) {
+        assert.ok(known.has(key[1]), `${file} maps unknown variant id "${key[1]}"`);
+      }
+    }
+  }
+  assert.ok(VARIANT_SECTION_IDS.length >= 3);
 });
