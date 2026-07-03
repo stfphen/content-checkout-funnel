@@ -12,6 +12,21 @@ Chronological history, reconstructed from repo docs + git. **Append newest entri
 Dates are from doc timestamps / commit themes; treat older "status" claims as point-in-time snapshots.
 
 ## 2026-07
+- **07-03 (night)** — **DMTV Studio showcase MERGED + DEPLOYED: dgtlmag.com runs `main` @ `44ea917`.**
+  Merged `claude/dmtv-website-redesign-7xlpzn` (`52a86e6`, cloud ultraplan build) into `main`
+  (`5736377`; brain-doc conflicts resolved as chronological union), added `--only <slug,…>` to
+  `scripts/seed-tenants.js` (`44ea917`) so prod seeding can add a tenant without overwriting
+  Tenant-Editor edits on existing rows. 295/295 + build green on the merged tip. Operator ran the
+  runbook (backup → wipe-preserving-.env/uploads/backups → extract → build → migrate no-op →
+  `seed-tenants.js --only dmtv-studio`). **Smoke green:** `/`, `/t/dmtv`, `/t/dmtv-studio` all 200;
+  showcase content + new-code marker (`youtube-resolve` 405) verified; visible package prices render
+  single-`$` (the `$$` in the RSC flight payload is React's escaping for `$`-prefixed strings —
+  documented here so nobody "fixes" it). Existing 5 tenant rows untouched.
+- **07-03** — Authored **template-library master prompt** (`docs/prompts/template-library-master-prompt.md`)
+  + companion skill (`.agents/skills/template-library-expander/`): phased, quality-gated plan to expand to a
+  15-template matrix (3 archetypes × 5 directions), add `verticalPresets.js` + section-variant registry +
+  vertical asset packs across 4 verticals (agency, pro-services B2B, SaaS/ecom, local/trades). Sourcing:
+  original reference-informed only (white-label-safe). No code changes yet — build runs from the prompt.
 - **07-03 (evening)** — **DEPLOYED: dgtlmag.com now runs `main` @ `44187af`** (YouTube hero feature +
   polish; operator ran scp + ssh with the pre-built clean bundle — first bundle to correctly
   **exclude `.env`/`.env.local`**, and **no `seed:tenants`** so Tenant-Editor edits on prod rows

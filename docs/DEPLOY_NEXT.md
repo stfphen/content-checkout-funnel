@@ -1,7 +1,8 @@
-# Deploy-Ready Snapshot — main @ abd333e (2026-07-03, YouTube hero)
+# Deploy-Ready Snapshot — main @ abd333e (2026-07-03, YouTube hero) — SHIPPED
 
-> Production currently runs `14a746b` (deployed 2026-07-03, smoke green). This tip adds the
-> YouTube hero feature + polish on top of it. Full procedure:
+> **Superseded:** production now runs `44ea917` (deployed 2026-07-03 night: this tip + DMTV Studio
+> showcase, smoke green). New tenants are seeded with `node scripts/seed-tenants.js --only <slug>`
+> — never the bare seed on prod (it overwrites Tenant-Editor edits). Full procedure:
 > `brain/40-Operations/41-Deployment-Runbook.md`.
 
 ## What this tip ships (vs. production `14a746b`)
