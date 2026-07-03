@@ -447,6 +447,52 @@ button {
   opacity: 0.72;
 }
 
+/* Looping YouTube hero background (components/YouTubeHeroPlayer.jsx). The
+   wrapper clips a 16:9 iframe oversized to cover its container (cq units so
+   the same rules cover the full-bleed hero AND the split media frame). The
+   iframe is revealed (opacity) only once real playback starts; the hero image
+   stays underneath as poster/fallback. Non-interactive by design. */
+.hero__video {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  container-type: size;
+  pointer-events: none;
+  border-radius: inherit;
+}
+
+.hero__video iframe {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  border: 0;
+  pointer-events: none;
+  width: 100%;
+  height: 100%;
+  /* cover a 16:9 stream: oversize whichever axis falls short */
+  width: max(100cqw, 177.7778cqh);
+  height: max(100cqh, 56.25cqw);
+  opacity: 0;
+  transition: opacity 700ms ease;
+}
+
+/* Full-bleed: match the image's 0.72 tonal treatment under the shade. */
+.hero__video.is-playing iframe {
+  opacity: 0.72;
+}
+
+/* Split frame: the image there renders at full opacity. */
+.hero__media-frame .hero__video.is-playing iframe {
+  opacity: 1;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .hero__video {
+    display: none;
+  }
+}
+
 .hero__shade {
   background:
     linear-gradient(90deg, rgba(0, 0, 0, 0.86), rgba(0, 0, 0, 0.3) 46%, rgba(0, 0, 0, 0.1)),
