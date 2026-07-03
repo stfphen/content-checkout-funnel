@@ -2488,6 +2488,50 @@ p {
   flex: 1;
 }
 
+/* YouTube hero slot (components/admin/YouTubeHeroInput.jsx). */
+.youtube-hero__current {
+  font-size: 13px;
+  color: var(--fg-muted);
+}
+
+.youtube-hero__current a {
+  color: var(--brand);
+}
+
+.youtube-hero__candidate {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+  padding: 12px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--surface-2);
+}
+
+.youtube-hero__candidate-body {
+  flex: 1;
+  min-width: 200px;
+  display: grid;
+  gap: 4px;
+  font-size: 13px;
+  color: var(--fg);
+}
+
+.youtube-hero__prefer {
+  display: flex;
+  gap: 16px;
+  font-size: 13px;
+  color: var(--fg-muted);
+}
+
+.youtube-hero__prefer label {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  cursor: pointer;
+}
+
 .api-provider-stack {
   display: grid;
   gap: 24px;
