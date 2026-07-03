@@ -3,7 +3,7 @@ title: 14 · Routes Map
 type: reference
 tags: [architecture]
 status: stable
-updated: 2026-06-27
+updated: 2026-07-03
 source: app/
 ---
 
@@ -15,8 +15,8 @@ API routes are `route.js` handlers.
 ## Pages
 | Route | File | Purpose |
 |---|---|---|
-| `/` | `app/page.jsx` | Public funnel, host-resolved tenant via `getTenantForHost`. |
-| `/t/[slug]` | `app/t/[slug]/page.jsx` | Per-tenant funnel preview; `?preview=draft` renders the draft config. |
+| `/` | `app/page.jsx` | Public tenant page, host-resolved via `getTenantForHost`; renderer picked by the config's `template` field via `components/templates/registry.js` (default FunnelPage, `"showcase"` → ShowcasePage). |
+| `/t/[slug]` | `app/t/[slug]/page.jsx` | Per-tenant page preview; `?preview=draft` renders the draft config. Same template-registry renderer selection + per-template `generateMetadata`. |
 | `/admin` | `app/admin/page.jsx` | The admin shell (server component importing all admin components). [[21-Admin-Shell]] |
 | `/admin/login` | `app/admin/login/page.jsx` | Login (DB-backed; redirects here if unauthenticated). |
 | `/branding/icon` | `app/branding/icon/route.js` | Per-tenant PWA icon. |

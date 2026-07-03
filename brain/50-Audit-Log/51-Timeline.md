@@ -35,6 +35,22 @@ Dates are from doc timestamps / commit themes; treat older "status" claims as po
   checks; window occlusion pauses transitions). **Correction to yesterday's note:** the "googlevideo
   blocked" diagnosis was wrong — the automation Chrome window was merely occluded
   (`visibilityState: hidden` pauses embeds/autoplay/transitions); nothing is blocked on this network.
+- **07-03** — **DMTV Studio showcase page BUILT (`claude/dmtv-website-redesign-7xlpzn`).** A second,
+  independent DMTV tenant (`dmtv-studio`, `lib/tenants/dmtvStudio.js`) rendered by a NEW bespoke
+  template: `components/showcase/ShowcasePage.jsx` ("Broadcast Underground" — dark theme, DMTV
+  yellow accent, Bricolage/Space Grotesk display, CSS module `Showcase.module.css`). Renderer
+  selection is generic via a new top-level tenant config field `template` +
+  `components/templates/registry.js` (fallback = funnel; `/t/dmtv` byte-identical, verified by
+  screenshot). Sections per the DMTV team's brief: video hero (Underground Showcase loop via
+  `YouTubeHeroPlayer`), packages scroll-snap carousel + inquiry strip, video wall, A Minute of
+  Music (real reel links + submission form), live concert band, about, short-films strips, FAQ,
+  brand partnering, team applications (SALES/PRODUCTION/CASTING). All four forms post to
+  `/api/leads` tagged via `category`/`packageId`/`contactTitle` (live-verified: 4 leads landed
+  tenant-scoped in the store). Real media: YouTube `T_xIf3tkGls` + `HrPVuOFeL2Y`, IG reels as
+  designed link cards. **292/292 tests + build green** (6 new tests in
+  `tests/tenant-template.test.js`). ⚠️ Sandbox blocked img.youtube.com/picsum so thumbnails
+  need an eyeball check on an unblocked network; short-film strips use placeholder photography
+  until the team supplies stills.
 - **07-03** — **YouTube hero media SHIPPED (`feature/youtube-hero` → merged to `main`).** Tenant hero
   can now loop a **single video**, a **playlist in order**, or a **channel's uploads shuffled**
   (uploads playlist `UU…`, 200-item embed cap), configured in the Tenant Editor media slots:

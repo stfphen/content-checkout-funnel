@@ -1,5 +1,5 @@
 import { headers } from "next/headers";
-import FunnelPage from "../components/FunnelPage";
+import { resolveTemplate } from "../components/templates/registry";
 import { getTenantForHost, resolveTenantMediaConfig } from "../lib/store";
 
 export const dynamic = "force-dynamic";
@@ -11,5 +11,6 @@ export default async function HomePage() {
   // Media-library references (mediaId) become plain src urls server-side.
   const resolved = await resolveTenantMediaConfig(tenant, { teamId: tenant.teamId });
 
-  return <FunnelPage tenant={resolved} />;
+  const { Component } = resolveTemplate(resolved);
+  return <Component tenant={resolved} />;
 }
