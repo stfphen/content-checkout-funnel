@@ -15,7 +15,7 @@ API routes are `route.js` handlers.
 ## Pages
 | Route | File | Purpose |
 |---|---|---|
-| `/` | `app/page.jsx` | Public tenant page, host-resolved via `getTenantForHost`; renderer picked by the config's `template` field via `components/templates/registry.js` (default FunnelPage, `"showcase"` → ShowcasePage). |
+| `/` | `app/page.jsx` | Public tenant page, host-resolved via `getTenantForHost`; renderer picked by the config's `template` field via `components/templates/registry.js` (default FunnelPage, `"showcase"` → ShowcasePage, `"authority"` → AuthorityPage, `"agency"` → AgencyPage). |
 | `/t/[slug]` | `app/t/[slug]/page.jsx` | Per-tenant page preview; `?preview=draft` renders the draft config. Same template-registry renderer selection + per-template `generateMetadata`. |
 | `/admin` | `app/admin/page.jsx` | The admin shell (server component importing all admin components). [[21-Admin-Shell]] |
 | `/admin/login` | `app/admin/login/page.jsx` | Login (DB-backed; redirects here if unauthenticated). |

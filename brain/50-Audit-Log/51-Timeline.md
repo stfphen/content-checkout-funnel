@@ -12,6 +12,21 @@ Chronological history, reconstructed from repo docs + git. **Append newest entri
 Dates are from doc timestamps / commit themes; treat older "status" claims as point-in-time snapshots.
 
 ## 2026-07
+- **07-03 (late)** — **DGTL Group agency page BUILT on `feature/dgtl-group-page`**: new tenant
+  `dgtl-group` (`lib/tenants/dgtlGroup.js`, domains dgtlgroup.io/www, gold `#F0CF50` on `#0a0a0b`)
+  rendered by a **fourth template `agency`** (`components/agency/`, own `Agency.module.css` with
+  `--ag-*` vars; registry entry additive). Sections: cinematic hero + verified stat band (75+
+  campaigns / $1M+ / 9-figure), Content Day offer carousel (ids mirror defaultTenant, **no stripe
+  block**), typographic results wall (artists/brands + Guild's Garage, Epidemic Sound 12M+, DMTV
+  case tiles), white-label roster (DMTV/ELiXR/ON Home Decor → live pages), Growth Platform rail,
+  funding cross-sell band (verbatim compliance disclaimer), about (no founder name — public
+  "Will Giroux" vs internal "Stephen" unresolved), FAQ, Start-a-project form, Join DGTL tracks.
+  Forms → `/api/leads` as `project-inquiry`/`funding-interest`/`whitelabel-inquiry`/
+  `team-application-<track>`; all 4 verified end-to-end tenant-scoped. Brand research succeeded this
+  session (dgtlgroup.io reachable: real hero copy, services, extra clients On Running/Anker/Walmart/
+  GameStop/Six Senses). **334/334 tests, clean build**, seeded via `--only dgtl-group`, all 7 tenant
+  routes 200, desktop + 390px verified. Note: running `npm run build` while the dev server is up
+  corrupts `.next` (every route 500s) — fixed with `dev:clean`-style restart.
 - **07-04** — **Template library MERGED + DEPLOYED: dgtlmag.com runs `main` @ `32c9f73`.**
   Fast-forward merge of `feature/template-library` (11 commits) after a full local gate (326/326
   tests, clean build, 22-tenant smoke matrix + 4 generated tenants all green on the mechanical

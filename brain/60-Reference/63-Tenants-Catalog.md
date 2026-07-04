@@ -21,6 +21,7 @@ New tenants can be generated via the AI [[2A-Tenant-Builder]].
 | **DGTL Funded Growth Studio** | `funded-growth` | `lib/funding/tenant.js` (`fundedGrowthTenant`) | The Funding Program funnel. Served on `funding.dgtlmag.com` + `grants.dgtlmag.com`. Now in `seed:tenants`. [[29-Funding-Program]] |
 | **DMTV** | `dmtv` | `lib/tenants/dmtv.js` | Built-in brand config. DB row only (not in `builtInTenants()` fallback). |
 | **DMTV Studio** | `dmtv-studio` | `lib/tenants/dmtvStudio.js` | DMTV's standalone brand page: `template: "showcase"` renders `components/showcase/ShowcasePage.jsx` instead of FunnelPage. Bespoke content in the top-level `showcase` block (edited in the config file + reseed — the admin Tenant Builder has no editors for it, and reseeding clobbers admin edits). Domain `studio.dmtv.dgtlmag.com` (never `dmtv.dgtlmag.com` — host resolution must stay deterministic vs the `dmtv` row). DB row only. |
+| **DGTL Group** | `dgtl-group` | `lib/tenants/dgtlGroup.js` | The agency's own brand page: `template: "agency"` renders `components/agency/AgencyPage.jsx`. Bespoke content in the top-level `agency` block (config-file + reseed only — no Tenant Builder editors; reseeding clobbers admin edits). Domains `dgtlgroup.io`/`www.dgtlgroup.io` (not yet pointed at the platform). Offer ladder mirrors Content Day ids but carries **no stripe block** (lead-form conversion only). No founder name on the page (public vs internal sources disagree). DB row only. |
 | **ELiXR** | `elixr` | `lib/tenants/elixr.js` | Built-in brand config. DB row only (not in `builtInTenants()` fallback). |
 | **ON Home Decor** | `on-home-decor` | `lib/tenants/onHomeDecor.js` | Toronto/GTA interior design + paint (`on-homedecor.com`). Migrated from a standalone Lovable site; wired into `builtInTenants()` (`lib/store.js`) + `seed:tenants`; config file now tracked in git. Default package `curated-paint-selection` ($200/colour) laddering to room styling, kitchen/bath, and full-home renovation design. |
 
@@ -29,7 +30,7 @@ New tenants can be generated via the AI [[2A-Tenant-Builder]].
 - Holds: hero/sections, packages (+ optional Stripe price), brand tokens (`--blue`/`--blue-dark`/`--accent`), domains, telephony, app icon.
 - Lifecycle: draft (`saveTenantDraftConfig`) → publish (`publishTenantConfig`); `duplicateTenantConfig`; validated by `lib/tenantValidation.js`.
 - Resolution: by host (`getTenantForHost`) or slug (`/t/[slug]`). Preview drafts via `/t/[slug]?preview=draft`.
-- Optional top-level `template` field selects the page renderer via `components/templates/registry.js` (`"showcase"` → ShowcasePage; unset/unknown → FunnelPage). Unknown top-level fields (e.g. `template`, `showcase`) pass through normalize/sanitize/storage untouched — locked in by `tests/tenant-template.test.js`.
+- Optional top-level `template` field selects the page renderer via `components/templates/registry.js` (`"showcase"` → ShowcasePage; `"authority"` → AuthorityPage; `"agency"` → AgencyPage; unset/unknown → FunnelPage). Unknown top-level fields (e.g. `template`, `showcase`, `authority`, `agency`) pass through normalize/sanitize/storage untouched — locked in by `tests/tenant-template.test.js`, `tests/authority-template.test.js`, and `tests/agency-template.test.js`.
 
 Related: [[15-Multi-Tenancy]] · [[2A-Tenant-Builder]] · [[29-Funding-Program]] · [[16-Design-System]]
 
