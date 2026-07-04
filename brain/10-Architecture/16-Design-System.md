@@ -66,6 +66,19 @@ Three additive layers on top of the direction system; composition precedence eve
   dark/brutalist directions). Checkout form url/notes labels are per-tenant
   (`checkout.urlLabel`/`checkout.notesLabel`, defaults unchanged).
 
+## Agency template (2026-07-04, DGTL Group page)
+Fourth registry template `agency` — `components/agency/` (+`Agency.module.css`), selected via
+top-level `template: "agency"`. Built for the DGTL Group brand page (`/t/dgtl-group`) on the
+showcase pattern: dark theme locked, the tenant's two brand colors as isolated `--ag-accent`/
+`--ag-accent-ink` inline vars (never touches `--blue`/`--accent`/`--fp-*`), sharp surfaces +
+pill controls + 10px inputs, Geist Mono tabular numerals for every metric. Sections read a
+top-level `agency` config block with defensive defaults and null out when their block is absent:
+hero → offer-ladder carousel → results wall (case cards + single name marquee) → white-label
+funnel rows + form → platform rail → funding band + form → about split → FAQ → start-project
+form → join tracks + form. Package selection is lifted to `AgencyPage` so offer cards route into
+the ONE project form (one CTA label per intent). All forms go through `AgencyLeadForm` (same
+payload contract as `ShowcaseLeadForm`) → `/api/leads`.
+
 ## Design tokens (`styles.css :root`, ~82KB stylesheet)
 - **Brand tokens are a contract** — `--blue`, `--blue-dark`, `--accent` are injected **per tenant** by `lib/branding.js`. Never override in base/theme rules. See [[15-Multi-Tenancy]].
 - Semantic surface tokens: `--bg`, `--surface`, `--surface-2`, `--border`, `--fg`, `--fg-muted` (these are what dark theme re-points).
@@ -87,6 +100,11 @@ Bold dark-first admin reskin, approved via the Phase-A preview (`docs/specs/admi
 ## Motion conventions
 - `components/motion/Reveal.jsx` — wrap a section's inner container; fades/slides up once on scroll.
 - `components/motion/Stagger.jsx` — `Stagger` + `StaggerItem` for grids/lists.
+- **Reduced motion (fixed 07-04):** both helpers render the SAME motion element in both modes and
+  collapse transitions to zero duration under `prefers-reduced-motion`. Never reintroduce a plain-tag
+  client branch: the server always SSRs the inline `opacity:0` initial style, and a divergent client
+  render leaves that attribute unpatched after hydration — content permanently invisible for
+  reduced-motion users (this bug shipped on the showcase page until 07-04).
 - Admin tab panels cross-fade (`AdminTabPanel`).
 - **All motion disabled under `prefers-reduced-motion`** (component-level `useReducedMotion` + global CSS fallback).
 

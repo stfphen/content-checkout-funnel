@@ -12,6 +12,24 @@ Chronological history, reconstructed from repo docs + git. **Append newest entri
 Dates are from doc timestamps / commit themes; treat older "status" claims as point-in-time snapshots.
 
 ## 2026-07
+- **07-04** — **DGTL Group agency page BUILT on `claude/dgtl-group-agency-page-87s280`: new tenant
+  `dgtl-group` + fourth template `agency`.** The agency's own brand page at `/t/dgtl-group`
+  (config `lib/tenants/dgtlGroup.js`, id `tenant_dgtl_group`, domains `dgtlgroup.io`/`www`), rendered
+  by the new `components/agency/` template (`template: "agency"` in the registry; own
+  `Agency.module.css` on isolated `--ag-*` vars — dark locked, gold `#F0CF50` single accent, Geist
+  Mono numerals). Sections: hero (75+ campaigns / $1M+ revenue / 250M+ reach), Content Day offer
+  ladder (canonical ids), verified results wall (Guild's Garage + DMTV numbers, artist/brand name
+  marquee), white-label roster linking `/t/dmtv-studio` `/t/elixr` `/t/on-home-decor`, Growth
+  Platform rail, compliance-safe funding band → `/t/funded-growth`, about, FAQ, Start-a-project +
+  Join-DGTL forms. All 4 lead categories verified end-to-end tenant-scoped (`project-inquiry`+packageId,
+  `funding-interest`+`funding-fit-scan`, `whitelabel-inquiry`, `team-application-<track>`+contactTitle).
+  Gate: 333/333 tests, clean build, SSR + sibling regression green, desktop/390px screenshots.
+  **Also fixed a real reduced-motion a11y bug in shared `components/motion/Reveal.jsx`/`Stagger.jsx`**
+  (divergent client branch stranded the server's inline `opacity:0` after hydration — showcase +
+  agency content was permanently invisible under `prefers-reduced-motion`; now same markup both
+  modes with zero-duration transitions). No founder name printed (public "Will Giroux" vs internal
+  "Stephen" unresolved). NOTE: the `new-tenant-page` skill referenced in the goal brief does not
+  exist in-repo; substituted template-library-expander conventions + DMTV Studio precedent.
 - **07-04** — **Template library MERGED + DEPLOYED: dgtlmag.com runs `main` @ `32c9f73`.**
   Fast-forward merge of `feature/template-library` (11 commits) after a full local gate (326/326
   tests, clean build, 22-tenant smoke matrix + 4 generated tenants all green on the mechanical

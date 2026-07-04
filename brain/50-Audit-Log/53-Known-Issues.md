@@ -93,6 +93,26 @@ Latest sweep: `docs/audits/2026-07-02-codebase-audit.md` (branch `audit/2026-07-
 - **TenantEditor has no vertical/variant UI** — preset + sectionVariants are settable via manual patch
   only; the builder-side picker exists. Small follow-up if operators want to retune existing tenants.
 
+## 🏷️ DGTL Group agency page — open items for the team (07-04 build)
+- **Founder name NOT printed anywhere** on `/t/dgtl-group`: public snippets say CEO "Will Giroux",
+  internal anchors reference owner "Stephen" (stephen@dgtlgroup.io). Needs team confirmation before
+  any name goes on the page.
+- **dgtlgroup.io visual identity unverified:** the live site returned 403 through this session's
+  egress (search snippets only). The page is designed from the logo asset + verified facts; wants a
+  human eyeball pass against the real site.
+- **No real work imagery yet:** the page is deliberately typographic (no picsum stand-ins next to
+  real artist names). Needs: hero/results/about stills from the team, then image slots added to the
+  `agency` block.
+- **Domain go-live plan:** config claims `dgtlgroup.io`/`www.dgtlgroup.io`, but DNS still points at
+  the WordPress-ish site. Plan needed: point the domain at the platform (Traefik host rule + cert),
+  seed prod with `npm run seed:tenants -- --only dgtl-group`, then verify host resolution.
+- **DMTV shown as a client brand on DGTL's page:** fine (it is DGTL's platform), but the DGTL↔DMTV
+  relationship was previously internal-only knowledge — flag to the team that it is now public copy.
+- **Observation (dev-mode):** every `/t/<slug>` page's RSC payload appears to serialize the full
+  tenants array (other brands' configs visible in any page's HTML source). Pre-existing (also true
+  of `dmtv-studio`), mostly-public marketing content, but worth confirming on a prod build and
+  trimming the payload to the resolved tenant.
+
 ## Fix order — remaining after the 07-02 audit
 Code-side C2/H2/M1/M2/L1 and login-H1 are **done**. Remaining, in order:
 1. **Ops:** rotate the four provider keys + set a strong prod DB password (C1, H3).
