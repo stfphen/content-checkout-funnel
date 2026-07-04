@@ -2,6 +2,7 @@ import FunnelPage from "../FunnelPage";
 import ShowcasePage from "../showcase/ShowcasePage";
 import AuthorityPage from "../authority/AuthorityPage";
 import AgencyPage from "../agency/AgencyPage";
+import InteriorsPage from "../interiors/InteriorsPage";
 
 // Tenant page templates. A tenant config may carry a top-level `template` field
 // naming which renderer serves its page; anything unset or unknown falls back
@@ -37,6 +38,14 @@ const TEMPLATES = {
     Component: AgencyPage,
     buildMetadata: (config) => ({
       title: config?.brand?.name || "Agency",
+      description: config?.brand?.tagline || config?.hero?.subheadline || ""
+    })
+  },
+  interiors: {
+    id: "interiors",
+    Component: InteriorsPage,
+    buildMetadata: (config) => ({
+      title: config?.brand?.name || "Interior Design",
       description: config?.brand?.tagline || config?.hero?.subheadline || ""
     })
   }
