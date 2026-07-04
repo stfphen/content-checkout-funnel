@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { permissionDeniedResponse, requireRole } from "../../../../../lib/permissions";
 import { normalizeDomain, normalizeEmail } from "../../../../../lib/outreachSequence";
 import {
+  cancelPendingOutreachForLead,
   createOutreachEvent,
   createOutreachSuppression,
   getSessionTeamId,
@@ -67,6 +68,12 @@ export async function POST(request) {
 
   if (latestQueueItem && ["replied", "booked"].includes(action)) {
     await updateOutreachQueueItem(latestQueueItem.id, { status: action }, { teamId });
+  }
+
+  // Eagerly cancel any pending (queued/approved) outreach — including scheduled
+  // follow-up drip rows — so we don't email a lead who already replied/booked/opted out.
+  if (["replied", "booked", "do_not_contact"].includes(action)) {
+    await cancelPendingOutreachForLead(leadId, { teamId, reason: `lead_${action}` });
   }
 
   if (action === "do_not_contact" && (lead.email || lead.domain || lead.websiteUrl)) {
