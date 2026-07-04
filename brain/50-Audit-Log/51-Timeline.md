@@ -12,6 +12,25 @@ Chronological history, reconstructed from repo docs + git. **Append newest entri
 Dates are from doc timestamps / commit themes; treat older "status" claims as point-in-time snapshots.
 
 ## 2026-07
+- **07-04** — **Batch email sending BUILT (`feature/batch-email-sending`, off `main`).** Made outreach
+  batch sending work end-to-end + added automations. **Shipped:** shared send engine
+  `lib/outreach/sendQueue.js` (`sendApprovedItems`) that both the manual route and a new scheduled
+  drain call; **claim CAS** (`claimOutreachQueueItem`, approved→sending) that closes the
+  **double-send race** (audit open item); **dry-run/mock provider seam**
+  (`lib/integrations/{emailProvider,mockEmailProvider}.js`, opt-in via `OUTREACH_DRY_RUN`/campaign
+  `testMode`, never auto in prod — mirrors telephony); **scheduled sends** via token-authed
+  `POST /api/cron/outreach/drain` (`OUTREACH_CRON_TOKEN`, host-cron trigger) over
+  `listDueQueueItems`; **follow-up drip** (a sent intro schedules an approved `step=1` row the drain
+  later sends; stop-checks on reply/booked/opt-out + eager cancel in the events route); the
+  **queued→approved** transition + "Pending Approval" UI (queued items were dead-ends before);
+  campaign UI for follow-up template / delay / test mode. **Compliance:** real signed
+  (`lib/outreach/unsubscribe.js`) one-click unsubscribe link + `List-Unsubscribe` headers, and the
+  **H4 fix** — `/api/unsubscribe` now requires a token and writes a **team/tenant-scoped**
+  suppression (no more `tenant_id=NULL` global row). Migration **008** (campaign
+  follow_up_template_id/follow_up_delay_days/test_mode + queue.step). New `scripts/seed-outreach-demo.js`
+  (`npm run seed:outreach-demo`). **Verified:** 348/348 tests (14 new in `tests/outreach-send.test.js`),
+  build clean; seed→dry-run send→drip→drain driven end-to-end in the file store. Left the hero WIP
+  untouched. See [[26-Outreach]] / [[53-Known-Issues]].
 - **07-04** — **DGTL Group agency page MERGED: `main` @ `4abc81f`** (fast-forward of
   `claude/dgtl-group-agency-page-87s280`, 5 commits). Local gate on the merged tip: 334/334 tests,
   clean build, `seed:tenants --only dgtl-group` upserted the row, all 7 tenant routes 200 (incl.

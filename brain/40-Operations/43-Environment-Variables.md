@@ -50,6 +50,12 @@ source: .env.example, API_KEYS.md, GO_LIVE_PLAN.md
 `RESEND_API_KEY` (outreach send), `GOOGLE_PLACES_API_KEY` (restrict to Places API + IP 62.72.16.32),
 `HUNTER_API_KEY` (Free=50/mo), `APOLLO_API_KEY`. Read in `lib/integrations/{resend,googlePlaces,hunter,apollo}.js`. [[44-Secrets-And-Rotation]]
 
+## Outreach batch sending (2026-07-04)
+- `RESEND_FROM` — verified Resend sender used as the default From when a queue item has no explicit sender. Real sending requires a domain verified in Resend (SPF/DKIM/DMARC) before any real prospect send.
+- `OUTREACH_DRY_RUN=true` — forces the **mock** email provider for ALL sends (records `sent` + events + a `dryrun_*` id, no real email). Opt-in only; also settable per-campaign via `testMode`. Never auto in prod. `lib/integrations/{emailProvider,mockEmailProvider}.js`.
+- `OUTREACH_CRON_TOKEN` — bearer token the scheduled-send drain requires. Host cron: `POST /api/cron/outreach/drain` with `Authorization: Bearer $OUTREACH_CRON_TOKEN` (constant-time check). See [[41-Deployment-Runbook]].
+- `UNSUBSCRIBE_SECRET` — HMAC key for signed one-click unsubscribe links; falls back to `SESSION_SECRET`. `lib/outreach/unsubscribe.js`. [[26-Outreach]]
+
 ## Telephony
 `TELEPHONY_PROVIDER` (`twilio` default; `mock`/`telnyx`), `TELEPHONY_WEBHOOK_BASE_URL` (byte-exact;
 falls back to `NEXT_PUBLIC_APP_URL`), `TWILIO_ACCOUNT_SID`, `TWILIO_AUTH_TOKEN` (also signature verify),
