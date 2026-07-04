@@ -12,6 +12,18 @@ Chronological history, reconstructed from repo docs + git. **Append newest entri
 Dates are from doc timestamps / commit themes; treat older "status" claims as point-in-time snapshots.
 
 ## 2026-07
+- **07-04** — **Ultra-reviewed the Booking Calendar `/goal` prompt** (branch
+  `claude/review-calendar-booking-prompt-qgovyz`). Verified every claim against `main@32c9f73` via
+  3 parallel codebase/brain sweeps: prompt structurally sound; 10 corrections (route param is
+  `[slug]` not `[tenant]`; tables need `team_id NOT NULL` not just `tenant_id`; "295 tests" stale;
+  no encryption util or OAuth precedent exists; `logAudit` pg-only; public widget must be light not
+  dark-first; public/admin API namespace split; no TZ library) + 7 existing hooks it missed
+  (`bookingLink` branch, `SECTION_COMPONENTS` registry, `FundingSurveyWidget` precedent, telephony
+  provider pattern, lead-upsert + Resend/suppression paths) + 3 owner decisions (stabilize-first
+  priority conflict, H4 open-bug prerequisite, transactional-vs-outreach email gate). Deliverables:
+  claim-by-claim report `docs/prompts/goal-calendar-booking-review.md` + corrected v2 prompt
+  `docs/prompts/goal-calendar-booking.md` (now in-repo; previously only on the operator's machine).
+  No code changes.
 - **07-03/04** — **Template & Asset Library BUILT on `feature/template-library`** (9 commits, executes the
   master prompt end-to-end). New: `lib/tenantBuilder/verticalPresets.js` (4 research-backed verticals:
   agency, pro-services B2B, SaaS/ecom, local/trades; closed key shape, **no default preset** — absence =
