@@ -3,7 +3,7 @@ title: 43 · Environment Variables
 type: reference
 tags: [ops]
 status: stable
-updated: 2026-06-27
+updated: 2026-07-04
 source: .env.example, API_KEYS.md, GO_LIVE_PLAN.md
 ---
 
@@ -49,6 +49,10 @@ source: .env.example, API_KEYS.md, GO_LIVE_PLAN.md
 ## Prospecting / email providers (the four exposed keys — rotate)
 `RESEND_API_KEY` (outreach send), `GOOGLE_PLACES_API_KEY` (restrict to Places API + IP 62.72.16.32),
 `HUNTER_API_KEY` (Free=50/mo), `APOLLO_API_KEY`. Read in `lib/integrations/{resend,googlePlaces,hunter,apollo}.js`. [[44-Secrets-And-Rotation]]
+
+| Var | Powers | Notes |
+|---|---|---|
+| `UNSUBSCRIBE_SIGNING_SECRET` | HMAC-SHA256 signing of per-recipient unsubscribe links in outreach emails (H4 fix) | Generate with `openssl rand -base64 32`. **Fail-closed:** when unset, no unsubscribe links/headers are embedded and every token is rejected. Read in `lib/unsubscribe.js`. Deliberately NOT `SESSION_SECRET` (L2 — that var is unread by design). |
 
 ## Telephony
 `TELEPHONY_PROVIDER` (`twilio` default; `mock`/`telnyx`), `TELEPHONY_WEBHOOK_BASE_URL` (byte-exact;

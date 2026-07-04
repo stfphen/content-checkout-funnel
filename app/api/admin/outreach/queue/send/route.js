@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { permissionDeniedResponse, requireRole } from "../../../../../../lib/permissions";
 import { sendResendEmail } from "../../../../../../lib/integrations/resend";
+import { buildUnsubscribeUrl, signUnsubscribeToken } from "../../../../../../lib/unsubscribe";
 import { canSendQueueItem, suggestFollowUpDate } from "../../../../../../lib/outreachSequence";
 import {
   createOutreachEvent,
@@ -89,19 +90,51 @@ export async function POST(request) {
       continue;
     }
 
+    // Atomic claim BEFORE the send: only one concurrent request can flip
+    // approved→sent, so a double-submit can't email twice. Crash-after-claim
+    // loses one email; crash-after-send-before-flip would double-send —
+    // claiming first is the safe side.
+    const sentAt = new Date().toISOString();
+    const claimed = await updateOutreachQueueItem(item.id, {
+      status: "sent",
+      sentAt
+    }, { teamId, expectedStatus: "approved" });
+    if (!claimed) {
+      skipped += 1;
+      continue;
+    }
+    Object.assign(item, claimed);
+
+    // Per-recipient signed unsubscribe link (H4). Only embedded when
+    // UNSUBSCRIBE_SIGNING_SECRET + a public base URL are configured.
+    const unsubscribeUrl = buildUnsubscribeUrl(signUnsubscribeToken({
+      email: item.recipientEmail,
+      tenantId: item.tenantId,
+      leadId: item.leadId,
+      campaignId: item.campaignId
+    }));
+    const text = unsubscribeUrl ? `${item.body}\n\nUnsubscribe: ${unsubscribeUrl}` : item.body;
+    const html = unsubscribeUrl
+      ? `${bodyToHtml(item.body)}<p><a href="${unsubscribeUrl}">Unsubscribe</a></p>`
+      : bodyToHtml(item.body);
+
     const result = await sendResendEmail({
       from: item.senderEmail,
       to: item.recipientEmail,
       subject: item.subject,
-      text: item.body,
-      html: bodyToHtml(item.body)
+      text,
+      html,
+      headers: unsubscribeUrl
+        ? {
+            "List-Unsubscribe": `<${unsubscribeUrl}>`,
+            "List-Unsubscribe-Post": "List-Unsubscribe=One-Click"
+          }
+        : undefined
     });
 
     if (result.ok) {
-      const sentAt = new Date().toISOString();
       const resendMessageId = result.data?.id || result.data?.message_id || "";
       const next = await updateOutreachQueueItem(item.id, {
-        status: "sent",
         sentAt,
         failureReason: "",
         resendMessageId

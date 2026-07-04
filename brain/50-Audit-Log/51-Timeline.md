@@ -12,6 +12,23 @@ Chronological history, reconstructed from repo docs + git. **Append newest entri
 Dates are from doc timestamps / commit themes; treat older "status" claims as point-in-time snapshots.
 
 ## 2026-07
+- **07-04** — **Security/correctness sweep: H4 + double-send + Stripe idempotency FIXED; dedupe
+  parity confirmed already-fixed** (same branch as the prompt review,
+  `claude/review-calendar-booking-prompt-qgovyz`). (1) **H4:** unsubscribe now requires an
+  HMAC-signed token (`lib/unsubscribe.js`, new `UNSUBSCRIBE_SIGNING_SECRET`, fail-closed,
+  180-day TTL); GET is confirm-only, POST mutates, suppression is written with the token's
+  tenantId; the send path finally embeds per-recipient links + RFC 8058 one-click headers
+  (`sendResendEmail` gained `headers`); file-store suppression dedupe tenant-scoped. Verified
+  end-to-end: legacy `?email=` vector returns 400 with zero writes. (2) **Double-send:**
+  `updateOutreachQueueItem` gained `expectedStatus` (conditional update, null on mismatch);
+  the send route atomically claims `approved→sent` before Resend. (3) **Stripe:**
+  `processed_stripe_events` ledger (migration `008` + ensureSchema + file-store key),
+  claim-before-fulfill with unmark-on-throw, `leadMissing` → 500 so events aren't lost.
+  (4) **Dedupe parity:** pg branch already ran `shouldSkipReliableDuplicate` (fixed in
+  `81e16b3`; brain note was stale) — regression test added. New tests:
+  `unsubscribe.test.js`, `outreach-queue-claim.test.js`, `lead-dedupe.test.js`, stripe ledger
+  cases; **338/338 tests + build green**. New LOW known-issue L7 (cross-team global manual
+  suppressions). Ops follow-up: set `UNSUBSCRIBE_SIGNING_SECRET` in prod.
 - **07-04** — **Ultra-reviewed the Booking Calendar `/goal` prompt** (branch
   `claude/review-calendar-booking-prompt-qgovyz`). Verified every claim against `main@32c9f73` via
   3 parallel codebase/brain sweeps: prompt structurally sound; 10 corrections (route param is

@@ -1,5 +1,8 @@
 import assert from "node:assert/strict";
 import test from "node:test";
+import os from "node:os";
+import path from "node:path";
+import { rm } from "node:fs/promises";
 import {
   buildCheckoutSessionParams,
   createCheckoutSession,
@@ -7,6 +10,19 @@ import {
   packageHasStripePrice
 } from "../lib/payments/stripe.js";
 import { sanitizeTenantConfig } from "../lib/tenantValidation.js";
+
+// Isolate the JSON store BEFORE the dynamic store.js import (DATA_PATH is read
+// at import time). The static lib/payments/stripe.js imports above never load
+// the store, so they are unaffected.
+const STORE_PATH = path.join(os.tmpdir(), `stripe-checkout-test-store-${process.pid}.json`);
+process.env.APP_STORE_PATH = STORE_PATH;
+delete process.env.DATABASE_URL;
+
+const { markStripeEventProcessed, unmarkStripeEventProcessed } = await import("../lib/store.js");
+
+test.after(async () => {
+  await rm(STORE_PATH, { force: true });
+});
 
 const lead = { id: "lead_1", tenantId: "tenant_1", email: "buyer@example.com" };
 
@@ -87,6 +103,19 @@ test("handleWebhookEvent ignores unrelated events and missing lead ids", () => {
     handleWebhookEvent({ type: "checkout.session.completed", data: { object: { id: "cs_2" } } }),
     null
   );
+});
+
+test("stripe event ledger claims each event id exactly once", async () => {
+  assert.equal(await markStripeEventProcessed("evt_ledger_1"), true);
+  assert.equal(await markStripeEventProcessed("evt_ledger_1"), false);
+
+  // Failure path: releasing the claim lets Stripe's retry re-run fulfillment.
+  await unmarkStripeEventProcessed("evt_ledger_1");
+  assert.equal(await markStripeEventProcessed("evt_ledger_1"), true);
+
+  // Defensive: an empty event id skips the ledger rather than colliding.
+  assert.equal(await markStripeEventProcessed(""), true);
+  assert.equal(await markStripeEventProcessed(""), true);
 });
 
 test("sanitizeTenantConfig preserves a valid stripe package block and drops empty ones", () => {
