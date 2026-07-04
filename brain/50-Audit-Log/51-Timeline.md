@@ -12,6 +12,13 @@ Chronological history, reconstructed from repo docs + git. **Append newest entri
 Dates are from doc timestamps / commit themes; treat older "status" claims as point-in-time snapshots.
 
 ## 2026-07
+- **07-04** — **`new-tenant-page` skill created (`.claude/skills/new-tenant-page/SKILL.md`).**
+  The DMTV Studio build process captured as a reusable project skill: brain-first orient,
+  parallel brand research (confidence-rated media deliverables), tenant + template-registry
+  architecture rules, config authoring checklist, taste-skill design handoff, `/api/leads`
+  tagging contract, the 8-rung verification ladder (config passthrough tests, dash audit,
+  Playwright section probes, browser-driven form checks), gotchas library, and close-out
+  (brain updates, commit/push, PR). Triggers on "build a new page/site for <brand>".
 - **07-03** — **DMTV Studio showcase page BUILT (`claude/dmtv-website-redesign-7xlpzn`).** A second,
   independent DMTV tenant (`dmtv-studio`, `lib/tenants/dmtvStudio.js`) rendered by a NEW bespoke
   template: `components/showcase/ShowcasePage.jsx` ("Broadcast Underground" — dark theme, DMTV
