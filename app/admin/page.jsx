@@ -943,6 +943,23 @@ export default async function AdminPage({ searchParams }) {
               <input name="categoryFilter" placeholder="Optional category filter" />
               <input name="dailySendCap" type="number" min="1" defaultValue="25" />
               <input name="perDomainDailyCap" type="number" min="1" defaultValue="1" />
+              <label>
+                Follow-up template (drip)
+                <select name="followUpTemplateId" defaultValue="">
+                  <option value="">No automatic follow-up</option>
+                  {outreachTemplates.filter((t) => t.isActive !== false).map((t) => (
+                    <option key={t.id} value={t.id}>{t.name}</option>
+                  ))}
+                </select>
+              </label>
+              <label>
+                Follow-up delay (business days)
+                <input name="followUpDelayDays" type="number" min="1" defaultValue="3" />
+              </label>
+              <label className="admin-check">
+                <input name="testMode" type="checkbox" />
+                Test mode (dry-run — records sent without emailing)
+              </label>
               <button className="button button--primary" type="submit">Create Campaign</button>
             </form>
             <div className="outreach-list">
@@ -965,6 +982,23 @@ export default async function AdminPage({ searchParams }) {
                     <input name="categoryFilter" defaultValue={campaign.categoryFilter} />
                     <input name="dailySendCap" type="number" min="1" defaultValue={campaign.dailySendCap} />
                     <input name="perDomainDailyCap" type="number" min="1" defaultValue={campaign.perDomainDailyCap} />
+                    <label>
+                      Follow-up template (drip)
+                      <select name="followUpTemplateId" defaultValue={campaign.followUpTemplateId || ""}>
+                        <option value="">No automatic follow-up</option>
+                        {outreachTemplates.filter((t) => t.isActive !== false).map((t) => (
+                          <option key={t.id} value={t.id}>{t.name}</option>
+                        ))}
+                      </select>
+                    </label>
+                    <label>
+                      Follow-up delay (business days)
+                      <input name="followUpDelayDays" type="number" min="1" defaultValue={campaign.followUpDelayDays || 3} />
+                    </label>
+                    <label className="admin-check">
+                      <input name="testMode" type="checkbox" defaultChecked={Boolean(campaign.testMode)} />
+                      Test mode (dry-run)
+                    </label>
                     <button className="button button--secondary" type="submit">Save Campaign</button>
                   </form>
                 </details>
@@ -993,10 +1027,31 @@ export default async function AdminPage({ searchParams }) {
 
         <div className="outreach-admin-grid">
           <section className="outreach-card">
+            <h3>Pending Approval</h3>
+            <form action="/api/admin/outreach/queue/approve" method="post">
+              <div className="outreach-list">
+                {outreachQueue.filter((item) => item.status === "queued").slice(0, 200).map((item) => (
+                  <label key={item.id} className="outreach-queue-row">
+                    <input type="checkbox" name="queueItemId" value={item.id} defaultChecked />
+                    <span>
+                      <strong>{item.subject}</strong>
+                      <small>{item.recipientEmail} | {item.scheduledFor ? new Date(item.scheduledFor).toLocaleString() : "No schedule"}</small>
+                    </span>
+                  </label>
+                ))}
+                {!outreachQueue.some((item) => item.status === "queued") ? <p>Nothing awaiting approval.</p> : null}
+              </div>
+              {outreachQueue.some((item) => item.status === "queued") ? (
+                <button className="button button--primary" type="submit">Approve Selected</button>
+              ) : null}
+            </form>
+          </section>
+
+          <section className="outreach-card">
             <h3>Approved Queue</h3>
             <form action="/api/admin/outreach/queue/send" method="post">
               <div className="outreach-list">
-                {outreachQueue.slice(0, 75).map((item) => (
+                {outreachQueue.filter((item) => ["approved", "sending", "sent", "failed"].includes(item.status)).slice(0, 200).map((item) => (
                   <label key={item.id} className="outreach-queue-row">
                     <input
                       type="checkbox"
@@ -1012,7 +1067,7 @@ export default async function AdminPage({ searchParams }) {
                     </span>
                   </label>
                 ))}
-                {!outreachQueue.length ? <p>No outreach queued yet.</p> : null}
+                {!outreachQueue.some((item) => ["approved", "sending", "sent", "failed"].includes(item.status)) ? <p>No approved outreach yet.</p> : null}
               </div>
               {outreachQueue.some((item) => item.status === "approved") ? (
                 <button className="button button--primary" type="submit">Send Approved</button>

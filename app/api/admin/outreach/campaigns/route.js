@@ -34,7 +34,10 @@ export async function POST(request) {
     cityFilter: String(form.get("cityFilter") || "").trim(),
     categoryFilter: String(form.get("categoryFilter") || "").trim(),
     dailySendCap: Number(form.get("dailySendCap") || 25),
-    perDomainDailyCap: Number(form.get("perDomainDailyCap") || 1)
+    perDomainDailyCap: Number(form.get("perDomainDailyCap") || 1),
+    followUpTemplateId: String(form.get("followUpTemplateId") || "").trim(),
+    followUpDelayDays: Number(form.get("followUpDelayDays") || 3),
+    testMode: form.get("testMode") === "on"
   };
 
   if (payload.tenantId) {

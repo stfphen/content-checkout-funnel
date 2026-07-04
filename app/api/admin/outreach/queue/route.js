@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { permissionDeniedResponse, requireRole } from "../../../../../lib/permissions";
 import { buildQueuePlan } from "../../../../../lib/outreachSequence";
+import { buildUnsubscribeUrl } from "../../../../../lib/outreach/unsubscribe";
 import {
   createOutreachEvent,
   createOutreachQueueItems,
@@ -68,7 +69,9 @@ export async function POST(request) {
     status: queueStatus,
     senderEmail,
     senderName,
-    includeContacted
+    includeContacted,
+    resolveUnsubscribeUrl: (lead) =>
+      buildUnsubscribeUrl({ email: lead.email, tenantId: lead.tenantId || tenant.id || "", teamId })
   });
 
   const created = await createOutreachQueueItems(plan.items.map((item) => ({ ...item, teamId })));
