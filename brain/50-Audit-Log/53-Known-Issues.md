@@ -129,9 +129,10 @@ Latest sweep: `docs/audits/2026-07-02-codebase-audit.md` (branch `audit/2026-07-
   quotes to re-enable.
 - **Stripe live-mode untested:** the $200 checkout verified in fallback mode only
   (`stripe_not_configured` capture); live checkout needs `STRIPE_SECRET_KEY` on prod.
-- **`docs/prompts/on-home-decor-rebuild-prompt.md` does not exist** in any branch despite being
-  referenced as the rebuild's process doc; the 07-04 goal text served as the spec. Recreate the doc
-  if the process should be repeatable.
+- ✅ **RESOLVED (07-04): `docs/prompts/on-home-decor-rebuild-prompt.md` reconstructed** (it had
+  never existed in any branch despite being referenced as the rebuild's process doc; the goal text
+  served as the spec). Now records the full process incl. the blocked media phase, so the follow-up
+  is repeatable.
 - **on-homedecor.com DNS/go-live pending**; prod rollout = deploy runbook + `npm run seed:tenants
   -- --only on-home-decor` (never a bare full seed on prod).
 
