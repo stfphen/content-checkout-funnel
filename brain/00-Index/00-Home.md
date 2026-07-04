@@ -3,7 +3,7 @@ title: 00 · Home (Master MOC)
 type: moc
 tags: [moc, home]
 status: living
-updated: 2026-07-03
+updated: 2026-07-04
 ---
 
 # 🏠 Home — Content Checkout Funnel
@@ -47,13 +47,14 @@ review → all tenant-scoped, permissioned, and audit-logged.*
 - [[42-Go-Live-Plan]] — the 12-phase production plan.
 - [[29-Funding-Program]] — the biggest/newest subsystem.
 
-## 🧭 Status at a glance (2026-07-03)
-- **Current priority:** remaining ops/security items (C1/H3 rotations, H4 unsubscribe, pg dedupe parity). See [[31-Current-Priorities]].
-- **Active branch:** `main` @ `44ea917` — merged `claude/dmtv-website-redesign-7xlpzn` (`52a86e6`): DMTV Studio showcase page via a generic tenant `template` registry, + `seed-tenants.js --only` flag (**295/295 tests + build green, deployed**).
-- **Deploy target:** `dgtlmag.com` on Hostinger VPS `62.72.16.32` — **LIVE at `main@44ea917` (2026-07-03 night: DMTV Studio showcase `/t/dmtv-studio`, seeded via `--only dmtv-studio`, smoke green)**. Production tracks `main`. See `docs/DEPLOY_NEXT.md` / [[41-Deployment-Runbook]].
-- **Biggest open risks:** C1 key rotation + H3 DB password (ops), **H4** unsubscribe global-suppression amplification, pg-vs-file-store dedupe parity (HIGH), outreach double-send / Stripe idempotency / batch-import idempotency; `npm audit` 2 moderate accepted (L6). See [[53-Known-Issues]].
-- **Recently shipped:** YouTube hero media (video/playlist/channel loops) · DMTV Studio showcase (template registry) · Funnel Design Control · dark-first admin. See [[51-Timeline]] / [[16-Design-System]] / [[2D-Portfolio-Media]] / [[63-Tenants-Catalog]].
-- **Next big build:** merge DMTV showcase → remaining security/ops items → PR #2 (prospect enrichment) decision → Sprint-2 productization. See [[33-Sprint-2-Productization]].
+## 🧭 Status at a glance (2026-07-04)
+- **Current priority:** merge `feature/batch-email-sending`; deploy DGTL Group page (`main@4abc81f`) + template library follow-ups; remaining ops items (C1/H3 rotations, pg dedupe parity). See [[31-Current-Priorities]].
+- **Active branch:** `feature/batch-email-sending` @ `33273d0` (off `main@4abc81f`) — outreach batch sending end-to-end: shared send engine + claim CAS (double-send race closed), dry-run provider seam, token-authed scheduled drain, follow-up drip, queued→approved UI, **signed team-scoped unsubscribe (H4 fixed)**, migration 008 (**348/348 tests + build green, unmerged**). Uncommitted on the branch: YouTube hero player WIP + `docs/prompts/goal-calendar-booking.md`.
+- **`main`:** @ `4abc81f` — DGTL Group agency page (`/t/dgtl-group`, fourth template `agency`) merged, **not yet deployed**; dgtlgroup.io DNS not pointed. Superseded twin branch `feature/dgtl-group-page` must NOT also be merged.
+- **Deploy target:** `dgtlmag.com` on Hostinger VPS `62.72.16.32` — **LIVE at `main@32c9f73` (2026-07-04: template library — vertical presets, section variants, authority archetype; smoke green)**. Production tracks `main`. See `docs/DEPLOY_NEXT.md` / [[41-Deployment-Runbook]].
+- **Biggest open risks:** C1 key rotation + H3 DB password (ops), pg-vs-file-store dedupe parity (HIGH), Stripe idempotency / batch-import idempotency; `npm audit` 2 moderate accepted (L6). ~~H4 unsubscribe~~ + outreach double-send **resolved 07-04**. See [[53-Known-Issues]].
+- **Recently shipped:** outreach batch sending + drip ([[26-Outreach]]) · DGTL Group agency page · Template & Asset Library (4 vertical presets, 11 section variants, `authority` archetype) · DMTV Studio showcase · YouTube hero media. See [[51-Timeline]] / [[16-Design-System]] / [[63-Tenants-Catalog]].
+- **Next big build:** merge batch-email branch → deploy dgtl-group + drain cron → PR #2 (prospect enrichment) decision → Sprint-2 productization. See [[33-Sprint-2-Productization]].
 
 ---
 *Maintained as a living document. When project reality changes, update the relevant note and add a line to [[51-Timeline]].*

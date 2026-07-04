@@ -12,6 +12,11 @@ Chronological history, reconstructed from repo docs + git. **Append newest entri
 Dates are from doc timestamps / commit themes; treat older "status" claims as point-in-time snapshots.
 
 ## 2026-07
+- **07-04 (daily sync)** — Brain doc catch-up for the batch-email work: [[26-Outreach]] rewritten for
+  the send engine/drip/signed unsubscribe, [[13-Data-Model]] gained migration 008, [[14-Routes-Map]]
+  gained `queue/approve` + `/api/cron/outreach/drain` + the fixed unsubscribe row, [[00-Home]] status
+  refreshed (branch `feature/batch-email-sending@33273d0`, prod = `main@32c9f73`, dgtl-group merged
+  but undeployed). Dev-work bullets below were written in-flight by the day's commits.
 - **07-04** — **Batch email sending BUILT (`feature/batch-email-sending`, off `main`).** Made outreach
   batch sending work end-to-end + added automations. **Shipped:** shared send engine
   `lib/outreach/sendQueue.js` (`sendApprovedItems`) that both the manual route and a new scheduled

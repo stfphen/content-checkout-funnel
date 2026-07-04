@@ -3,13 +3,13 @@ title: 13 · Data Model
 type: reference
 tags: [architecture, leads, tenancy]
 status: stable
-updated: 2026-06-27
-source: migrations/001-005, lib/store.js
+updated: 2026-07-04
+source: migrations/001-008, lib/store.js
 ---
 
 # Data Model
 
-Postgres schema, defined by 5 ordered migrations (`migrations/`, run via `npm run migrate`).
+Postgres schema, defined by ordered migrations (`migrations/`, latest `008`, run via `npm run migrate`).
 The data layer is `lib/store.js` (82KB) which also has a **JSON-file fallback**
 (`data/app-store.json`) used when `DATABASE_URL` is unset — local dev only.
 
@@ -41,6 +41,9 @@ The data layer is `lib/store.js` (82KB) which also has a **JSON-file fallback**
 
 ### `007_media_assets.sql` — media library (2026-07-02)
 - **`media_assets`** — `team_id NOT NULL`, `tenant_id` ("" = team-wide), kind (image/video/embed), `url`, `storage_key`, mime/bytes/width/height/duration, `thumbnail_url`, title/alt, `tags` (jsonb industry/format), source, `created_by`. Indexes: btree `(team_id, created_at desc)` + gin(tags). Referenced from `tenants.config` by `mediaId` (`media.heroImageId`, portfolio items, reference logos) — resolved at render by `resolveTenantMediaConfig`. See [[2D-Portfolio-Media]].
+
+### `008_outreach_drip.sql` — outreach drip/scheduling (2026-07-04)
+- **`outreach_campaigns`** gains `follow_up_template_id`, `follow_up_delay_days`, `test_mode`; **`outreach_queue`** gains `step` (0 = intro, 1+ = follow-up). Powers the follow-up drip + scheduled drain. Store adds claim/due primitives (`claimOutreachQueueItem`, `listDueQueueItems`). See [[26-Outreach]].
 
 ## Entity relationships (mental model)
 ```

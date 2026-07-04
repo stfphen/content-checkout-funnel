@@ -29,13 +29,14 @@ API routes are `route.js` handlers.
 | `/api/funding/survey` | POST | Funding scan: teaser w/o email, full result + `funding_scan` lead w/ email; re-scores server-side. | ⚠️ public; SSRF vector via website field (C2). |
 | `/api/checkout` | POST | Resolves tenant+package price server-side, captures lead, redirects to Stripe (or falls back). | [[27-Checkout-Payments]] |
 | `/api/webhooks/stripe` | POST | Raw-body signature verify, idempotent fulfillment. | force-dynamic, no auth (by design). |
-| `/api/unsubscribe` | GET | Unsubscribe link. | ⚠️ unauthenticated, not team-scoped (M3). |
+| `/api/unsubscribe` | GET+POST | Signed one-click unsubscribe: HMAC token required, writes a **team/tenant-scoped** suppression; RFC-8058 POST supported. | H4/M3 fixed 07-04. `lib/outreach/unsubscribe.js`. [[26-Outreach]] |
+| `/api/cron/outreach/drain` | POST | Scheduled send drain over due approved outreach queue items. | Bearer `OUTREACH_CRON_TOKEN` (constant-time check), triggered by host cron. [[26-Outreach]] |
 
 ## Admin API routes (`/api/admin/*` — 34 files, 29 use `requireRole`)
 - **Auth:** `login`, `logout`.
 - **Leads:** `leads/status`, `leads/update`, `leads/import`, `leads/export`, `leads/enrich`, `leads/enrich-batch` ⚠️(IDOR H2 — bare session, no team scope), `leads/research`, `leads/research-from-query`, `leads/fill-missing`.
 - **Funding:** `funding/review`.
-- **Outreach:** `outreach/campaigns`, `outreach/events`, `outreach/queue`, `outreach/queue/send`, `outreach/suppressions`, `outreach/templates`.
+- **Outreach:** `outreach/campaigns` (now accepts follow-up template/delay + `testMode`), `outreach/events` (eager-cancels pending drip steps on reply/booked/opt-out), `outreach/queue`, `outreach/queue/approve` (queued→approved transition), `outreach/queue/send` (thin wrapper over the shared send engine `lib/outreach/sendQueue.js`), `outreach/suppressions`, `outreach/templates`.
 - **Prospecting:** `prospecting/apollo`, `prospecting/google`, `prospecting/hunter`, `prospecting/batches`, `prospecting/batches/import`.
 - **Telephony:** `telephony/outcome`, `telephony/transcribe`, `telephony/delete-call`.
 - **Tenants:** `tenants/generate` (AI, takes a `direction` field), `tenants/edit` (POST NL-instruction **or** deterministic `patch` mode onto the draft; GET returns the draft snapshot for the editor), `tenants/import`, `tenants/publish`, `tenants/branding`, `tenants/telephony`.
