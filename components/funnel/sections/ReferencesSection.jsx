@@ -45,7 +45,7 @@ function TestimonialGridReferences({ tenant }) {
     <section className="section section--soft references" aria-labelledby="references-heading">
       <div className="section__inner">
         <Reveal className="section__header section__header--compact">
-          <p className="eyebrow">{references.eyebrow}</p>
+          {references.eyebrow ? <p className="eyebrow">{references.eyebrow}</p> : null}
           <h2 id="references-heading">{references.headline}</h2>
         </Reveal>
         {hasTestimonials ? (

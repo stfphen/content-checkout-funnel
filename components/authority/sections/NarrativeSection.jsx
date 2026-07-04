@@ -19,7 +19,10 @@ function deriveChapters(tenant) {
   if (tenant.output?.headline) {
     chapters.push({
       heading: tenant.output.headline,
-      paragraphs: tenant.output.body ? [tenant.output.body] : []
+      paragraphs: tenant.output.body ? [tenant.output.body] : [],
+      // The body copy typically points at these ("what you receive"); without
+      // them the chapter dangles on a promise.
+      items: Array.isArray(tenant.output.tiles) ? tenant.output.tiles : []
     });
   }
   return chapters;
@@ -55,6 +58,13 @@ export default function NarrativeSection({ tenant }) {
               <p key={paragraph}>{paragraph}</p>
             ))}
           </div>
+          {chapter.items?.length ? (
+            <ul className={styles.chapterList}>
+              {chapter.items.map((item) => (
+                <li key={item}>{item}</li>
+              ))}
+            </ul>
+          ) : null}
           {index === 0 && pullQuote ? (
             <blockquote className={styles.pullQuote}>
               <p>{pullQuote}</p>

@@ -996,14 +996,17 @@ p {
   margin-top: 36px;
 }
 
+/* Direction tokens with the current values as fallbacks (missed in the
+   original --fp-* pass; hardcoded white cards broke dark directions). */
 .portfolio-card {
   display: flex;
   flex-direction: column;
   overflow: hidden;
-  border: 1px solid var(--line);
-  border-radius: var(--radius);
-  background: var(--surface);
-  box-shadow: var(--shadow-sm);
+  border: var(--fp-border-w, 1px) solid var(--fp-border-color, var(--line));
+  border-radius: var(--fp-radius, var(--radius));
+  background: var(--fp-surface, var(--surface));
+  box-shadow: var(--fp-shadow-card, var(--shadow-sm));
+  color: var(--fp-fg, inherit);
 }
 
 .portfolio-card__media {
@@ -1076,9 +1079,10 @@ p {
 .testimonial {
   margin: 0;
   padding: 22px;
-  border: 1px solid var(--line);
-  border-radius: var(--radius);
-  background: var(--surface);
+  border: var(--fp-border-w, 1px) solid var(--fp-border-color, var(--line));
+  border-radius: var(--fp-radius, var(--radius));
+  background: var(--fp-surface, var(--surface));
+  color: var(--fp-fg, inherit);
 }
 
 .testimonial p {
@@ -1094,7 +1098,7 @@ p {
 }
 
 .testimonial footer span {
-  color: var(--muted);
+  color: var(--fp-muted, var(--muted));
 }
 
 .logo-wall {
@@ -4145,7 +4149,6 @@ p {
   top: -11px;
   left: 28px;
   padding: 4px 12px;
-  border-radius: 999px;
   font-family: var(--font-mono);
   font-size: 11px;
   font-weight: 600;
@@ -4154,6 +4157,7 @@ p {
   color: var(--on-blue, var(--white));
   background: var(--blue);
   box-shadow: var(--shadow-sm);
+  border-radius: var(--fp-radius-button, 999px);
 }
 
 /* 4. Checkout submit — disabled + spinner loading state. */
@@ -4945,8 +4949,20 @@ summary:focus-visible,
   color: var(--fp-muted, var(--muted));
 }
 
+/* Non-numeric prices ("Success fee") can be long: let the price wrap and
+   drop the qualifier onto its own line instead of floating beside it. */
+.price--compare {
+  flex-wrap: wrap;
+  row-gap: 2px;
+}
+
 .price--compare span {
   font-size: 34px;
+  line-height: 1.05;
+}
+
+.price--compare small {
+  flex-basis: 100%;
 }
 
 .package-compare__col ul {

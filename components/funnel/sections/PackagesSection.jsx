@@ -17,7 +17,7 @@ function EnterpriseBand({ tenant, ctx }) {
   return (
     <Reveal className="enterprise-band">
       <div>
-        <p className="eyebrow">{tenant.enterprise.eyebrow}</p>
+        {tenant.enterprise.eyebrow ? <p className="eyebrow">{tenant.enterprise.eyebrow}</p> : null}
         <h3>{tenant.enterprise.headline}</h3>
         <p>{tenant.enterprise.body}</p>
       </div>
@@ -33,7 +33,7 @@ function CardsPackages({ tenant, ctx }) {
     <section id="packages" className="section packages">
       <div className="section__inner">
         <Reveal className="section__header">
-          <p className="eyebrow">{tenant.packageSection.eyebrow}</p>
+          {tenant.packageSection.eyebrow ? <p className="eyebrow">{tenant.packageSection.eyebrow}</p> : null}
           <h2>{tenant.packageSection.headline}</h2>
           <p>{tenant.packageSection.body}</p>
         </Reveal>
@@ -87,7 +87,7 @@ function ComparisonPackages({ tenant, ctx }) {
     <section id="packages" className="section packages">
       <div className="section__inner">
         <Reveal className="section__header">
-          <p className="eyebrow">{tenant.packageSection.eyebrow}</p>
+          {tenant.packageSection.eyebrow ? <p className="eyebrow">{tenant.packageSection.eyebrow}</p> : null}
           <h2>{tenant.packageSection.headline}</h2>
           <p>{tenant.packageSection.body}</p>
         </Reveal>
@@ -144,7 +144,7 @@ function SingleOfferPackages({ tenant, ctx }) {
     <section id="packages" className="section packages">
       <div className="section__inner">
         <Reveal className="section__header">
-          <p className="eyebrow">{tenant.packageSection.eyebrow}</p>
+          {tenant.packageSection.eyebrow ? <p className="eyebrow">{tenant.packageSection.eyebrow}</p> : null}
           <h2>{tenant.packageSection.headline}</h2>
           <p>{tenant.packageSection.body}</p>
         </Reveal>

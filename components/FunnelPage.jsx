@@ -53,7 +53,7 @@ function PortfolioSection({ tenant }) {
     <section className="section portfolio" aria-labelledby="portfolio-heading">
       <div className="section__inner">
         <Reveal className="section__header">
-          <p className="eyebrow">{portfolio.eyebrow}</p>
+          {portfolio.eyebrow ? <p className="eyebrow">{portfolio.eyebrow}</p> : null}
           <h2 id="portfolio-heading">{portfolio.headline}</h2>
           {portfolio.body ? <p>{portfolio.body}</p> : null}
         </Reveal>
@@ -102,7 +102,7 @@ function ProblemSection({ tenant }) {
     <section className="problem section">
       <Reveal className="section__inner split">
         <div>
-          <p className="eyebrow">{tenant.problem.eyebrow}</p>
+          {tenant.problem.eyebrow ? <p className="eyebrow">{tenant.problem.eyebrow}</p> : null}
           <h2>{tenant.problem.headline}</h2>
         </div>
         <div className="problem__grid">
@@ -120,7 +120,7 @@ function SystemSection({ tenant }) {
     <section className="section section--soft">
       <div className="section__inner">
         <Reveal className="section__header">
-          <p className="eyebrow">{tenant.system.eyebrow}</p>
+          {tenant.system.eyebrow ? <p className="eyebrow">{tenant.system.eyebrow}</p> : null}
           <h2>{tenant.system.headline}</h2>
           <p>{tenant.system.body}</p>
         </Reveal>
@@ -143,7 +143,7 @@ function ProcessSection({ tenant }) {
     <section className="section">
       <div className="section__inner">
         <Reveal className="section__header section__header--compact">
-          <p className="eyebrow">{tenant.process.eyebrow}</p>
+          {tenant.process.eyebrow ? <p className="eyebrow">{tenant.process.eyebrow}</p> : null}
           <h2>{tenant.process.headline}</h2>
         </Reveal>
         <Stagger as="ol" className="timeline" stagger={0.06}>
@@ -167,7 +167,7 @@ function OutputSection({ tenant }) {
     <section className="section section--black" aria-label="Content examples">
       <Reveal className="section__inner split split--center">
         <div>
-          <p className="eyebrow">{tenant.output.eyebrow}</p>
+          {tenant.output.eyebrow ? <p className="eyebrow">{tenant.output.eyebrow}</p> : null}
           <h2>{tenant.output.headline}</h2>
           <p>{tenant.output.body}</p>
         </div>
@@ -187,7 +187,7 @@ function FundedOpportunitySection({ tenant }) {
     <section className="section">
       <Reveal className="section__inner split">
         <div>
-          <p className="eyebrow">{tenant.fundedOpportunity.eyebrow}</p>
+          {tenant.fundedOpportunity.eyebrow ? <p className="eyebrow">{tenant.fundedOpportunity.eyebrow}</p> : null}
           <h2>{tenant.fundedOpportunity.headline}</h2>
           <p>{tenant.fundedOpportunity.body}</p>
         </div>
@@ -207,7 +207,7 @@ function FundingPromoSection({ tenant, ctx }) {
     <section className="section section--soft" id="funding-survey" aria-label="Funding eligibility survey">
       <Reveal className="section__inner" amount={0.1}>
         <div className="section__header">
-          <p className="eyebrow">{tenant.fundingPromo.eyebrow}</p>
+          {tenant.fundingPromo.eyebrow ? <p className="eyebrow">{tenant.fundingPromo.eyebrow}</p> : null}
           <h2>{tenant.fundingPromo.headline}</h2>
           <p>{tenant.fundingPromo.body}</p>
         </div>
@@ -232,7 +232,7 @@ function CheckoutSection({ tenant, ctx }) {
     <section className="section section--soft checkout-section">
       <Reveal className="section__inner checkout-layout" amount={0.1}>
         <div>
-          <p className="eyebrow">{tenant.checkout.eyebrow}</p>
+          {tenant.checkout.eyebrow ? <p className="eyebrow">{tenant.checkout.eyebrow}</p> : null}
           <h2>{tenant.checkout.headline}</h2>
           <p>{tenant.checkout.body}</p>
           <div className="selected-package" id="selectedPackage" aria-live="polite">
@@ -261,11 +261,11 @@ function CheckoutSection({ tenant, ctx }) {
             <input name="phone" type="tel" autoComplete="tel" />
           </label>
           <label>
-            Website or Instagram
+            {tenant.checkout.urlLabel || "Website or Instagram"}
             <input name="url" autoComplete="url" placeholder="https://" />
           </label>
           <label>
-            What do you need content for?
+            {tenant.checkout.notesLabel || "What do you need content for?"}
             <textarea name="notes" rows="4" />
           </label>
           <div className="form-actions">
@@ -297,7 +297,7 @@ function FaqSection({ tenant }) {
     <section className="section objections">
       <div className="section__inner">
         <Reveal className="section__header section__header--compact">
-          <p className="eyebrow">{tenant.faq.eyebrow}</p>
+          {tenant.faq.eyebrow ? <p className="eyebrow">{tenant.faq.eyebrow}</p> : null}
           <h2>{tenant.faq.headline}</h2>
         </Reveal>
         <Stagger className="faq-grid" stagger={0.07}>
@@ -317,7 +317,7 @@ function FinalCtaSection({ tenant, ctx }) {
   return (
     <section className="final-cta">
       <Reveal className="final-cta__inner">
-        <p className="eyebrow">{tenant.finalCta.eyebrow}</p>
+        {tenant.finalCta.eyebrow ? <p className="eyebrow">{tenant.finalCta.eyebrow}</p> : null}
         <h2>{tenant.finalCta.headline}</h2>
         <p>{tenant.finalCta.body}</p>
         <button className="button button--primary" onClick={() => ctx.selectPackage(tenant.defaultPackageId)}>

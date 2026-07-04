@@ -133,6 +133,33 @@
   color: var(--fp-fg, var(--black));
 }
 
+.chapterList {
+  margin: 24px 0 0;
+  padding: 0;
+  list-style: none;
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 10px 32px;
+  max-width: 65ch;
+}
+
+.chapterList li {
+  font-size: 16px;
+  padding-left: 18px;
+  position: relative;
+}
+
+.chapterList li::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 0.55em;
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--blue, #0071e3);
+}
+
 .pullQuote {
   margin: 40px 0 0;
   padding-left: 24px;
