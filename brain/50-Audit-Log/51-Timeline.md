@@ -12,6 +12,27 @@ Chronological history, reconstructed from repo docs + git. **Append newest entri
 Dates are from doc timestamps / commit themes; treat older "status" claims as point-in-time snapshots.
 
 ## 2026-07
+- **07-04** — **ON Home Decor rebuild BUILT on `claude/rebuild-on-home-decor-e4mhuw` (PR #8, DRAFT
+  pending media): fifth template `interiors`.** Two phases: (A) the tenant finally got a `design`
+  block (`warm-boutique` + `local-trades-retail` — it had been rendering default premium-agency);
+  (B) bespoke `components/interiors/` template (`template: "interiors"` in the registry; own
+  `Interiors.module.css` on isolated `--in-*` vars — warm-paper light theme, brand taupe/blush via
+  `color-mix` for contrast-safe steps, Bricolage display). Sections: full-bleed hero (typographic
+  fallback until real photography lands — no stock ever), $200→$50K offer ladder (featured entry
+  card + 5 inquiry rungs), room-by-room project gallery + accessible before/after range-slider
+  (renders null until real media), process, service-area band, FAQ accordion, booking split panel.
+  **First non-funnel template with real checkout:** the single booking form serves two intents,
+  one CTA label each — `consultation-booking` → `/api/checkout` (Stripe fallback verified:
+  `captured`/`stripe_not_configured`), `project-inquiry` (+packageId) → `/api/leads`; both
+  verified tenant-scoped end-to-end via Playwright UI submits (server-set `teamId team_default`).
+  Gate: 340 tests (338 pass + 2 pre-existing website-enrichment flake cancellations, clean on
+  re-run), **`npm run build` SUCCEEDS in this cloud env** (linux SWC present — the old
+  "sandbox can't build" note is env-specific), seed `--only on-home-decor`, SSR markers, sibling
+  regression (dgtlmag / dgtl-group roster link / dmtv-studio / funded-growth all 200), 1440+390
+  reduced-motion screenshots with 0px horizontal overflow. **BLOCKED on the operator media folder**
+  (never arrived in the session env): hero photo, gallery projects, before/after pairs, and final
+  screenshots wait on it; `docs/prompts/on-home-decor-rebuild-prompt.md` referenced by the goal
+  does not exist in any branch — the goal text itself served as the spec.
 - **07-04** — **DGTL Group agency page MERGED: `main` @ `4abc81f`** (fast-forward of
   `claude/dgtl-group-agency-page-87s280`, 5 commits). Local gate on the merged tip: 334/334 tests,
   clean build, `seed:tenants --only dgtl-group` upserted the row, all 7 tenant routes 200 (incl.

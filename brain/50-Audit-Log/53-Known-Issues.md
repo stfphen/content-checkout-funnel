@@ -56,7 +56,8 @@ Latest sweep: `docs/audits/2026-07-02-codebase-audit.md` (branch `audit/2026-07-
 - ✅ **RESOLVED (06-29): stale `.git/*.lock` files cleared** — git ref ops work again (commits flowing on `feature/ui-overhaul`). No lock files remain.
 - ✅ **RESOLVED (06-29): enterprise-prospecting MVP committed** (`87f94a6`); `lib/enterpriseProspecting/*`, `app/api/admin/accounts/**`, `AccountsPanel.jsx`, `migrations/006_*`, seed + tests are now tracked. ⚠️ Still run `npm run migrate` + `npm run build` on a real machine before deploy (sandbox lacks Linux SWC). [[2C-Enterprise-Prospecting]]
 - **Pre-existing test flake in sandbox:** `tests/core.test.js` → "updateLeadResearch works in file-store mode" fails with `EPERM unlink data/app-store.json` (old test deletes the real store file; sandbox FS forbids it). Passes on a normal filesystem. Not a code defect; consider migrating that test to the `APP_STORE_PATH`-tmpdir isolation pattern. [[62-Testing]]
-- **`next build` can't run in the cloud sandbox** (only the macOS SWC binary is vendored; no Linux/wasm SWC + no npm network). Build/typecheck must run on the operator's machine or CI.
+- **Pre-existing test flake (intermittent):** `tests/website-enrichment.test.js` → the two timeout/fetch-failure tests occasionally cancel with "Promise resolution is still pending but the event loop has already resolved" (event-loop race, ~1 in 3 runs in the 07-04 session; 0 fails, clean on re-run). Not related to any tenant/template work. [[62-Testing]]
+- **`next build` can't run in SOME cloud sandboxes** (when only the macOS SWC binary is vendored with no npm network). Env-specific, not universal: the 2026-07-04 remote session had `@next/swc-linux-x64-gnu` + npm access and built cleanly. Check `ls node_modules/@next` before assuming; fall back to operator machine/CI when absent.
 - **Branch sprawl** (~15+ local + backups + wip/rescue + remotes) — needs consolidation. [[47-Git-Workflow]]
 - **`team_default` workaround** — built-in tenants tied to one team; blocks clean multi-team onboarding. [[15-Multi-Tenancy]] / [[33-Sprint-2-Productization]]
 - **No `lint` script** despite the mobile prompt referencing `npm run lint`. [[11-Tech-Stack]]
@@ -112,6 +113,27 @@ Latest sweep: `docs/audits/2026-07-02-codebase-audit.md` (branch `audit/2026-07-
   tenants array (other brands' configs visible in any page's HTML source). Pre-existing (also true
   of `dmtv-studio`), mostly-public marketing content, but worth confirming on a prod build and
   trimming the payload to the resolved tenant.
+
+## 🏠 ON Home Decor rebuild — open items (07-04 build, PR #8 draft)
+- **BLOCKING: operator media folder never arrived in the session env.** The gallery-first rebuild
+  ships with a typographic hero fallback and a suppressed (null-rendering) gallery until real
+  portfolio photography is committed under `public/assets/on-home-decor/` (hero ≤2000px, gallery
+  ≤1600px, ≤300KB WebP, real alt text). No stock/picsum/generated interiors, ever. Also blocks the
+  final hero/gallery screenshots on the PR.
+- **`media.heroImage` still points at the DGTL placeholder** (`/assets/content-day-hero.png`) —
+  only relevant to the funnel-fallback path (the interiors template ignores it); swap with the
+  media commit.
+- **No logo asset:** `brand.logo`/`appIcon` stay `""` (nav/footer render `logoText`). Operator to
+  supply.
+- **No testimonials:** section omitted entirely per the real-quotes-only rule; add real client
+  quotes to re-enable.
+- **Stripe live-mode untested:** the $200 checkout verified in fallback mode only
+  (`stripe_not_configured` capture); live checkout needs `STRIPE_SECRET_KEY` on prod.
+- **`docs/prompts/on-home-decor-rebuild-prompt.md` does not exist** in any branch despite being
+  referenced as the rebuild's process doc; the 07-04 goal text served as the spec. Recreate the doc
+  if the process should be repeatable.
+- **on-homedecor.com DNS/go-live pending**; prod rollout = deploy runbook + `npm run seed:tenants
+  -- --only on-home-decor` (never a bare full seed on prod).
 
 ## Fix order — remaining after the 07-02 audit
 Code-side C2/H2/M1/M2/L1 and login-H1 are **done**. Remaining, in order:
