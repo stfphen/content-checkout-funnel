@@ -12,6 +12,14 @@ Chronological history, reconstructed from repo docs + git. **Append newest entri
 Dates are from doc timestamps / commit themes; treat older "status" claims as point-in-time snapshots.
 
 ## 2026-07
+- **07-04** — **DGTL agency page build prompt authored (`docs/prompts/dgtl-agency-page.md`).**
+  A ready-to-run brief for a fresh session to build DGTL Group's own standalone page as tenant
+  `dgtl-group` (domains dgtlgroup.io/www) via the `new-tenant-page` skill. Grounded in repo
+  configs (Content Day + Funded Growth ladders, white-label roster stats) and web research of
+  dgtlgroup.io (Toronto growth/creative agency; 75+ campaigns since 2022, $1M+ client revenue;
+  artist/brand roster from search snippets — site itself egress-blocked). Carries explicit
+  unresolved flags: public CEO name "Will Giroux" vs repo owner anchor "Stephen"; dgtlgroup.io
+  visual identity unverified; DGTL↔DMTV relationship is internal knowledge.
 - **07-04** — **`new-tenant-page` skill created (`.claude/skills/new-tenant-page/SKILL.md`).**
   The DMTV Studio build process captured as a reusable project skill: brain-first orient,
   parallel brand research (confidence-rated media deliverables), tenant + template-registry
