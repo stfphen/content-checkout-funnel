@@ -12,6 +12,15 @@ Chronological history, reconstructed from repo docs + git. **Append newest entri
 Dates are from doc timestamps / commit themes; treat older "status" claims as point-in-time snapshots.
 
 ## 2026-07
+- **07-04** — Authored **ON Home Decor rebuild master prompt**
+  (`docs/prompts/on-home-decor-rebuild-prompt.md`): execution brief to rebuild `/t/on-home-decor`
+  in place using the DGTL/DMTV-Studio workflow — media-ingest phase for an operator-supplied
+  portfolio folder (real imagery only, committed under `public/assets/on-home-decor/`), Phase A
+  restyle (`design: { direction: "warm-boutique", verticalPreset: "local-trades-retail" }` +
+  populated `portfolio.items`) with escalation to a bespoke `interiors` template only if the media
+  demands it, canonical 6-package ladder preserved ($200 Stripe entry intact), full verification
+  ladder + prod gate (`seed:tenants --only on-home-decor`). No code changes yet — build runs from
+  the prompt with the media folder attached.
 - **07-04** — **DGTL Group agency page MERGED: `main` @ `4abc81f`** (fast-forward of
   `claude/dgtl-group-agency-page-87s280`, 5 commits). Local gate on the merged tip: 334/334 tests,
   clean build, `seed:tenants --only dgtl-group` upserted the row, all 7 tenant routes 200 (incl.
