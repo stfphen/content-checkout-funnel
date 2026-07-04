@@ -7,13 +7,15 @@ import styles from "../Interiors.module.css";
 // typographic composition otherwise (no stock or generated imagery, ever).
 // Primary CTA routes into the single booking form with the paid entry offer
 // pre-selected; the secondary CTA jumps to the project gallery.
-export default function InteriorsHero({ tenant, onSelect }) {
+export default function InteriorsHero({ tenant, onSelect, hasGallery }) {
   const hero = tenant?.interiors?.hero || {};
   const hasImage = Boolean(hero.image);
   const primaryLabel = hero.primaryCta?.label || "Book Your Paint Consultation";
   const primaryPackage =
     hero.primaryCta?.packageId || tenant?.defaultPackageId || "";
-  const secondary = hero.secondaryCta;
+  // Suppress the gallery CTA while the gallery has no media (dead anchor).
+  const secondary =
+    hero.secondaryCta?.target === "#gallery" && !hasGallery ? null : hero.secondaryCta;
 
   return (
     <header className={hasImage ? styles.hero : styles.heroPlain} id="home">

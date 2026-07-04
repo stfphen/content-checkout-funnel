@@ -56,8 +56,15 @@ export default function InteriorsPage({ tenant }) {
     "--in-accent-2": brand.accentColor || "#C9A9A6"
   };
 
+  // The gallery only renders once real project media is configured; until
+  // then, anything pointing at #gallery would be a dead anchor.
+  const hasGallery = (interiors.gallery?.projects || []).some(
+    (project) => (project.rooms || []).length || (project.beforeAfter || []).length
+  );
   const nav = interiors.nav || {};
-  const navLinks = nav.links || [];
+  const navLinks = (nav.links || []).filter(
+    (link) => hasGallery || link.href !== "#gallery"
+  );
   const consultationCta =
     interiors.booking?.consultationCta || "Book Your Paint Consultation";
   const footer = interiors.footer || {};
@@ -98,7 +105,7 @@ export default function InteriorsPage({ tenant }) {
       </nav>
 
       <main id="top">
-        <InteriorsHero tenant={tenant} onSelect={selectPackage} />
+        <InteriorsHero tenant={tenant} onSelect={selectPackage} hasGallery={hasGallery} />
         <OfferLadder tenant={tenant} onSelect={selectPackage} />
         <ProjectGallery tenant={tenant} />
         <DesignProcess tenant={tenant} />
