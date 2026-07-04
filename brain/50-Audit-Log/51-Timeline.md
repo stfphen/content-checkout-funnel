@@ -12,6 +12,14 @@ Chronological history, reconstructed from repo docs + git. **Append newest entri
 Dates are from doc timestamps / commit themes; treat older "status" claims as point-in-time snapshots.
 
 ## 2026-07
+- **07-04** — **DGTL Group agency page MERGED: `main` @ `4abc81f`** (fast-forward of
+  `claude/dgtl-group-agency-page-87s280`, 5 commits). Local gate on the merged tip: 334/334 tests,
+  clean build, `seed:tenants --only dgtl-group` upserted the row, all 7 tenant routes 200 (incl.
+  the new `/t/dgtl-group`), compliance disclaimer verified in SSR HTML. **Not yet deployed to the
+  VPS** — prod deploy needs the runbook + `--only dgtl-group` seed; dgtlgroup.io DNS still doesn't
+  point at the platform. A parallel local implementation of the same brief exists on
+  `feature/dgtl-group-page` (pushed, fully verified, PR never opened) — **superseded by this merge;
+  do not also merge it** (same tenant id/slug/domains + registry/seed edits would collide).
 - **07-04** — **DGTL Group agency page BUILT on `claude/dgtl-group-agency-page-87s280`: new tenant
   `dgtl-group` + fourth template `agency`.** The agency's own brand page at `/t/dgtl-group`
   (config `lib/tenants/dgtlGroup.js`, id `tenant_dgtl_group`, domains `dgtlgroup.io`/`www`), rendered
