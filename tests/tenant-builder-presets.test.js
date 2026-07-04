@@ -129,6 +129,32 @@ test("no preset means a design block byte-identical to pre-preset generation", (
   assert.deepEqual(config.design, { direction: "premium-agency", overrides: {} });
 });
 
+test("generated drafts never inherit the default tenant's enabled funding promo", () => {
+  const { config } = buildTenantConfigFromModelOutput({
+    modelOutput: mockModelOutput("NoPromo"),
+    brandName: "NoPromo",
+    direction: "premium-agency"
+  });
+  assert.equal(config.fundingPromo.enabled, false);
+});
+
+test("rationed eyebrows are cleared deterministically with a warning", () => {
+  const output = mockModelOutput("Eyebrowy");
+  output.problem = { ...output.problem, eyebrow: "The problem" };
+  output.faq = { ...output.faq, eyebrow: "Questions" };
+  const { config, warnings } = buildTenantConfigFromModelOutput({
+    modelOutput: output,
+    brandName: "Eyebrowy",
+    direction: "premium-agency"
+  });
+  assert.equal(config.problem.eyebrow, "");
+  assert.equal(config.faq.eyebrow, "");
+  // Hero (brand) and packages keep theirs.
+  assert.ok(config.brand.eyebrow);
+  assert.ok(config.packageSection.eyebrow);
+  assert.ok(warnings.some((warning) => warning.startsWith("Eyebrow rationing: cleared problem, faq")));
+});
+
 test("unknown preset warns and is omitted, never coerced", () => {
   const { config, warnings } = buildTenantConfigFromModelOutput({
     modelOutput: mockModelOutput("Oops"),
