@@ -1,6 +1,12 @@
 # Deploy-Ready Snapshot — main @ abd333e (2026-07-03, YouTube hero) — SHIPPED
 
-> **Superseded:** production now runs `44ea917` (deployed 2026-07-03 night: this tip + DMTV Studio
+> **Superseded again (2026-07-04):** production now runs `32c9f73` — the Template & Asset Library
+> (vertical presets, section variants, authority archetype, builder vertical picker). Deployed via
+> the exact sequence below (no seeding, migrate no-op, `.env` preserved). Smoke green: all tenant
+> routes 200, `/t/dmtv` still fallback-path (`data-direction="premium-agency"`, zero `--fp-*` inline
+> vars), showcase intact, new variant CSS (`package-compare`) live in the compiled chunk.
+>
+> **Superseded:** production previously ran `44ea917` (deployed 2026-07-03 night: DMTV Studio
 > showcase, smoke green). New tenants are seeded with `node scripts/seed-tenants.js --only <slug>`
 > — never the bare seed on prod (it overwrites Tenant-Editor edits). Full procedure:
 > `brain/40-Operations/41-Deployment-Runbook.md`.

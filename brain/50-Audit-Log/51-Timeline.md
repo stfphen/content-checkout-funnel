@@ -12,6 +12,15 @@ Chronological history, reconstructed from repo docs + git. **Append newest entri
 Dates are from doc timestamps / commit themes; treat older "status" claims as point-in-time snapshots.
 
 ## 2026-07
+- **07-04** — **Template library MERGED + DEPLOYED: dgtlmag.com runs `main` @ `32c9f73`.**
+  Fast-forward merge of `feature/template-library` (11 commits) after a full local gate (326/326
+  tests, clean build, 22-tenant smoke matrix + 4 generated tenants all green on the mechanical
+  pre-flight). Operator ran the runbook (backup → wipe-preserving-.env/uploads/backups → extract →
+  build → migrate no-op → **no seeding**). **External smoke green:** `/`, `/t/dmtv`,
+  `/t/dmtv-studio`, `/t/elixr` all 200; `/t/dmtv` still renders the fallback path
+  (`data-direction="premium-agency"`, zero `--fp-*` inline vars — the zero-drift promise held);
+  showcase content intact; new variant CSS (`package-compare`) confirmed in the compiled chunk.
+  Feature branch pushed to origin for history.
 - **07-03/04** — **Template & Asset Library BUILT on `feature/template-library`** (9 commits, executes the
   master prompt end-to-end). New: `lib/tenantBuilder/verticalPresets.js` (4 research-backed verticals:
   agency, pro-services B2B, SaaS/ecom, local/trades; closed key shape, **no default preset** — absence =
