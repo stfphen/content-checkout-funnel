@@ -3,7 +3,7 @@ title: 53 · Known Issues, Risks & Tech Debt
 type: log
 tags: [audit, security]
 status: living
-updated: 2026-07-02
+updated: 2026-07-04
 source: docs/SECURITY_REVIEW.md, docs/audits/2026-07-02-codebase-audit.md, status docs
 ---
 
@@ -71,6 +71,27 @@ Latest sweep: `docs/audits/2026-07-02-codebase-audit.md` (branch `audit/2026-07-
   open security fixes and with: mime allowlist + magic-byte sniff, size caps, team-scoped IDOR checks
   (cf. H2), rate limiting (cf. H1), path-traversal-safe storage keys, and SSRF guards on any server-side
   URL fetch/thumbnailing (cf. C2). Do not point `next/image` at arbitrary uploaded remote hosts.
+
+## 🎨 Template library — deferred polish (07-04 build, from the visual audit)
+- **Full-bleed hero dead band:** on image-backed heroes the brandbar + content sit ~200px down at
+  desktop and ~550px on mobile (headline lands near/below the first fold; mitigated by the sticky
+  bottom CTA bar). Pre-existing flagship design, so left frozen — revisit as a hero-variant option,
+  not a global change. [[16-Design-System]]
+- **Output section band is near-black in every direction** (`.section--black`): fine for
+  premium-agency/dark-cinematic, jarring on warm-boutique/editorial-minimal. A per-direction surface
+  needs a new `--fp-*` token → unfreezes the closed `DIRECTION_TOKEN_KEYS` set; deferred deliberately.
+- **Split hero × large display sizes:** editorial/dark serif h1 clamps don't fit 5+ word headlines in
+  a half-width column. Mitigated (B2B preset no longer forces split; generator caps hero headlines at
+  3-5 words); the token-level fix (split-specific size) is deferred with the same unfreeze caveat.
+- **`.brandbar__login` ghost button** can be near-invisible over bright hero photos (needs a scrim or
+  stroke treatment).
+- **Package grid renders full-width stacked cards at ≥1440px** on some directions — audit flagged it
+  as looking unfinished; pre-existing behavior, evaluate a 3-up desktop rule against prod tenants first.
+- **Logo slots show placeholder photography** until real client marks are uploaded per tenant
+  (`docs/design-research/asset-prompts.md` documents the policy); vertical × direction asset packs not
+  yet generated (prompt sheet ready).
+- **TenantEditor has no vertical/variant UI** — preset + sectionVariants are settable via manual patch
+  only; the builder-side picker exists. Small follow-up if operators want to retune existing tenants.
 
 ## Fix order — remaining after the 07-02 audit
 Code-side C2/H2/M1/M2/L1 and login-H1 are **done**. Remaining, in order:

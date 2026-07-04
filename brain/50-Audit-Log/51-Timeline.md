@@ -3,7 +3,7 @@ title: 51 · Project Timeline
 type: log
 tags: [audit]
 status: living
-updated: 2026-07-02
+updated: 2026-07-04
 ---
 
 # Project Timeline
@@ -12,6 +12,23 @@ Chronological history, reconstructed from repo docs + git. **Append newest entri
 Dates are from doc timestamps / commit themes; treat older "status" claims as point-in-time snapshots.
 
 ## 2026-07
+- **07-03/04** — **Template & Asset Library BUILT on `feature/template-library`** (9 commits, executes the
+  master prompt end-to-end). New: `lib/tenantBuilder/verticalPresets.js` (4 research-backed verticals:
+  agency, pro-services B2B, SaaS/ecom, local/trades; closed key shape, **no default preset** — absence =
+  pre-preset behavior) + `lib/tenantBuilder/sectionVariants.js` (closed variant registry: hero 3,
+  packages 3, references 5; precedence explicit > preset > direction > default); `resolveDesign` composes
+  both (preset wins sectionOrder). Funnel Hero/Packages/References extracted to
+  `components/funnel/sections/` with per-section VARIANTS maps; 6 new compositions (comparison,
+  single-offer, logo-wall, stat-band, case-strip, testimonial-editorial). **Third archetype `authority`**
+  (`components/authority/`, long-form credibility page) registered in the template registry; themes via
+  the same `--fp-*` tokens in module CSS. Generator accepts operator-chosen `verticalPreset` (never
+  model-authored), injects copyFrames/proofPattern + tightened COPY_RULES (em-dash ban, eyebrow rationing,
+  3-5-word hero headline); TenantBuilder gained a vertical picker (affinity pre-selects direction).
+  Research: `docs/design-research/` (4 vertical notes + asset prompt sheet). Verified: 22-tenant smoke
+  matrix (`scripts/seed-smoke-tenants.js`), mechanical pre-flight green, browser visual audit (fixes:
+  tokenized `.portfolio-card`/`.testimonial`/`.package__badge`, authority output tiles, configurable
+  checkout labels), showcase isolation proven (zero direction-token leak), **324/324 tests + build clean**;
+  frozen `resolveDesign` snapshots prove zero drift for existing tenants.
 - **07-03 (night)** — **DMTV Studio showcase MERGED + DEPLOYED: dgtlmag.com runs `main` @ `44ea917`.**
   Merged `claude/dmtv-website-redesign-7xlpzn` (`52a86e6`, cloud ultraplan build) into `main`
   (`5736377`; brain-doc conflicts resolved as chronological union), added `--only <slug,…>` to

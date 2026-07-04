@@ -3,7 +3,7 @@ title: 16 · Design System & Mobile-First
 type: reference
 tags: [architecture, design]
 status: stable
-updated: 2026-07-02
+updated: 2026-07-04
 source: DESIGN.md, docs/prompts/ui-ux-overhaul.md, docs/specs/ui-overhaul-audit.md, docs/specs/ui-overhaul-build-plan.md, docs/specs/mobile-audit.md
 ---
 
@@ -22,6 +22,49 @@ Tenant funnels are restyled per-tenant via **named design directions** — data-
 - **Copy limits** (Feature 3): `lib/tenantBuilder/copyLimits.js` — one table drives JSON-schema `maxLength`/`minItems`/`maxItems` **and** advisory `enforceCopyLimits` warnings (never truncates, never blocks saves).
 - **framer-motion** — scroll reveals, hero stagger, admin tab transitions.
 - **lucide-react** — admin nav + toggle icons.
+
+## Template library (2026-07-04, `feature/template-library`)
+Three additive layers on top of the direction system; composition precedence everywhere is
+**explicit tenant value > vertical preset > direction > platform default** (`resolveDesign`).
+- **Vertical presets** — `lib/tenantBuilder/verticalPresets.js`, pure data like directions:
+  4 presets (`agency-creative`, `professional-services-b2b`, `saas-tech-ecommerce`,
+  `local-trades-retail`), each `{ sectionOrder, sectionVariantPrefs, copyFrames, proofPattern,
+  imageryBrief, directionAffinity }` with a closed key shape (`VERTICAL_PRESET_KEYS`, tested).
+  **No default preset** — `null` contributes nothing; invalid stored ids are deleted by
+  `sanitizeTenantConfig`, never coerced. Preset `sectionOrder` beats the direction's. Research
+  provenance: `docs/design-research/<vertical>.md`.
+- **Section variants** — `lib/tenantBuilder/sectionVariants.js`: closed registry
+  (hero: full-bleed/split/typographic; packages: cards/comparison/single-offer; references:
+  testimonial-grid/logo-wall/stat-band/case-strip/testimonial-editorial). Each default id IS the
+  pre-variants rendering. Components live in `components/funnel/sections/` (Hero/Packages/References
+  extracted from FunnelPage; per-file `VARIANTS` map keyed by `ctx.design.sectionVariants.<id>`,
+  unknown → default). Variant contracts: packages keep `data-package-card`, `ctx.selectPackage`,
+  `#packages` anchor; every variant nulls on empty data; the hero suppresses its stats row when
+  references renders `stat-band` (stats live in one place). Config: sparse
+  `design.sectionVariants` overrides only; render-time resolution from preset prefs otherwise.
+- **Config shape:** `design = { direction, verticalPreset?, sectionVariants?, overrides }` — the two
+  new keys are optional and never defaulted in; `resolveDesign` returns `verticalPresetId` + a complete
+  `sectionVariants` map and keeps `heroVariant === sectionVariants.hero` for legacy consumers.
+  Zero-drift is frozen by inline `resolveDesign` snapshots in `tests/section-variants.test.js`.
+- **Third archetype `authority`** — `components/authority/` (+`Authority.module.css`), selected via
+  top-level `template: "authority"` in `components/templates/registry.js`. Long-form credibility page
+  (masthead → narrative chapters → deep proof → numbered method → FAQ → single lead form → `/api/leads`).
+  Reads the standard funnel copy sections (no generator schema change) + optional top-level `authority`
+  block (`narrative[]`, `pullQuote`, `byline`). Themes by consuming the **same `--fp-*` tokens** in
+  module-scoped CSS with premium-agency-equivalent fallbacks — all 5 directions apply; `styles.css`
+  untouched. Showcase remains isolated on `--sc-*` (proven: identical render across directions).
+- **Generation wiring:** `generateTenantConfig({ verticalPreset })` — operator-chosen like direction;
+  prompt gains vertical label + `copyFrames` + `proofPattern`; COPY_RULES now ban em-dashes, ration
+  eyebrows (hero + packages only; funnel sections render eyebrows only when non-empty), cap hero
+  headlines at 3-5 words, forbid fake-precise numbers. The generator emits **no** `sectionVariants`
+  (render-time resolution — see [[52-Decision-Log]]). TenantBuilder has a vertical select that
+  pre-picks `directionAffinity[0]`; editor-side changes ride manual patches.
+- **Smoke matrix:** `APP_STORE_PATH=<scratch> node scripts/seed-smoke-tenants.js` seeds 22 tenants
+  (funnel/authority × 5 directions × 2 verticals + 2 showcase probes) for pre-flight audits.
+- **Tokenized legacy selectors (07-04):** `.portfolio-card`, `.testimonial`, `.package__badge` now read
+  `--fp-*` with their previous literals as fallbacks (they had hardcoded white/rounded values that broke
+  dark/brutalist directions). Checkout form url/notes labels are per-tenant
+  (`checkout.urlLabel`/`checkout.notesLabel`, defaults unchanged).
 
 ## Design tokens (`styles.css :root`, ~82KB stylesheet)
 - **Brand tokens are a contract** — `--blue`, `--blue-dark`, `--accent` are injected **per tenant** by `lib/branding.js`. Never override in base/theme rules. See [[15-Multi-Tenancy]].
