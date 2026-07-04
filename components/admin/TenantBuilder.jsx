@@ -2,6 +2,7 @@
 
 import { useRef, useState } from "react";
 import { DEFAULT_DIRECTION_ID } from "../../lib/tenantBuilder/designDirections";
+import { getVerticalPreset, listVerticalPresets } from "../../lib/tenantBuilder/verticalPresets";
 import DesignDirectionPicker from "./DesignDirectionPicker";
 
 function slugify(value) {
@@ -18,6 +19,7 @@ export default function TenantBuilder() {
   const [slugEdited, setSlugEdited] = useState(false);
   const [prompt, setPrompt] = useState("");
   const [direction, setDirection] = useState(DEFAULT_DIRECTION_ID);
+  const [verticalPreset, setVerticalPreset] = useState("");
   const [status, setStatus] = useState("idle"); // idle | loading | done | error
   const [error, setError] = useState("");
   const [result, setResult] = useState(null); // { tenant, warnings }
@@ -28,6 +30,14 @@ export default function TenantBuilder() {
   function onBrandNameChange(value) {
     setBrandName(value);
     if (!slugEdited) setSlug(slugify(value));
+  }
+
+  // Picking a vertical pre-selects its best direction pairing
+  // (directionAffinity[0]); the direction picker below still overrides it.
+  function onVerticalPresetChange(id) {
+    setVerticalPreset(id);
+    const preset = getVerticalPreset(id);
+    if (preset) setDirection(preset.directionAffinity[0]);
   }
 
   async function onGenerate(event) {
@@ -41,6 +51,7 @@ export default function TenantBuilder() {
     formData.set("brandName", brandName);
     formData.set("slug", effectiveSlug);
     formData.set("direction", direction);
+    formData.set("verticalPreset", verticalPreset);
     const files = fileRef.current?.files || [];
     for (const file of files) {
       formData.append("documents", file);
@@ -110,6 +121,22 @@ export default function TenantBuilder() {
             onChange={(event) => setPrompt(event.target.value)}
             placeholder="Who is this client, what do they sell, who is the audience, what packages and pricing, tone, key differentiators..."
           />
+        </label>
+
+        <label>
+          Vertical (optional): tunes section order, proof pattern, and copy framing
+          <select
+            name="verticalPreset"
+            value={verticalPreset}
+            onChange={(event) => onVerticalPresetChange(event.target.value)}
+          >
+            <option value="">None: generic funnel</option>
+            {listVerticalPresets().map((preset) => (
+              <option key={preset.id} value={preset.id}>
+                {preset.label}: {preset.blurb}
+              </option>
+            ))}
+          </select>
         </label>
 
         <div>
