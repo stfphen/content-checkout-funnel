@@ -30,7 +30,7 @@ New tenants can be generated via the AI [[2A-Tenant-Builder]].
 - Holds: hero/sections, packages (+ optional Stripe price), brand tokens (`--blue`/`--blue-dark`/`--accent`), domains, telephony, app icon.
 - Lifecycle: draft (`saveTenantDraftConfig`) → publish (`publishTenantConfig`); `duplicateTenantConfig`; validated by `lib/tenantValidation.js`.
 - Resolution: by host (`getTenantForHost`) or slug (`/t/[slug]`). Preview drafts via `/t/[slug]?preview=draft`.
-- Optional top-level `template` field selects the page renderer via `components/templates/registry.js` (`"showcase"` → ShowcasePage, `"authority"` → AuthorityPage, `"agency"` → AgencyPage; unset/unknown → FunnelPage). Unknown top-level fields (e.g. `template`, `showcase`, `authority`, `agency`) pass through normalize/sanitize/storage untouched — locked in by `tests/tenant-template.test.js` + `tests/agency-template.test.js`.
+- Optional top-level `template` field selects the page renderer via `components/templates/registry.js` (`"showcase"` → ShowcasePage, `"authority"` → AuthorityPage, `"agency"` → AgencyPage, `"interiors"` → InteriorsPage; unset/unknown → FunnelPage). Unknown top-level fields (e.g. `template`, `showcase`, `authority`, `agency`, `interiors`) pass through normalize/sanitize/storage untouched — locked in by `tests/tenant-template.test.js` + `tests/agency-template.test.js` + `tests/interiors-template.test.js`.
 
 Related: [[15-Multi-Tenancy]] · [[2A-Tenant-Builder]] · [[29-Funding-Program]] · [[16-Design-System]]
 
