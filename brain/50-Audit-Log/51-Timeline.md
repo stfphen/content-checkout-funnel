@@ -12,6 +12,11 @@ Chronological history, reconstructed from repo docs + git. **Append newest entri
 Dates are from doc timestamps / commit themes; treat older "status" claims as point-in-time snapshots.
 
 ## 2026-07
+- **07-04 (round 2)** — **ON Home Decor gallery expanded to 8 projects.** Operator uploaded 3 more
+  zips (26 originals); 12 curated WebP assets added: Glass Partition Apartment (6), Walnut & White
+  Brick Suite (4, best of a dim evening shoot), Black Bath & Laundry (2, 960px sources kept at
+  native size). Re-verified: 340 tests / 0 fail, seed `--only`, SSR markers for all three new
+  projects, fresh 1440+390 screenshots, 0px overflow. PR #8 media map updated.
 - **07-04 (later)** — **ON Home Decor media phase COMPLETE — PR #8 ready for review.** The operator
   uploaded the portfolio (5 zips, 55 HEIC/JPG): curated to 23 WebP assets under
   `public/assets/on-home-decor/` (hero 2000×1200 106KB; gallery longest-side 1600, 47-265KB; pairs
