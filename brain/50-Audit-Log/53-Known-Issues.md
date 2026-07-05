@@ -114,15 +114,13 @@ Latest sweep: `docs/audits/2026-07-02-codebase-audit.md` (branch `audit/2026-07-
   of `dmtv-studio`), mostly-public marketing content, but worth confirming on a prod build and
   trimming the payload to the resolved tenant.
 
-## 🏠 ON Home Decor rebuild — open items (07-04 build, PR #8 draft)
-- **BLOCKING: operator media folder never arrived in the session env.** The gallery-first rebuild
-  ships with a typographic hero fallback and a suppressed (null-rendering) gallery until real
-  portfolio photography is committed under `public/assets/on-home-decor/` (hero ≤2000px, gallery
-  ≤1600px, ≤300KB WebP, real alt text). No stock/picsum/generated interiors, ever. Also blocks the
-  final hero/gallery screenshots on the PR.
-- **`media.heroImage` still points at the DGTL placeholder** (`/assets/content-day-hero.png`) —
-  only relevant to the funnel-fallback path (the interiors template ignores it); swap with the
-  media commit.
+## 🏠 ON Home Decor rebuild — open items (07-04 build, PR #8)
+- ✅ **RESOLVED (07-04): media landed.** The operator uploaded 5 project zips (55 HEIC/JPG);
+  23 curated WebP assets committed under `public/assets/on-home-decor/` (hero 2000×1200 106KB,
+  gallery ≤1600 at 47-265KB), hero + gallery + two before/after pairs populated with real alt
+  text. `media.heroImage` now points at the real hero (DGTL placeholder gone). Unused originals
+  (incl. the misfiled restaurant-stair shot IMG_5385 in the House 005 folder) were deliberately
+  not committed.
 - **No logo asset:** `brand.logo`/`appIcon` stay `""` (nav/footer render `logoText`). Operator to
   supply.
 - **No testimonials:** section omitted entirely per the real-quotes-only rule; add real client

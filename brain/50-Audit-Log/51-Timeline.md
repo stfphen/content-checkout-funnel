@@ -12,6 +12,18 @@ Chronological history, reconstructed from repo docs + git. **Append newest entri
 Dates are from doc timestamps / commit themes; treat older "status" claims as point-in-time snapshots.
 
 ## 2026-07
+- **07-04 (later)** — **ON Home Decor media phase COMPLETE — PR #8 ready for review.** The operator
+  uploaded the portfolio (5 zips, 55 HEIC/JPG): curated to 23 WebP assets under
+  `public/assets/on-home-decor/` (hero 2000×1200 106KB; gallery longest-side 1600, 47-265KB; pairs
+  at identical dims for the slider). Gallery: Warm Walnut Condo (6 rooms), Basement Suite
+  Renovation (2 rooms + real mid-build→finished kitchen pair), Spa-Inspired Bath & Suite (4),
+  Café Repaint (1 + the one-colour wall pair — the literal brand story), Timber-Frame Restaurant
+  (5). Visual audit caught and fixed two real slider defects (after-overlay clipped from the wrong
+  edge so labels were inverted; the first "after" kitchen frame was itself mid-build — swapped to
+  IMG_8106) + added a per-pair initial split so the kitchen pair's before-story reads at rest.
+  Re-verified: 340 tests / 0 fail, seed `--only on-home-decor`, SSR markers (real hero, gallery
+  anchor live, placeholder gone from the tenant row), siblings 200×4, fresh 1440+390
+  reduced-motion screenshots with 0px overflow.
 - **07-04** — **ON Home Decor rebuild BUILT on `claude/rebuild-on-home-decor-e4mhuw` (PR #8, DRAFT
   pending media): fifth template `interiors`.** Two phases: (A) the tenant finally got a `design`
   block (`warm-boutique` + `local-trades-retail` — it had been rendering default premium-agency);
