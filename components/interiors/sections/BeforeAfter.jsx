@@ -8,7 +8,12 @@ import styles from "../Interiors.module.css";
 // the divider). Direct manipulation only: position follows the input value
 // with no animation, which also makes it reduced-motion safe by construction.
 export default function BeforeAfter({ pair }) {
-  const [position, setPosition] = useState(50);
+  // pair.initial biases the resting split when the "before" story lives in
+  // one region of the frame (e.g. wiring on the right half); default 50.
+  const [position, setPosition] = useState(() => {
+    const initial = Number(pair?.initial);
+    return Number.isFinite(initial) ? Math.min(95, Math.max(5, initial)) : 50;
+  });
   const before = pair?.before || {};
   const after = pair?.after || {};
 
@@ -18,9 +23,11 @@ export default function BeforeAfter({ pair }) {
     <div className={styles.baBlock}>
       <div className={styles.baFrame}>
         <img src={before.src} alt={before.alt || ""} loading="lazy" />
+        {/* After overlay occupies the right of the divider so the labels
+            (before left, after right) match what is actually shown. */}
         <div
           className={styles.baAfter}
-          style={{ clipPath: `inset(0 ${100 - position}% 0 0)` }}
+          style={{ clipPath: `inset(0 0 0 ${position}%)` }}
         >
           <img src={after.src} alt={after.alt || ""} loading="lazy" />
         </div>
