@@ -22,6 +22,12 @@
   --in-line-strong: rgba(74, 60, 44, 0.34);
   --in-accent-deep: color-mix(in srgb, var(--in-accent) 62%, #241d15);
   --in-accent-wash: color-mix(in srgb, var(--in-accent) 12%, #faf6ef);
+  /* The blush pink (brand accentColor) carries the page's accent roles:
+     --in-pink for decorative marks on light surfaces, --in-pink-deep for
+     text-level accents (55/45 mix keeps >=4.5:1 on the warm paper). */
+  --in-pink: var(--in-accent-2);
+  --in-pink-deep: color-mix(in srgb, var(--in-accent-2) 55%, #241d15);
+  --in-pink-wash: color-mix(in srgb, var(--in-accent-2) 26%, #fffdf9);
   --in-display: var(--font-bricolage), var(--font-sans), sans-serif;
   --in-body: var(--font-sans), sans-serif;
   --in-mono: var(--font-mono), monospace;
@@ -40,8 +46,8 @@
 }
 
 .page ::selection {
-  background: var(--in-accent);
-  color: var(--in-cream);
+  background: var(--in-pink);
+  color: var(--in-ink);
 }
 
 .container {
@@ -65,7 +71,7 @@
   font-weight: 500;
   letter-spacing: 0.16em;
   text-transform: uppercase;
-  color: var(--in-accent-deep);
+  color: var(--in-pink-deep);
   margin: 0 0 14px;
 }
 
@@ -114,7 +120,7 @@
 }
 
 .btnPrimary:hover {
-  background: var(--in-accent-deep);
+  background: var(--in-pink-deep);
   transform: translateY(-1px);
 }
 
@@ -312,7 +318,7 @@
   min-height: 86dvh;
   display: flex;
   align-items: center;
-  background: linear-gradient(160deg, var(--in-bg) 55%, var(--in-accent-wash) 100%);
+  background: linear-gradient(160deg, var(--in-bg) 55%, var(--in-pink-wash) 100%);
   border-bottom: 1px solid var(--in-line);
 }
 
@@ -406,7 +412,7 @@
   width: 10px;
   height: 10px;
   border-radius: 3px;
-  background: var(--in-accent);
+  background: var(--in-pink);
 }
 
 .rungList {
@@ -443,7 +449,7 @@
   font-weight: 600;
   font-size: 15px;
   white-space: nowrap;
-  color: var(--in-accent-deep);
+  color: var(--in-pink-deep);
 }
 
 .rungSummary {
@@ -467,7 +473,7 @@
   cursor: pointer;
   text-decoration: underline;
   text-underline-offset: 4px;
-  text-decoration-color: var(--in-accent);
+  text-decoration-color: var(--in-pink);
   transition: text-decoration-color 160ms ease;
 }
 
@@ -680,7 +686,7 @@
 }
 
 .baRange:focus-visible ~ .baHandle {
-  outline: 3px solid var(--in-accent);
+  outline: 3px solid var(--in-pink);
   outline-offset: 2px;
 }
 
@@ -699,7 +705,7 @@
 }
 
 .processStep {
-  border-top: 2px solid var(--in-accent);
+  border-top: 2px solid var(--in-pink);
   padding-top: 18px;
 }
 
@@ -707,7 +713,7 @@
   font-family: var(--in-mono);
   font-weight: 600;
   font-size: 14px;
-  color: var(--in-accent-deep);
+  color: var(--in-pink-deep);
 }
 
 .processTitle {
@@ -776,7 +782,7 @@
   content: "+";
   font-family: var(--in-mono);
   font-size: 18px;
-  color: var(--in-accent-deep);
+  color: var(--in-pink-deep);
   transition: transform 200ms ease;
 }
 
@@ -839,12 +845,12 @@
 }
 
 .areaList li {
-  border: 1px solid var(--in-line-strong);
+  border: 1px solid color-mix(in srgb, var(--in-pink) 55%, var(--in-line-strong));
   border-radius: var(--in-pill);
   padding: 9px 18px;
   font-size: 14.5px;
   font-weight: 500;
-  background: var(--in-bg-raised);
+  background: var(--in-pink-wash);
 }
 
 @media (max-width: 860px) {
@@ -878,7 +884,7 @@
   color: var(--in-ink);
   text-decoration: underline;
   text-underline-offset: 4px;
-  text-decoration-color: var(--in-accent);
+  text-decoration-color: var(--in-pink);
 }
 
 .bookContact a:hover {
@@ -986,8 +992,8 @@
 
 .input:focus-visible {
   outline: none;
-  border-color: var(--in-accent-deep);
-  box-shadow: 0 0 0 3px color-mix(in srgb, var(--in-accent) 30%, transparent);
+  border-color: var(--in-pink-deep);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--in-pink) 38%, transparent);
 }
 
 textarea.input {
@@ -1012,7 +1018,7 @@ textarea.input {
   font-size: 14.5px;
   line-height: 1.55;
   margin: 0;
-  color: var(--in-accent-deep);
+  color: var(--in-pink-deep);
 }
 
 .formNoteError {
