@@ -249,7 +249,7 @@
   /* Bias the visible window toward the top of the frame so wide viewports
      keep the headroom above the subject; on narrow viewports the full image
      height is shown and this has no effect. */
-  object-position: center 25%;
+  object-position: center 40%;
   display: block;
 }
 
