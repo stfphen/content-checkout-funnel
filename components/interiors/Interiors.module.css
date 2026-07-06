@@ -25,9 +25,9 @@
   /* The blush pink (brand accentColor) carries the page's accent roles:
      --in-pink for decorative marks on light surfaces, --in-pink-deep for
      text-level accents (55/45 mix keeps >=4.5:1 on the warm paper). */
-  --in-pink: var(--in-accent-2);
-  --in-pink-deep: color-mix(in srgb, var(--in-accent-2) 55%, #241d15);
-  --in-pink-wash: color-mix(in srgb, var(--in-accent-2) 26%, #fffdf9);
+  --in-pink: color-mix(in oklch, var(--in-accent-2) 72%, #ff7fa8);
+  --in-pink-deep: color-mix(in srgb, var(--in-pink) 55%, #241d15);
+  --in-pink-wash: color-mix(in srgb, var(--in-pink) 26%, #fffdf9);
   --in-display: var(--font-bricolage), var(--font-sans), sans-serif;
   --in-body: var(--font-sans), sans-serif;
   --in-mono: var(--font-mono), monospace;
