@@ -353,6 +353,7 @@
 .entryCard {
   background: var(--in-bg-raised);
   border: 1px solid var(--in-line);
+  border-top: 3px solid var(--in-pink);
   border-radius: var(--in-radius);
   box-shadow: var(--in-shadow);
   padding: clamp(28px, 4vw, 48px);
@@ -366,6 +367,7 @@
   font-size: clamp(40px, 5vw, 58px);
   letter-spacing: -0.03em;
   line-height: 1;
+  color: var(--in-pink-deep);
 }
 
 .entryQualifier {
@@ -511,7 +513,7 @@
 /* -------------------------------------------------------------- gallery */
 
 .gallerySection {
-  background: var(--in-bg-raised);
+  background: color-mix(in srgb, var(--in-pink) 6%, #fffdf9);
   border-block: 1px solid var(--in-line);
 }
 
@@ -520,7 +522,7 @@
 }
 
 .project + .project {
-  border-top: 1px solid var(--in-line);
+  border-top: 1px solid color-mix(in srgb, var(--in-pink) 38%, var(--in-line));
 }
 
 .projectHead {
@@ -544,7 +546,7 @@
   font-size: 13px;
   letter-spacing: 0.08em;
   text-transform: uppercase;
-  color: var(--in-ink-soft);
+  color: var(--in-pink-deep);
 }
 
 .projectSummary {
@@ -758,7 +760,7 @@
 }
 
 .faqItem[open] {
-  border-color: var(--in-line-strong);
+  border-color: color-mix(in srgb, var(--in-pink) 60%, var(--in-line-strong));
 }
 
 .faqQuestion {
@@ -900,6 +902,7 @@
 .bookPanel {
   background: var(--in-bg-raised);
   border: 1px solid var(--in-line);
+  border-top: 3px solid var(--in-pink);
   border-radius: var(--in-radius);
   box-shadow: var(--in-shadow);
   padding: clamp(24px, 3.4vw, 40px);
@@ -930,7 +933,7 @@
 }
 
 .intentBtnActive {
-  background: var(--in-ink);
+  background: var(--in-pink-deep);
   color: var(--in-cream);
 }
 
@@ -1084,7 +1087,7 @@ textarea.input {
   gap: 10px;
   margin-top: clamp(28px, 4vw, 44px);
   padding-top: 22px;
-  border-top: 1px solid var(--in-line);
+  border-top: 1px solid color-mix(in srgb, var(--in-pink) 38%, var(--in-line));
   font-size: 13px;
   color: var(--in-ink-soft);
 }

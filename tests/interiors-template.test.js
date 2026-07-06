@@ -31,7 +31,7 @@ test("on-home-decor config survives sanitize with template, design, and interior
   assert.ok(sanitized.interiors, "interiors content block should pass through");
   assert.equal(sanitized.interiors.nav.links.length, 4);
   assert.ok(Array.isArray(sanitized.interiors.gallery.projects));
-  assert.equal(sanitized.interiors.booking.consultationCta, "Book Your Paint Consultation");
+  assert.equal(sanitized.interiors.booking.consultationCta, "Book a Consultation");
   assert.equal(sanitized.interiors.booking.inquiryCta, "Start a Project Inquiry");
   assert.equal(sanitized.contractorSettings.serviceAreas.length, 8);
 });
