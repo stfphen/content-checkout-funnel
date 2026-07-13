@@ -1,0 +1,118 @@
+/* ==========================================================================
+   DGTL admin reskin — scoped to the admin shell + login only.
+   Additive override layer over styles.css. Repoints the existing semantic
+   tokens to the DGTL identity (dgtlgroup.io: black + gold #F0CF50, Manrope).
+   Change skin, not skeleton: no DOM/logic changes, no edits to styles.css.
+   The public tenant funnels never carry .v2-admin-shell / .admin-login, so
+   they are completely unaffected. Delete this file to fully revert.
+
+   How it works: the app already themes through semantic variables
+   (--bg/--surface/--fg/--border/--blue/--success...). The admin accent derives
+   entirely from --blue, so overriding --blue -> gold cascades to every derived
+   accent token (rings, tints, active nav, primary button) automatically.
+   ========================================================================== */
+
+/* --- Shared admin tokens (both light + dark): font, accent, functional set,
+       DGTL radii. `html` prefix + font var loaded by app/admin/layout.jsx. --- */
+html .v2-admin-shell,
+html .admin-login {
+  /* Manrope everywhere in admin (loaded via next/font in the admin layout). */
+  --font-sans: var(--font-manrope), "Manrope", ui-sans-serif, system-ui, -apple-system, sans-serif;
+  font-family: var(--font-sans);
+
+  /* Accent = DGTL gold. Everything downstream (active nav, focus ring, primary
+     button, accent tints/bands, bg vignette) derives from --blue, so this one
+     swap gold-ifies the whole admin. Inline per-tenant --blue still wins if a
+     tenant ever brands the shell. */
+  --blue: #F0CF50;
+  --blue-dark: #cbab35;
+  --on-blue: #0b0b07; /* black-ish text on gold — the DGTL primary-button pairing */
+
+  /* Keep info blue (else it would inherit gold from --blue) + DGTL functional set. */
+  --info: #6E9FDB;
+  --success: #7BC47F;
+  --warn: #E8A33D;
+  --danger: #E5484D;
+
+  /* DGTL geometry: 7px controls / 16px cards+panels / pills stay round. */
+  --fp-radius-button: 7px;
+  --radius: 16px;
+  --radius-sm: 7px;
+  --radius-lg: 16px;
+}
+
+/* Gold selection everywhere in admin. */
+html .v2-admin-shell ::selection,
+html .admin-login ::selection {
+  background: #F0CF50;
+  color: #000;
+}
+
+/* ==========================================================================
+   DARK (the DGTL identity) — pure-black surface ladder + #2a2a2a hairlines.
+   Repoints the primitives the existing dark block already consumes; all its
+   derived color-mix tokens re-resolve against these automatically.
+   ========================================================================== */
+html .v2-admin-shell[data-theme="dark"] {
+  --white: #0d0d0d;      /* was #121218 — surfaces that read from --white */
+  --soft: #000000;
+  --soft-2: #1a1a1a;
+  --black: #F0F0F0;      /* primary text (dark shell inverts fg into --black) */
+  --near-black: #e6e6e6;
+  --muted: #8a8a8a;      /* --text-dim */
+  --line: #2a2a2a;
+  --border: #2a2a2a;
+
+  --bg: #000000;
+  --surface: #0d0d0d;
+  --surface-2: #121212;
+  --surface-3: #1a1a1a;  /* raised: popovers/modals */
+  --fg: #F0F0F0;
+  --fg-muted: #8a8a8a;
+
+  --glass-dark: rgba(10, 10, 10, 0.72); /* glassy bars / floating mobile nav */
+}
+
+/* Gold primary button needs BLACK text (the existing dark rule forced #fff for
+   the old blue button). Higher specificity than that rule. */
+html .v2-admin-shell[data-theme="dark"] .button--primary {
+  color: #000;
+}
+
+/* Metric pills used a hardcoded light border (invisible on black) — give them
+   the DGTL hairline + near-black card surface. */
+html .v2-admin-shell[data-theme="dark"] .v2-metric-pill {
+  background: var(--surface);
+  border-color: var(--border);
+}
+
+/* Desktop sidebar: near-black well + DGTL hairline (was #131315). */
+@media (min-width: 1024px) {
+  html .v2-admin-shell[data-theme="dark"] .v2-nav-container {
+    background: #0a0a0a;
+    border-right-color: var(--border);
+  }
+}
+
+/* Inputs: crisp DGTL border on the dark well (was rgba white .16). */
+html .v2-admin-shell[data-theme="dark"] input,
+html .v2-admin-shell[data-theme="dark"] select,
+html .v2-admin-shell[data-theme="dark"] textarea {
+  border-color: var(--border);
+}
+
+/* ==========================================================================
+   LIGHT — DGTL light inversion (paper + gold). Admin defaults to dark; this
+   just keeps the toggle on-brand instead of reverting to generic blue.
+   ========================================================================== */
+html .v2-admin-shell[data-theme="light"] {
+  --line: #e6e2d6;
+  --border: #e6e2d6;
+}
+
+/* Base status pill hardcoded a blue tint — retint to gold in light mode
+   (dark mode already derives it from --blue -> gold). */
+html .v2-admin-shell[data-theme="light"] .status-pill {
+  background: rgba(240, 207, 80, 0.16);
+  color: #6b5a12;
+}
