@@ -3,7 +3,7 @@ title: 12 · Repo Structure
 type: reference
 tags: [architecture]
 status: stable
-updated: 2026-06-27
+updated: 2026-07-07
 ---
 
 # Repo Structure
@@ -21,6 +21,7 @@ content-checkout-funnel/
 ├── scripts/             # migrate, create-owner, seed, backup/restore
 ├── tests/               # 26 node --test files                      → [[62-Testing]]
 ├── docs/                # raw project docs (mapped in [[Repo-Docs-Index]])
+├── prototypes/          # standalone HTML concept prototypes (not wired into the app)
 ├── brain/               # ← THIS VAULT
 ├── public/ assets/      # static assets, audio sample for telephony
 ├── data/                # app-store.json (JSON fallback store)

@@ -3,7 +3,7 @@ title: 53 · Known Issues, Risks & Tech Debt
 type: log
 tags: [audit, security]
 status: living
-updated: 2026-07-04
+updated: 2026-07-13
 source: docs/SECURITY_REVIEW.md, docs/audits/2026-07-02-codebase-audit.md, status docs
 ---
 
@@ -53,6 +53,26 @@ Latest sweep: `docs/audits/2026-07-02-codebase-audit.md` (branch `audit/2026-07-
 - **N+1 write loops (MED):** bulk lead import, outreach enqueue (+per-item event) run per-row INSERTs with no surrounding transaction. Fix: multi-row INSERT inside `withTransaction`.
 
 ## ⚙️ Operational / tech debt
+- ✅ **RESOLVED (07-13): stale `.git/index.lock` cleared — commits flowing again.** The 0-byte
+  `index.lock` (left by the 07-04 auto-sync commit `bf69c62`) that had silently blocked every commit
+  since is gone: FAYELLA committed `4d12dfe` on the Mac (07-12 23:10) and no `.git/*.lock` files remain.
+  The 07-07→07-12 brain edits it had held up are being committed by the 07-13 daily sync. Automation
+  still must not delete lock files (see [[CLAUDE-Operating-Rules]]); this failure recurred once already
+  (06-29 → 07-11), so watch for it after future auto-sync commits.
+- **OPEN — Higgsfield trial fulfillment stuck (07-11, blocks scroll-world generation):** trial
+  Stripe checkout completed via Apple Pay ($0 card-setup, no money charged) but Higgsfield's
+  `payment-success` page 404s and the account stayed `free` (transactions empty, trial pending);
+  the MCP connector session then invalidated. Reconnect + re-verify DONE later 07-11: account
+  STILL free (0 transactions, generation refused) — fulfillment broken on Higgsfield's side.
+  Next: user escalates to Higgsfield support/Discord with the receipt — **do not check out
+  again**. ⚠️ If the trial
+  DOES activate, it auto-renews to Plus **$49/mo after 3 days** unless "cancel auto-renewal" is
+  said in a Higgsfield-MCP chat. Runbook: `prototypes/dgtl-scroll-world/spec/journey.md`.
+- **Cowork sandbox network allowlist is fixed at boot** (07-11): mid-session settings changes
+  don't apply; higgsfield.ai/api/upload/result-CDN, storage.googleapis.com and GitHub release
+  assets are blocked; background processes are killed between bash calls (45 s cap). Any
+  long-running or byte-heavy external pipeline must run host-side (MCP / Chrome extension) or
+  in a fresh session after widening network access. [[51-Timeline]]
 - ✅ **RESOLVED (06-29): stale `.git/*.lock` files cleared** — git ref ops work again (commits flowing on `feature/ui-overhaul`). No lock files remain.
 - ✅ **RESOLVED (06-29): enterprise-prospecting MVP committed** (`87f94a6`); `lib/enterpriseProspecting/*`, `app/api/admin/accounts/**`, `AccountsPanel.jsx`, `migrations/006_*`, seed + tests are now tracked. ⚠️ Still run `npm run migrate` + `npm run build` on a real machine before deploy (sandbox lacks Linux SWC). [[2C-Enterprise-Prospecting]]
 - **Pre-existing test flake in sandbox:** `tests/core.test.js` → "updateLeadResearch works in file-store mode" fails with `EPERM unlink data/app-store.json` (old test deletes the real store file; sandbox FS forbids it). Passes on a normal filesystem. Not a code defect; consider migrating that test to the `APP_STORE_PATH`-tmpdir isolation pattern. [[62-Testing]]

@@ -3,7 +3,7 @@ title: 51 · Project Timeline
 type: log
 tags: [audit]
 status: living
-updated: 2026-07-04
+updated: 2026-07-13
 ---
 
 # Project Timeline
@@ -12,6 +12,161 @@ Chronological history, reconstructed from repo docs + git. **Append newest entri
 Dates are from doc timestamps / commit themes; treat older "status" claims as point-in-time snapshots.
 
 ## 2026-07
+- **07-13 (daily sync)** — **DGTL admin reskin base layer COMMITTED.** The first real commit of the
+  reskin landed: `4d12dfe` *feat(admin): DGTL brand reskin (scoped token layer + Manrope)* (authored by
+  FAYELLA on the Mac, 07-12 23:10) on `feature/batch-email-sending`, adding the two additive files
+  `app/admin/dgtl-admin.css` (118 lines, token override layer) + `app/admin/layout.jsx` (26 lines, loads
+  Manrope via next/font scoped over `/admin`). This is only the **Phase-1/2 base** (see 07-12 (b)); the
+  later refinements — the comprehensive `dgtl-admin.css` rewrite, the `AdminTabbedShell.jsx` Phase-A
+  shell restructure, the login reskin, and the lead-table head in `app/admin/page.jsx` (07-12 c–e) —
+  remain **uncommitted in the working tree**. The stale `.git/index.lock` that had blocked commits since
+  07-04 is now **gone** — commits are flowing again on the Mac (see [[53-Known-Issues]]). This sync also
+  clears the backlog of 07-07→07-12 brain edits the lock had held up.
+- **07-12 (e)** — **DGTL admin reskin — comprehensive stylesheet + Phase B/C.** User found the Phase-A
+  light-override result "messy" (styles.css bled through). Fix: **rewrote `app/admin/dgtl-admin.css`
+  as a comprehensive, POC-exact stylesheet** that fully owns the admin look (shell + pipeline
+  components specified to the POC's values with `html .v2-admin-shell` specificity, no reliance on
+  styles.css bleed). User confirmed the shell now looks right. Then Phase B/C safe wins: added a formal
+  **lead table header** (`.lead-table-head`, additive markup in `page.jsx`) with the summary grid
+  pinned to matching fixed columns → the lead list reads as a bordered data table (rows still native
+  `<details>`, expand in place, all forms intact); reskinned the **login screen** (`app/admin/login/page.jsx`
+  + CSS: DGTL wordmark, dark textured card, gold submit). Previews: `prototypes/dgtl-reskin/admin-live-preview.html`
+  + `login-preview.html`. **Deferred (by design):** the true side-**drawer** for lead detail — it needs
+  moving ~325 lines of interactive detail (LeadCallPanel, enrichment, research forms) into a client
+  drawer, which is unsafe to do blind in-sandbox (can't compile; risks core lead tools). Recommended
+  doing it as a focused, Mac-tested step. Not built/committed in-sandbox.
+- **07-12 (d)** — **DGTL admin reskin — full-POC-match, Phase A (shell chrome).** User escalated from
+  hybrid to a 1:1 POC match (markup restructure, not just tokens). Phase A edits `AdminTabbedShell.jsx`
+  + `dgtl-admin.css` + one prop-passing line in `app/admin/page.jsx`: sidebar now has the DGTL wordmark
+  (desktop-only), a "Workspace" label, nav count badges (quiet, gold on the active tab), and a user chip
+  (avatar + name + role + theme + logout) pinned to the sidebar foot; the big header became a glassy
+  sticky top bar (tab title + `· Admin` crumb + search) over a view-head (eyebrow + label + description).
+  New shell props `navCounts`/`user` are optional with graceful fallbacks; page passes real counts
+  (`leads`/`callbackTasks`/`tenants`/`outreachQueue`) + `session.user`. All desktop-only `display`
+  rules are scoped INSIDE the `>=1024px` query so the mobile bottom-bar nav is untouched. Verified:
+  JSX brackets/tags balanced, CSS braces balanced; static real-CSS preview rebuilt
+  (`prototypes/dgtl-reskin/admin-live-preview.html`). Phase B (leads TABLE + detail DRAWER — user's
+  pick — plus KPI deltas, funding callout cards, pagination) and Phase C (login + other tabs) still to
+  come. Not built/committed in-sandbox (macOS SWC + FUSE limits) — validate on Mac.
+- **07-12 (c)** — **DGTL admin reskin — hybrid upgrade pass (still CSS-only).** After previewing the
+  token-only reskin against the real `styles.css`, user chose "hybrid": added high-impact POC elements
+  to `app/admin/dgtl-admin.css` without any markup change — KPI metric cards as a DGTL grid with a gold
+  hero number (`.v2-metrics-scroll` → grid; first `.v2-metric-count` = gold), a formal DGTL data-table
+  skin (`.team-users-table`/`.metric-table`: `#2a2a2a` frame, `--surface-2` head row, `#1c1c1c` row
+  hairlines, `#0f0f0f` hover, gold `.lead-score`), flat cards (killed soft shadows, hairlines carry
+  structure), and a **control-radius fix** (the `--radius:16` for cards had over-rounded `.lead-filters`
+  inputs that read `--radius` directly → controls pinned to `--radius-sm`/7px). Rebuilt the real-CSS
+  live preview (`prototypes/dgtl-reskin/admin-live-preview.html`) showing the Lead Pipeline as a formal
+  table. NOTE: the live app's Lead Pipeline is still expandable `.lead-card`s in markup — showing it as
+  a table in the app needs a small `app/admin/page.jsx` change (offered, not yet done).
+- **07-12 (b)** — **DGTL admin reskin — Phase 1–2 (admin only), additive + scoped.** Reskinned the
+  admin shell + login to the DGTL identity (black + gold `#F0CF50`, Manrope) as **two NEW files**,
+  zero edits to `styles.css`: `app/admin/dgtl-admin.css` (token override layer) + `app/admin/layout.jsx`
+  (loads Manrope via next/font, imports the CSS, scoped over `/admin` + `/admin/login`). Approach:
+  the app already themes via semantic vars, and the admin accent derives entirely from `--blue`, so
+  overriding `--blue → gold` cascades to every derived accent token (active nav, focus ring, primary
+  button, tints, bg vignette) automatically. Dark block repoints the primitive ladder to pure-black
+  surfaces + `#2a2a2a` hairlines + `#F0F0F0/#8a8a8a` text; buttons get 7px / cards 16px via existing
+  radius hooks; primary button text forced black on gold; `--info` kept blue, functional set → DGTL.
+  **Tenant funnels untouched** (they never carry `.v2-admin-shell`/`.admin-login`) per the "admin only"
+  decision. Preceded by a standalone POC at `prototypes/dgtl-reskin/admin-pipeline-poc.html` (passed
+  27 brand/structural checks). Verified in-sandbox: CSS valid + DGTL checklist pass; unit suite 342/348
+  (the 6 failures are sandbox-only — FUSE `unlink` EPERM + blocked outbound network, unrelated to the
+  reskin). **NOT built/committed in-sandbox:** this Linux env has macOS SWC binaries (no linux SWC,
+  network blocked) so `next build`/`dev` can't run; and the workspace FUSE mount blocks file deletion
+  so git branch-switch/commit can't clear stale locks. Handed the user a branch+commit sequence to run
+  on their Mac. Branch ref `feature/dgtl-admin-reskin` was created (points at `bf69c62`) but HEAD not
+  switched. Stale `.git/HEAD.lock` + `.git/index.lock` (dated 07-04) present — must be `rm`'d on the Mac.
+- **07-12** — **Domain tree + self-hosted deck deploy system planned & scaffolded** (`dgtl-deploy/`).
+  Decision: keep the existing hand-managed Traefik as the single edge proxy; adopt Coolify as a
+  Phase-2 control plane (maintenance window) rather than letting its bundled proxy fight the live
+  app for 80/443. Designed the domain tree (hub `dgtlgroup.io`; `app.`/`api.`/`*` wildcard tenant
+  subdomains; brand domains media/influence/mag; ops `deploy.`/`status.`) and wired decks into the
+  funnel (deck slug = client slug = UTM campaign; CTA → `app.dgtlgroup.io/checkout`). Built a
+  standalone `dgtl-decks` repo scaffold: nginx:alpine static host + Traefik labels
+  (`traefik-public`, `websecure`, certresolver `letsencrypt`, priority 100) routing
+  `(Host(dgtlgroup.io)||www) && PathPrefix(/pitch)` → `dgtlgroup.io/pitch/{client}`. Mirrors the
+  app's GitHub-source-of-truth `deploy.sh` pattern; `new-deck.sh`/`build-index.sh`/`preview.sh`
+  helpers. Verified in-sandbox: scripts lint clean, compose YAML valid, placeholders fill, served
+  200 for decks+gallery / 404 for miss. Deliverables: blueprint + LIVE-SETUP-RUNBOOK. Phase 1
+  (decks live) is zero-risk to `dgtlmag.com`; not yet executed on the VPS (awaiting user).
+- **07-11 (f)** — **Tower v3: UX + Toronto realism pass** (user feedback: floors too sparse/dark,
+  scroll not sticky, wants tap-to-advance; wants Google-Maps-grade city accuracy). Core: scroll
+  magnet-snap to stage centers (debounced, never fights active scrolling), gold next-floor arrow
+  button, lighter copy scrim, camera pulled closer with downward look, face mullions removed,
+  brighter materials/fog/ambient fills, portrait-aware hero curves (CN Tower framed on mobile).
+  Google 3D tiles ruled out (ToS forbids baking meshes; streaming needs API key + heavy) and
+  Overpass/OSM unreachable from sandbox → hand-modeled real geography instead: CN Tower repositioned
+  + LED strips at true 158u scale, Rogers Centre dome, financial-district landmarks (FCP, TD trio,
+  Scotia, Commerce Court, Bay Adelaide, Brookfield, L Tower) at true relative positions with identity
+  highlights. All 8 floors densified by sequential agents (parallel agents on the mounted folder
+  silently lost writes — only first-in-batch landed; sequential fixed it): dolly track + lighting
+  grid, code wall, creator set + vanity, war table + ticker band, gantry crane + welding sparks,
+  L-conveyor + scan gate, lobby spark sculpture + elevator lanterns, rooftop fire table + bar.
+  Suite: 26,479 tris / 1,614 meshes, all 18 modules pass harness; bundle 106 KB; zip 184 KB.
+- **07-11 (e)** — **Real-time 3D "DGTL Tower — Toronto" built and swarm-detailed** at
+  `prototypes/dgtl-scroll-world-3d/` (user pivoted the concept to an office tower in the Toronto
+  skyline; no Higgsfield dependency). Core scroll-scrubbed Three.js engine (world3d.js: chrome +
+  camera CatmullRom path + module registry with `build(ctx)->{group,animate(t,u)}` contract,
+  proximity-reactive lighting) + 18 parallel subagents: 8 floor modules (lobby→rooftop, each ≤9k-tri
+  budget, animated tallies/conveyors/tickers/string-lights) and 10 skyline modules (downtown core,
+  detailed CN Tower w/ blinking aviation beacons, Rogers Centre + harbour wheel, background depth
+  bands, midground fill, broadcast masts + night flight, Lake Ontario w/ cruising ferry, street grid
+  w/ moving traffic, moon/stars/clouds, layered haze + hero-tower dust + exterior/plaza). All 18
+  verified by headless budget harness (`spec/check_module.cjs`; repo-root ESM forced the .cjs): total
+  17,774 tris / 1,098 meshes. esbuild bundle `app.min.js` 75 KB; deploy zip
+  `prototypes/dgtl-tower-3d-netlify.zip` **174 KB** (vs 193 MB video build). Audit + plan at
+  `spec/audit-plan.md`. Pending: live Chrome QA on deployed URL (camera framing tune).
+- **07-11 (d)** — Higgsfield connector reconnected and re-verified: account STILL `free`/10 cr,
+  0 transactions, generation refused ("Requires basic plan or higher") — trial fulfillment
+  confirmed broken on Higgsfield's side. Next action is on the user: escalate to Higgsfield
+  support/Discord with the receipt; do not re-pay. See [[53-Known-Issues]] +
+  `prototypes/dgtl-scroll-world/spec/journey.md` NEXT STEP.
+- **07-11 (c)** — **Procedural animated preview shipped (no Higgsfield needed):** all 8 flight legs
+  rendered in-sandbox (`spec/preview_render.py`, PIL/numpy one-point-perspective gold-wireframe rooms,
+  1080p/24fps/8s each) with frame-identical gold-wash seams (measured mean|diff| = 0.0 at all 7 seams),
+  encoded to scrub spec (crf20 g8 + 720p g4 mobile siblings, 196 MB), posters regenerated from frames.
+  Full Netlify zip rebuilt (`prototypes/dgtl-scroll-world-netlify.zip`, 193 MB, 27 entries). The page is
+  now a complete working scroll-world; Higgsfield footage remains a drop-in file swap per journey.md.
+- **07-11 (b)** — **Scroll-world generation pipeline switched to the Higgsfield MCP connector and
+  checkpointed.** Sandbox allowlist is boot-fixed (CLI/API/upload/result-CDN all blocked; background
+  procs killed between bash calls), so generation runs host-side via MCP; frame handoffs + result
+  downloads go through the Chrome extension (canvas frame-extract → presigned PUT; one user drag for
+  final mp4s). Costs preflighted: stills 7 cr (2k high), legs 72/36/28 cr (1080p std / 720p std /
+  720p fast) → full run ≈ 632 cr + buffer. Account verified (Fayella / fayellamusic@gmail.com,
+  free plan, 10 cr). **Blocked at checkpoint:** 3-day Plus trial (100 MCP-only credits) checkout
+  completed via Apple Pay ($0 card-setup) but Higgsfield's `payment-success` page 404s and the trial
+  never activated (plan free, transactions empty, trial_status pending); connector session then
+  invalidated → needs reconnect + re-verify. Nothing generated, zero credits spent. Full resume
+  runbook: `prototypes/dgtl-scroll-world/spec/journey.md` (NEXT STEP section).
+- **07-11** — **DGTL "Walk the Studio" scroll-world directory page scaffolded** at
+  `prototypes/dgtl-scroll-world/` (standalone, not wired into the app, not committed): scroll-scrubbed
+  continuous camera flight through a photoreal black+gold DGTL studio — lobby + 6 department scenes
+  (content, web/software, influencer/social, paid media, activations, DTC ecomm) + boardroom finale,
+  each department linking out (currently the aesthetic-semolina Netlify pitch page). Engine
+  (`scrub-engine.js`) + DGTL-themed `index.html` + placeholder stills working now; AI scene/video
+  generation (Higgsfield, 8 stills + 8 sequential legs, architecture A, seedance_2_0, mobile-beta
+  encodes) is specced in `spec/journey.md` + `spec/prompts.sh` + `spec/generate.sh` but **blocked in
+  this session: sandbox network allowlist denies higgsfield.ai (fixed at boot; needs new session after
+  widening network access)**. Ops gotchas (no surviving background procs → submit+poll; hf CLI via
+  curl from GH releases) documented in journey.md.
+- **07-09** — **Three generalized pitch-page templates built** at `prototypes/pitches/` (single-file
+  HTML, not wired into the app, not committed): `pitch-influencer-activation.html` (influencer/UGC
+  brand activation, organic + paid), `pitch-website-overhaul.html` (full website redesign + digital
+  infrastructure modernization for legacy corporations), `pitch-brand-redesign-kit.html` (full
+  rebrand + branding development kit incl. print/signage/NFC). All match the Modern Sense × DGTL
+  reference pitch (dark/gold editorial style, numbered sections, pillar structure) and carry
+  `data-slot` attributes + top-of-file manifests so the app can personalize them per prospect.
+  Note: the Modern Sense pitch source itself is NOT in the repo (lives only on Netlify).
+- **07-07** — **DGTLMag "Living Issue" BookShell concept prototyped.** New standalone single-file
+  interactive prototype at `prototypes/dgtlmag-living-issue.html` (not wired into the app, no PR):
+  closed-cover landing → 3D open animation → spine menu drawer, right-edge page tabs, contents
+  spread as home, index-as-marketplace with live search, profiles-as-pages with marginalia actions
+  (follow/save/share/feature), drops as loose inserts, back-cover submit form, bookmark ribbon +
+  saved drawer, keyboard nav, mobile single-page fallback, faux URL chip showing the underlying
+  `/profiles/*`-style routes. Fonts follow the design-direction set (Fraunces + Space Grotesk).
+  Decision pending: whether this replaces the dgtlmag.com homepage (would be a new branch, not a
+  revision of an existing PR).
 - **07-04 (daily sync)** — Brain doc catch-up for the batch-email work: [[26-Outreach]] rewritten for
   the send engine/drip/signed unsubscribe, [[13-Data-Model]] gained migration 008, [[14-Routes-Map]]
   gained `queue/approve` + `/api/cron/outreach/drain` + the fixed unsubscribe row, [[00-Home]] status
