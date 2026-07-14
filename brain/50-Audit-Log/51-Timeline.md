@@ -12,6 +12,44 @@ Chronological history, reconstructed from repo docs + git. **Append newest entri
 Dates are from doc timestamps / commit themes; treat older "status" claims as point-in-time snapshots.
 
 ## 2026-07
+- **07-04 (round 2)** — **ON Home Decor gallery expanded to 8 projects.** Operator uploaded 3 more
+  zips (26 originals); 12 curated WebP assets added: Glass Partition Apartment (6), Walnut & White
+  Brick Suite (4, best of a dim evening shoot), Black Bath & Laundry (2, 960px sources kept at
+  native size). Re-verified: 340 tests / 0 fail, seed `--only`, SSR markers for all three new
+  projects, fresh 1440+390 screenshots, 0px overflow. PR #8 media map updated.
+- **07-04 (later)** — **ON Home Decor media phase COMPLETE — PR #8 ready for review.** The operator
+  uploaded the portfolio (5 zips, 55 HEIC/JPG): curated to 23 WebP assets under
+  `public/assets/on-home-decor/` (hero 2000×1200 106KB; gallery longest-side 1600, 47-265KB; pairs
+  at identical dims for the slider). Gallery: Warm Walnut Condo (6 rooms), Basement Suite
+  Renovation (2 rooms + real mid-build→finished kitchen pair), Spa-Inspired Bath & Suite (4),
+  Café Repaint (1 + the one-colour wall pair — the literal brand story), Timber-Frame Restaurant
+  (5). Visual audit caught and fixed two real slider defects (after-overlay clipped from the wrong
+  edge so labels were inverted; the first "after" kitchen frame was itself mid-build — swapped to
+  IMG_8106) + added a per-pair initial split so the kitchen pair's before-story reads at rest.
+  Re-verified: 340 tests / 0 fail, seed `--only on-home-decor`, SSR markers (real hero, gallery
+  anchor live, placeholder gone from the tenant row), siblings 200×4, fresh 1440+390
+  reduced-motion screenshots with 0px overflow.
+- **07-04** — **ON Home Decor rebuild BUILT on `claude/rebuild-on-home-decor-e4mhuw` (PR #8, DRAFT
+  pending media): fifth template `interiors`.** Two phases: (A) the tenant finally got a `design`
+  block (`warm-boutique` + `local-trades-retail` — it had been rendering default premium-agency);
+  (B) bespoke `components/interiors/` template (`template: "interiors"` in the registry; own
+  `Interiors.module.css` on isolated `--in-*` vars — warm-paper light theme, brand taupe/blush via
+  `color-mix` for contrast-safe steps, Bricolage display). Sections: full-bleed hero (typographic
+  fallback until real photography lands — no stock ever), $200→$50K offer ladder (featured entry
+  card + 5 inquiry rungs), room-by-room project gallery + accessible before/after range-slider
+  (renders null until real media), process, service-area band, FAQ accordion, booking split panel.
+  **First non-funnel template with real checkout:** the single booking form serves two intents,
+  one CTA label each — `consultation-booking` → `/api/checkout` (Stripe fallback verified:
+  `captured`/`stripe_not_configured`), `project-inquiry` (+packageId) → `/api/leads`; both
+  verified tenant-scoped end-to-end via Playwright UI submits (server-set `teamId team_default`).
+  Gate: 340 tests (338 pass + 2 pre-existing website-enrichment flake cancellations, clean on
+  re-run), **`npm run build` SUCCEEDS in this cloud env** (linux SWC present — the old
+  "sandbox can't build" note is env-specific), seed `--only on-home-decor`, SSR markers, sibling
+  regression (dgtlmag / dgtl-group roster link / dmtv-studio / funded-growth all 200), 1440+390
+  reduced-motion screenshots with 0px horizontal overflow. **BLOCKED on the operator media folder**
+  (never arrived in the session env): hero photo, gallery projects, before/after pairs, and final
+  screenshots wait on it; `docs/prompts/on-home-decor-rebuild-prompt.md` referenced by the goal
+  does not exist in any branch — the goal text itself served as the spec.
 - **07-04** — **DGTL Group agency page MERGED: `main` @ `4abc81f`** (fast-forward of
   `claude/dgtl-group-agency-page-87s280`, 5 commits). Local gate on the merged tip: 334/334 tests,
   clean build, `seed:tenants --only dgtl-group` upserted the row, all 7 tenant routes 200 (incl.
