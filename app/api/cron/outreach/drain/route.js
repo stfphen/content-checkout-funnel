@@ -12,7 +12,7 @@ export const dynamic = "force-dynamic";
  *
  * Trigger example (host crontab, every 5 min):
  *   [slash]5 * * * * curl -fsS -XPOST -H "Authorization: Bearer $OUTREACH_CRON_TOKEN" \
- *     https://dgtlmag.com/api/cron/outreach/drain
+ *     https://app.dgtlmedia.io/api/cron/outreach/drain
  */
 export async function POST(request) {
   if (!cronTokenAuthorized(request.headers.get("authorization") || "")) {

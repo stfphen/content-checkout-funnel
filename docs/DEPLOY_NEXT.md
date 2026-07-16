@@ -30,7 +30,7 @@
 | `main` pushed | ✅ `origin/main` = `abd333e` |
 | Local runtime smoke | ✅ preview tenants render all 3 video kinds; operator eyeballed playback + cover fix on `/t/verify-yt-video?preview=draft` |
 | Fresh Postgres dump (`scripts/backup-db.sh`) | ⬜ run on VPS before deploy |
-| Post-deploy `curl -I https://dgtlmag.com/` → 200 | ⬜ after deploy |
+| Post-deploy `curl -I https://app.dgtlmedia.io/` → 200 (and `https://dgtlmag.com/` alias) | ⬜ after deploy |
 
 ## ⚠️ Notes for THIS deploy
 1. **Do NOT run `seed:tenants` this time** — prod already has the 5 tenant rows; re-seeding would
@@ -70,11 +70,12 @@ docker compose build content-funnel
 docker compose up -d content-funnel-postgres
 docker compose run --rm --no-deps content-funnel npm run migrate   # fast no-op (006+007 applied)
 docker compose up -d --build
-curl -I https://dgtlmag.com/                       # expect 200
+curl -I https://app.dgtlmedia.io/                  # expect 200 (canonical)
+curl -I https://dgtlmag.com/                       # expect 200 (alias)
 ```
 
 ## Post-deploy smoke checks
-- `https://dgtlmag.com/` 200 — funnel look unchanged (no tenant has a hero video configured yet).
+- `https://app.dgtlmedia.io/` and `https://dgtlmag.com/` both 200 — funnel look unchanged (no tenant has a hero video configured yet).
 - `/admin` → Tenants tab → Tenant Editor → open a tenant → "Hero video (YouTube)" slot present;
   paste a link → Detect resolves (with the key set, @handles resolve via the Data API).
 - Configure a hero video on a draft, preview it, publish when happy — video fills the hero with

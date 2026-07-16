@@ -9,7 +9,9 @@ services:
       # network IP and Traefik gets a 502. Must be 0.0.0.0. See GO_LIVE_PLAN.md.
       HOSTNAME: "0.0.0.0"
       DATABASE_URL: "postgres://${POSTGRES_USER:?Set POSTGRES_USER in .env}:${POSTGRES_PASSWORD:?Set POSTGRES_PASSWORD in .env}@content-funnel-postgres:5432/${POSTGRES_DB:?Set POSTGRES_DB in .env}"
-      PUBLIC_APP_URL: https://dgtlmag.com
+      # Canonical public origin: admin redirects, unsubscribe-link base, transcription
+      # callbacks. Overridable via .env; dgtlmag.com stays a serving alias in Traefik.
+      PUBLIC_APP_URL: ${PUBLIC_APP_URL:-https://app.dgtlmedia.io}
       RESEND_API_KEY: ${RESEND_API_KEY:-}
       RESEND_FROM: ${RESEND_FROM:-}
       # --- Outreach batch sending ---
@@ -34,7 +36,7 @@ services:
       TWILIO_ACCOUNT_SID: ${TWILIO_ACCOUNT_SID:-}
       TWILIO_AUTH_TOKEN: ${TWILIO_AUTH_TOKEN:-}
       TELEPHONY_WEBHOOK_BASE_URL: ${TELEPHONY_WEBHOOK_BASE_URL:-}
-      NEXT_PUBLIC_APP_URL: ${NEXT_PUBLIC_APP_URL:-https://dgtlmag.com}
+      NEXT_PUBLIC_APP_URL: ${NEXT_PUBLIC_APP_URL:-https://app.dgtlmedia.io}
       DEFAULT_COUNTRY_CODE: ${DEFAULT_COUNTRY_CODE:-CA}
       DEFAULT_TIMEZONE: ${DEFAULT_TIMEZONE:-America/Toronto}
       STRIPE_SECRET_KEY: ${STRIPE_SECRET_KEY:-}
@@ -58,7 +60,7 @@ services:
     labels:
       traefik.enable: "true"
       traefik.docker.network: "traefik-public"
-      traefik.http.routers.dgtlmag.rule: "Host(`dgtlmag.com`) || Host(`www.dgtlmag.com`)"
+      traefik.http.routers.dgtlmag.rule: "Host(`app.dgtlmedia.io`) || Host(`dgtlmag.com`) || Host(`www.dgtlmag.com`)"
       traefik.http.routers.dgtlmag.entrypoints: "websecure"
       traefik.http.routers.dgtlmag.tls.certresolver: "letsencrypt"
       traefik.http.services.dgtlmag.loadbalancer.server.port: "3000"

@@ -22,7 +22,7 @@ source: .env.example, API_KEYS.md, GO_LIVE_PLAN.md
 | `TEAM_SLUG` | Owner's team | **MUST be `default`** so owner sees built-in tenants + funnel leads. [[15-Multi-Tenancy]] |
 | `OWNER_PASSWORD` | One-time owner seed | Passed inline to `create-owner`; never written to `.env`. |
 | `SESSION_SECRET` | Session signing | ⚠️ Referenced in docs but **not actually read by code yet** (security L2). |
-| `PUBLIC_APP_URL` / `NEXT_PUBLIC_APP_URL` | App origin | `https://dgtlmag.com`. |
+| `PUBLIC_APP_URL` / `NEXT_PUBLIC_APP_URL` | App origin | `https://app.dgtlmedia.io` (canonical since 2026-07-16; `dgtlmag.com` stays a serving alias). ⚠️ If Twilio webhooks are configured against the old host, pin `TELEPHONY_WEBHOOK_BASE_URL=https://dgtlmag.com` or update the Twilio console — signature verify needs a byte-exact URL match. |
 
 ## AI (pick one path)
 | Var | Powers | Notes |

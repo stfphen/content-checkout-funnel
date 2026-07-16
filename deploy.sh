@@ -37,7 +37,7 @@ sleep 8
 code=$(curl -sS -o /dev/null -w '%{http_code}' http://127.0.0.1:8088/ 2>/dev/null || echo "000")
 echo "[deploy] local health check: HTTP $code"
 if [ "$code" = "200" ]; then
-  echo "[deploy] ✅ deploy OK — verify https://dgtlmag.com/"
+  echo "[deploy] ✅ deploy OK — verify https://app.dgtlmedia.io/ (and alias https://dgtlmag.com/)"
 else
   echo "[deploy] ❌ not healthy. Inspect: docker logs content-checkout-funnel --tail=60"
   exit 1

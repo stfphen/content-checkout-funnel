@@ -3,24 +3,30 @@ title: 41 · Deployment Runbook (Hostinger VPS)
 type: runbook
 tags: [ops]
 status: stable
-updated: 2026-06-27
+updated: 2026-07-16
 source: DEPLOY_HOSTINGER.md, PRE_DEPLOY_CHECKLIST.md, RESUME_HERE.md
 ---
 
 # Deployment Runbook — Hostinger VPS
 
-Target: `dgtlmag.com` on VPS `62.72.16.32` (Ubuntu + Docker + Traefik). App = Next.js container +
-private Postgres container, published through the existing `traefik-public` network.
+Target: **`app.dgtlmedia.io` (canonical, 2026-07-16)** + `dgtlmag.com`/`www` as live aliases, on VPS
+`62.72.16.32` (Ubuntu + Docker + Traefik). App = Next.js container + private Postgres container,
+published through the existing `traefik-public` network. Tenant subdomains (`funding.`/`grants.`/
+`dmtv.`/`elixr.`) stay on `dgtlmag.com`.
 
 ## 0. Hard gate — do NOT deploy unless ALL true
-1. `npm test` green. 2. `npm run build` succeeds locally. 3. DNS for `@`/`www` → `62.72.16.32`.
+1. `npm test` green. 2. `npm run build` succeeds locally. 3. DNS: `app.dgtlmedia.io` + dgtlmag `@`/`www` → `62.72.16.32`.
 4. VPS `/opt/content-checkout-funnel/.env` has **real** secrets (diff before overwriting; never clobber).
-5. Fresh Postgres dump exists (`scripts/backup-db.sh`). 6. Post-deploy `curl -I https://dgtlmag.com/` → **200**.
+5. Fresh Postgres dump exists (`scripts/backup-db.sh`). 6. Post-deploy `curl -I https://app.dgtlmedia.io/` **and** `curl -I https://dgtlmag.com/` → **200**.
 
 > ⚠️ **Deploy from a branch that contains the Funding Survey** — `main` historically did not. Merge it first or deploy the feature branch, or the survey/CTA/subdomains won't be in the build.
 
 ## 1. DNS (Hostinger)
 ```
+# dgtlmedia.io zone
+A   app       62.72.16.32     # → default tenant (canonical app host)
+
+# dgtlmag.com zone (aliases + tenant subdomains)
 A   @         62.72.16.32
 A   www       62.72.16.32
 A   funding   62.72.16.32     # → funded-growth tenant
@@ -68,7 +74,8 @@ no built-in tenants or leads. Brand name is set by tenant config, not the team s
 ```bash
 curl -I http://127.0.0.1:8088/                      # 200 (host 8088 → container 3000)
 docker inspect content-checkout-funnel --format '{{range $k,$v := .NetworkSettings.Networks}}{{println $k}}{{end}}'  # traefik-public
-curl -I https://dgtlmag.com/                        # 200 + valid TLS
+curl -I https://app.dgtlmedia.io/                   # 200 + valid TLS (canonical)
+curl -I https://dgtlmag.com/                        # 200 + valid TLS (alias)
 docker logs content-checkout-funnel --tail=80
 docker logs traefik --tail=80
 ```
