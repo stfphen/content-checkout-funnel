@@ -371,7 +371,17 @@ export default async function AdminPage({ searchParams }) {
   });
 
   return (
-    <AdminTabbedShell notice={notice} visibleTabs={visibleTabs}>
+    <AdminTabbedShell
+      notice={notice}
+      visibleTabs={visibleTabs}
+      navCounts={{
+        pipeline: leads?.length || undefined,
+        calls: callbackTasks?.length || undefined,
+        tenants: tenants?.length || undefined,
+        outreach: outreachQueue?.length || undefined
+      }}
+      user={{ name: session.user?.name, email: session.user?.email, role: session.role }}
+    >
       <AdminTabPanel tabId="pipeline">
         <section className="admin-metrics v2-metrics-scroll" aria-label="Lead pipeline summary">
         {leadCounts.map((item) => (
@@ -1185,6 +1195,12 @@ export default async function AdminPage({ searchParams }) {
         </form>
 
         <div className="lead-control-list">
+          <div className="lead-table-head" aria-hidden="true">
+            <span>Business</span>
+            <span>Score</span>
+            <span>Stage</span>
+            <span></span>
+          </div>
           {filteredLeads.map((lead) => {
             const leadQueue = queueByLead.get(lead.id) || [];
             const leadEvents = eventsByLead.get(lead.id) || [];
@@ -1192,7 +1208,7 @@ export default async function AdminPage({ searchParams }) {
             const leadTenant = tenants.find((tenant) => tenant.id === lead.tenantId) || tenants[0];
             const enrichment = getLeadEnrichmentSummary(lead);
             return (
-            <details className="lead-card" key={lead.id}>
+            <details className="lead-card" name="lead-drawer" key={lead.id}>
               <summary>
                 <span>
                   <strong>{lead.businessName || lead.business || "Unknown business"}</strong>
