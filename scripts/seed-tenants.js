@@ -54,6 +54,7 @@ async function main() {
   const { onHomeDecorTenant } = await import("../lib/tenants/onHomeDecor.js");
   const { fundedGrowthTenant } = await import("../lib/funding/tenant.js");
   const { dgtlGroupTenant } = await import("../lib/tenants/dgtlGroup.js");
+  const { dgtlInfluenceTenant } = await import("../lib/tenants/dgtlInfluence.js");
 
   // DGTL Content Day is the built-in default tenant; persist it so it shows up as
   // an explicit, editable tenant row alongside the other brands. Funded Growth is
@@ -65,7 +66,8 @@ async function main() {
     { label: "ELiXR Gallery", config: elixrTenant },
     { label: "ON Home Decor", config: onHomeDecorTenant },
     { label: "DGTL Funded Growth Studio", config: fundedGrowthTenant },
-    { label: "DGTL Group Agency", config: dgtlGroupTenant }
+    { label: "DGTL Group Agency", config: dgtlGroupTenant },
+    { label: "DGTL Influence Journal", config: dgtlInfluenceTenant }
   ];
 
   // --only slug[,slug…] seeds a subset. Production rows are edited through the
