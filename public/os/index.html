@@ -1,0 +1,1933 @@
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<title>DGTL OS — System Map</title>
+<meta name="description" content="DGTL OS — a node map of the DGTL studio's projects, tools and capabilities." />
+<meta name="color-scheme" content="dark" />
+<meta name="theme-color" content="#0c0c0f" />
+<meta name="robots" content="index,follow" />
+
+<!-- Inline data-URI favicon: keeps the page a single file and stops the browser
+     from firing an implicit /favicon.ico request that 404s on the host. -->
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%230c0c0f'/%3E%3Ccircle cx='16' cy='16' r='9' fill='none' stroke='%23f0cf50' stroke-width='2'/%3E%3Ccircle cx='16' cy='16' r='3.4' fill='%23f0cf50'/%3E%3C/svg%3E" />
+
+<!--
+  ============================================================================
+  DGTL OS — SYSTEM MAP
+  ============================================================================
+  Single file. No build step. No dependencies. No network requests.
+  Open it from disk, drop it on any static host, or serve it from /os/.
+
+  ---------------------------------------------------------------------------
+  HOW TO EDIT
+  ---------------------------------------------------------------------------
+  1. HOST-SIDE (canonical): edit the DATA block below in your hosting file
+     manager / git repo and save. That is the only thing the public page ever
+     renders.
+
+  2. LIVE EDITOR (optional, pre-launch convenience): append ?edit=1 to the URL.
+     A drag-and-drop editor unlocks. It writes ONLY to this browser's
+     localStorage — there is no backend, so it can never change what another
+     visitor sees. When you're happy, hit "Copy DATA" and paste the block back
+     into this file on the host.
+
+     The plain URL (no ?edit=1) ALWAYS renders the baked DATA below and ignores
+     any local draft. To remove the editor from the shipped file entirely, set
+     EDIT_MODE_ENABLED = false — every editor hook then goes inert.
+  ============================================================================
+-->
+
+<style>
+  /* ---------------------------------------------------------------- tokens */
+  :root {
+    --bg: #0c0c0f;
+    --bg-2: #101015;
+    --surface: #14141a;
+    --surface-2: #191921;
+    --line: #24242e;
+    --line-2: #2f2f3b;
+    --ink: #f4f4f6;
+    --ink-2: #a5a5b3;
+    --ink-3: #6e6e7e;
+    --gold: #f0cf50;
+    --gold-dim: #8a7529;
+    --gold-wash: rgba(240, 207, 80, 0.09);
+    --danger: #e06c5a;
+
+    --font-sans: "Manrope", "Inter", -apple-system, BlinkMacSystemFont,
+      "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    --font-mono: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas,
+      "Liberation Mono", monospace;
+
+    --r-sm: 6px;
+    --r-md: 10px;
+    --r-lg: 16px;
+    --panel-w: 420px;
+    --header-h: 56px;
+    --ease: cubic-bezier(0.22, 0.61, 0.36, 1);
+    --dur: 260ms;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    :root { --dur: 1ms; }
+    * { animation-duration: 1ms !important; scroll-behavior: auto !important; }
+  }
+
+  /* ----------------------------------------------------------------- reset */
+  *, *::before, *::after { box-sizing: border-box; }
+  html, body { height: 100%; }
+  body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--ink);
+    font-family: var(--font-sans);
+    font-size: 15px;
+    line-height: 1.5;
+    -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
+    overflow: hidden;
+  }
+  button { font: inherit; color: inherit; background: none; border: 0; cursor: pointer; }
+  input, select, textarea { font: inherit; color: inherit; }
+  a { color: inherit; text-decoration: none; }
+  h1, h2, h3, p { margin: 0; }
+  ul { margin: 0; padding: 0; list-style: none; }
+
+  :focus-visible {
+    outline: 2px solid var(--gold);
+    outline-offset: 2px;
+    border-radius: 3px;
+  }
+  .ico { width: 1em; height: 1em; flex: none; display: block; }
+  .ico path, .ico circle, .ico rect, .ico line, .ico polyline {
+    fill: none; stroke: currentColor; stroke-width: 1.6;
+    stroke-linecap: round; stroke-linejoin: round;
+  }
+  .sr {
+    position: absolute; width: 1px; height: 1px; padding: 0;
+    margin: -1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; border: 0;
+  }
+  .skip {
+    position: fixed; top: 8px; left: 8px; z-index: 200;
+    padding: 8px 14px; background: var(--surface); border: 1px solid var(--line-2);
+    border-radius: var(--r-sm); transform: translateY(-160%);
+  }
+  .skip:focus { transform: none; }
+
+  /* ----------------------------------------------------------------- shell */
+  .app {
+    display: grid;
+    grid-template-rows: var(--header-h) 1fr auto;
+    height: 100dvh;
+  }
+
+  /* ---------------------------------------------------------------- header */
+  .top {
+    display: flex; align-items: center; gap: 14px;
+    padding: 0 16px;
+    border-bottom: 1px solid var(--line);
+    background: linear-gradient(180deg, #101014, var(--bg));
+    min-width: 0;
+  }
+  .brand { display: flex; align-items: center; gap: 10px; min-width: 0; }
+  .brand__mark {
+    width: 26px; height: 26px; flex: none;
+    display: grid; place-items: center;
+    border: 1px solid var(--gold-dim); border-radius: 7px;
+    color: var(--gold); font-size: 14px;
+    background: var(--gold-wash);
+  }
+  .brand__name {
+    font-size: 13px; font-weight: 700; letter-spacing: 0.16em;
+    text-transform: uppercase; white-space: nowrap;
+  }
+  .brand__sub {
+    font-size: 11px; color: var(--ink-3); letter-spacing: 0.1em;
+    text-transform: uppercase; white-space: nowrap; margin-left: 8px;
+  }
+  .top__spacer { flex: 1 1 auto; }
+  .top__tools { display: flex; align-items: center; gap: 6px; }
+
+  .btn {
+    display: inline-flex; align-items: center; gap: 7px;
+    height: 32px; padding: 0 11px;
+    border: 1px solid var(--line-2); border-radius: var(--r-sm);
+    background: var(--surface); color: var(--ink-2);
+    font-size: 12.5px; font-weight: 600; white-space: nowrap;
+    transition: color var(--dur) var(--ease), border-color var(--dur) var(--ease),
+                background var(--dur) var(--ease);
+  }
+  .btn:hover { color: var(--ink); border-color: var(--gold-dim); }
+  .btn[aria-pressed="true"], .btn.is-on {
+    color: var(--gold); border-color: var(--gold-dim); background: var(--gold-wash);
+  }
+  .btn--ghost { border-color: transparent; background: none; }
+  .btn--ghost:hover { background: var(--surface); }
+  .btn--gold { color: var(--bg); background: var(--gold); border-color: var(--gold); }
+  .btn--gold:hover { color: var(--bg); background: #f7dc72; border-color: #f7dc72; }
+  .btn--danger:hover { color: var(--danger); border-color: var(--danger); }
+  .btn__ico { font-size: 15px; }
+  .kbd {
+    font-family: var(--font-mono); font-size: 10.5px; letter-spacing: 0.04em;
+    padding: 2px 5px; border: 1px solid var(--line-2); border-radius: 4px;
+    color: var(--ink-3); background: var(--bg-2);
+  }
+  .seg { display: inline-flex; border: 1px solid var(--line-2); border-radius: var(--r-sm); overflow: hidden; }
+  .seg .btn { border: 0; border-radius: 0; height: 30px; }
+  .seg .btn + .btn { border-left: 1px solid var(--line); }
+
+  /* ------------------------------------------------------------------ main */
+  .stage {
+    position: relative; min-height: 0;
+    /* The panel slides in with translateX, which spills past the right edge and
+       makes this box scrollable. Focusing an input inside the panel then scrolls
+       the stage sideways and drags the whole map with it. `clip` keeps the
+       spill hidden without ever creating a scroll container; `hidden` is the
+       fallback for engines that don't support it. */
+    overflow: hidden;
+    overflow: clip;
+  }
+
+  /* ------------------------------------------------------------------- map */
+  .map { position: absolute; inset: 0; }
+  .map svg {
+    width: 100%; height: 100%; display: block; touch-action: none;
+    /* Panning is a drag — without this it selects the node labels instead. */
+    -webkit-user-select: none; user-select: none;
+  }
+  body[data-view="list"] .map { display: none; }
+
+  .grid-line { fill: none; stroke: #1b1b24; stroke-width: 1; }
+  .edge {
+    stroke: var(--line-2); stroke-width: 1.5; fill: none;
+    transition: stroke var(--dur) var(--ease), stroke-width var(--dur) var(--ease);
+  }
+  .edge.is-hot { stroke: var(--gold-dim); stroke-width: 2.4; }
+  .edge-dot { fill: var(--line-2); transition: fill var(--dur) var(--ease); }
+  .edge.is-hot ~ .edge-dot { fill: var(--gold-dim); }
+
+  .node { cursor: pointer; }
+  .node__halo {
+    fill: none; stroke: currentColor; stroke-width: 1;
+    opacity: 0; transition: opacity var(--dur) var(--ease), r var(--dur) var(--ease);
+  }
+  .node__ring {
+    fill: var(--surface); stroke: var(--line-2); stroke-width: 1.5;
+    transition: stroke var(--dur) var(--ease), fill var(--dur) var(--ease);
+  }
+  .node__glyph { color: var(--ink-2); transition: color var(--dur) var(--ease); }
+  .node__glyph path, .node__glyph circle, .node__glyph rect {
+    fill: none; stroke: currentColor; stroke-width: 1.7;
+    stroke-linecap: round; stroke-linejoin: round;
+  }
+  .node__label {
+    fill: var(--ink); font-size: 15px; font-weight: 700; letter-spacing: 0.01em;
+    text-anchor: middle; pointer-events: none;
+  }
+  .node__meta {
+    fill: var(--ink-3); font-size: 11px; letter-spacing: 0.09em;
+    text-transform: uppercase; text-anchor: middle; pointer-events: none;
+    font-family: var(--font-mono);
+  }
+  .node:hover .node__ring, .node:focus-visible .node__ring { stroke: currentColor; }
+  .node:hover .node__glyph, .node:focus-visible .node__glyph { color: currentColor; }
+  .node:hover .node__halo { opacity: 0.3; }
+  .node.is-active .node__ring { stroke: currentColor; fill: #1b1b23; }
+  .node.is-active .node__glyph { color: currentColor; }
+  .node.is-active .node__halo { opacity: 0.55; }
+  .node.is-dim { opacity: 0.42; }
+  .node:focus { outline: none; }
+  .node:focus-visible .node__halo { opacity: 0.7; }
+  .node.is-drag { cursor: grabbing; }
+  body.is-editing .node { cursor: grab; }
+
+  .zoomer {
+    position: absolute; left: 14px; bottom: 14px; z-index: 5;
+    display: flex; flex-direction: column; gap: 6px;
+  }
+  .zoomer .btn { width: 32px; justify-content: center; padding: 0; }
+  .legend {
+    position: absolute; right: 14px; bottom: 14px; z-index: 5;
+    display: flex; gap: 14px; align-items: center;
+    padding: 7px 12px; border: 1px solid var(--line); border-radius: 999px;
+    background: rgba(16, 16, 21, 0.86); backdrop-filter: blur(8px);
+    font-size: 11px; color: var(--ink-3); letter-spacing: 0.06em; text-transform: uppercase;
+  }
+  .legend span { display: inline-flex; align-items: center; gap: 6px; }
+  .dot { width: 7px; height: 7px; border-radius: 50%; flex: none; }
+  .dot--live { background: var(--gold); }
+  .dot--soon { background: var(--ink-3); }
+  .dot--private { background: transparent; border: 1px solid var(--ink-3); }
+
+  /* ------------------------------------------------------------ list view */
+  .listview {
+    position: absolute; inset: 0; overflow-y: auto;
+    padding: 22px 18px 90px;
+    -webkit-overflow-scrolling: touch;
+  }
+  body[data-view="map"] .listview { display: none; }
+  .listview__inner {
+    max-width: 1080px; margin: 0 auto;
+    display: grid; gap: 14px;
+    /* min() keeps the track from being wider than the viewport on small screens */
+    grid-template-columns: repeat(auto-fill, minmax(min(300px, 100%), 1fr));
+  }
+  .lcard {
+    border: 1px solid var(--line); border-radius: var(--r-lg);
+    background: var(--surface); padding: 16px 16px 10px;
+    display: flex; flex-direction: column; gap: 10px;
+    /* Without this, a nowrap tool note sets the grid item's min-content width
+       and the card grows past the container. */
+    min-width: 0;
+  }
+  .lcard__head { display: flex; align-items: center; gap: 10px; min-width: 0; }
+  .lcard__mark {
+    width: 34px; height: 34px; flex: none; display: grid; place-items: center;
+    border: 1px solid currentColor; border-radius: 10px; font-size: 17px;
+  }
+  .lcard__title { font-size: 15.5px; font-weight: 700; }
+  .lcard__id {
+    font-family: var(--font-mono); font-size: 10.5px; color: var(--ink-3);
+    letter-spacing: 0.08em; text-transform: uppercase;
+  }
+  .lcard__blurb { font-size: 13px; color: var(--ink-2); }
+  .lcard__open {
+    margin-top: auto; align-self: flex-start;
+  }
+
+  /* ----------------------------------------------------------------- panel */
+  .panel {
+    position: absolute; top: 0; right: 0; bottom: 0; z-index: 40;
+    width: min(var(--panel-w), 100%);
+    display: flex; flex-direction: column;
+    background: var(--bg-2);
+    border-left: 1px solid var(--line);
+    box-shadow: -24px 0 60px rgba(0, 0, 0, 0.5);
+    transform: translateX(101%);
+    transition: transform var(--dur) var(--ease);
+    visibility: hidden;
+  }
+  .panel.is-open { transform: none; visibility: visible; }
+  .panel__head {
+    display: flex; align-items: flex-start; gap: 12px;
+    padding: 16px 14px 14px 18px;
+    border-bottom: 1px solid var(--line);
+  }
+  .panel__mark {
+    width: 38px; height: 38px; flex: none; display: grid; place-items: center;
+    border: 1px solid currentColor; border-radius: 11px; font-size: 19px;
+  }
+  .panel__eyebrow {
+    font-family: var(--font-mono); font-size: 10.5px; letter-spacing: 0.12em;
+    text-transform: uppercase; color: var(--ink-3);
+  }
+  .panel__title { font-size: 19px; font-weight: 800; letter-spacing: -0.01em; }
+  .panel__body { flex: 1 1 auto; overflow-y: auto; padding: 16px 18px 28px; }
+  .panel__blurb { font-size: 13.5px; color: var(--ink-2); margin-bottom: 18px; }
+  .panel__foot {
+    border-top: 1px solid var(--line); padding: 10px 14px;
+    display: flex; gap: 8px; align-items: center; flex-wrap: wrap;
+  }
+
+  .sect { margin-bottom: 20px; }
+  .sect__label {
+    font-family: var(--font-mono); font-size: 10.5px; letter-spacing: 0.14em;
+    text-transform: uppercase; color: var(--ink-3);
+    display: flex; align-items: center; gap: 8px; margin-bottom: 9px;
+  }
+  .sect__label::after { content: ""; flex: 1; height: 1px; background: var(--line); }
+
+  .tool {
+    display: flex; align-items: center; gap: 11px;
+    padding: 10px 11px; border-radius: var(--r-md);
+    border: 1px solid var(--line);
+    background: var(--surface); min-width: 0;
+    transition: border-color var(--dur) var(--ease), background var(--dur) var(--ease);
+  }
+  .tool + .tool { margin-top: 7px; }
+  a.tool:hover { border-color: var(--gold-dim); background: var(--surface-2); }
+  a.tool:hover .tool__go { color: var(--gold); transform: translateX(1px); }
+  .tool.is-inert { opacity: 0.62; }
+  .tool__ico { font-size: 16px; color: var(--ink-3); }
+  a.tool:hover .tool__ico { color: var(--gold); }
+  .tool__txt { min-width: 0; flex: 1 1 auto; }
+  .tool__label { display: block; font-size: 13.5px; font-weight: 600; line-height: 1.35; }
+  .tool__note {
+    display: block; font-size: 11.5px; color: var(--ink-3); margin-top: 1px;
+    overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+  }
+  .tool__go { font-size: 15px; color: var(--ink-3); transition: color var(--dur) var(--ease), transform var(--dur) var(--ease); }
+
+  .badge {
+    display: inline-flex; align-items: center; gap: 5px; flex: none;
+    font-size: 10px; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase;
+    padding: 3px 7px; border-radius: 999px; border: 1px solid var(--line-2);
+    color: var(--ink-3); font-family: var(--font-mono);
+  }
+  .badge--live { color: var(--gold); border-color: var(--gold-dim); background: var(--gold-wash); }
+  .badge--private { color: var(--ink-2); }
+
+  .chips { display: flex; flex-wrap: wrap; gap: 6px; }
+  .chip {
+    display: inline-flex; align-items: center; gap: 6px;
+    padding: 5px 10px; border-radius: 999px;
+    border: 1px solid var(--line-2); background: var(--surface);
+    font-size: 12px; color: var(--ink-2);
+  }
+  .chip:hover { color: var(--gold); border-color: var(--gold-dim); }
+  .chip__ico { font-size: 13px; }
+
+  /* -------------------------------------------------------------- palette */
+  .scrim {
+    position: fixed; inset: 0; z-index: 90;
+    background: rgba(5, 5, 8, 0.72);
+    backdrop-filter: blur(3px);
+    opacity: 0; pointer-events: none;
+    transition: opacity var(--dur) var(--ease);
+  }
+  .scrim.is-open { opacity: 1; pointer-events: auto; }
+
+  .palette {
+    position: fixed; z-index: 100;
+    top: 12vh; left: 50%; transform: translate(-50%, -8px) scale(0.99);
+    width: min(620px, calc(100vw - 28px));
+    max-height: min(70vh, 560px);
+    display: none; flex-direction: column;
+    border: 1px solid var(--line-2); border-radius: 14px;
+    background: var(--surface); overflow: hidden;
+    box-shadow: 0 30px 90px rgba(0, 0, 0, 0.6);
+    opacity: 0;
+    transition: opacity var(--dur) var(--ease), transform var(--dur) var(--ease);
+  }
+  .palette.is-open { display: flex; opacity: 1; transform: translate(-50%, 0) scale(1); }
+  .palette__bar {
+    display: flex; align-items: center; gap: 11px;
+    padding: 13px 15px; border-bottom: 1px solid var(--line);
+  }
+  .palette__bar .ico { font-size: 17px; color: var(--ink-3); }
+  .palette__input {
+    flex: 1 1 auto; min-width: 0; background: none; border: 0; outline: none;
+    font-size: 15px; color: var(--ink);
+  }
+  .palette__input::placeholder { color: var(--ink-3); }
+  .palette__list { overflow-y: auto; padding: 6px; flex: 1 1 auto; }
+  .palette__group {
+    font-family: var(--font-mono); font-size: 10px; letter-spacing: 0.14em;
+    text-transform: uppercase; color: var(--ink-3);
+    padding: 10px 10px 5px;
+  }
+  .prow {
+    display: flex; align-items: center; gap: 11px; width: 100%;
+    padding: 9px 10px; border-radius: var(--r-sm); text-align: left;
+    color: var(--ink-2);
+  }
+  .prow.is-sel { background: var(--surface-2); color: var(--ink); }
+  .prow.is-sel .prow__ico { color: var(--gold); }
+  .prow__ico { font-size: 15px; color: var(--ink-3); flex: none; }
+  .prow__txt { flex: 1 1 auto; min-width: 0; }
+  .prow__label { display: block; font-size: 13.5px; font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .prow__sub { display: block; font-size: 11.5px; color: var(--ink-3); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .prow__go { color: var(--ink-3); flex: none; font-size: 15px; }
+  .prow mark { background: none; color: var(--gold); font-weight: 800; }
+  .palette__empty { padding: 26px 14px; text-align: center; color: var(--ink-3); font-size: 13px; }
+  .palette__foot {
+    border-top: 1px solid var(--line); padding: 8px 13px;
+    display: flex; gap: 14px; align-items: center;
+    font-size: 11px; color: var(--ink-3);
+  }
+  .palette__foot span { display: inline-flex; align-items: center; gap: 5px; }
+
+  /* ----------------------------------------------------------- edit layer */
+  .editbar {
+    display: none;
+    align-items: center; gap: 8px; flex-wrap: wrap;
+    padding: 9px 14px;
+    border-top: 1px solid var(--gold-dim);
+    background: linear-gradient(180deg, rgba(240, 207, 80, 0.07), var(--bg-2));
+  }
+  body.is-editing .editbar { display: flex; }
+  .editbar__tag {
+    display: inline-flex; align-items: center; gap: 7px;
+    font-family: var(--font-mono); font-size: 10.5px; letter-spacing: 0.12em;
+    text-transform: uppercase; color: var(--gold);
+  }
+  .editbar__hint { font-size: 11.5px; color: var(--ink-3); }
+
+  .field { display: block; margin-bottom: 9px; }
+  .field__label {
+    display: block; font-family: var(--font-mono); font-size: 10px;
+    letter-spacing: 0.12em; text-transform: uppercase; color: var(--ink-3); margin-bottom: 4px;
+  }
+  .input, select.input, textarea.input {
+    width: 100%; padding: 8px 10px;
+    border: 1px solid var(--line-2); border-radius: var(--r-sm);
+    background: var(--bg); color: var(--ink); font-size: 13px; outline: none;
+  }
+  .input:focus { border-color: var(--gold-dim); }
+  .row2 { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+  .row3 { display: grid; grid-template-columns: 1fr 1fr auto; gap: 8px; align-items: end; }
+  .editcard {
+    border: 1px dashed var(--line-2); border-radius: var(--r-md);
+    padding: 11px; margin-bottom: 9px; background: var(--surface);
+  }
+  .editcard__top { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-bottom: 8px; }
+  .editcard__n { font-family: var(--font-mono); font-size: 10.5px; color: var(--ink-3); letter-spacing: 0.1em; }
+
+  .toast {
+    position: fixed; left: 50%; bottom: 26px; transform: translate(-50%, 12px);
+    z-index: 300; padding: 10px 16px; border-radius: 999px;
+    border: 1px solid var(--gold-dim); background: var(--surface); color: var(--gold);
+    font-size: 12.5px; font-weight: 600;
+    opacity: 0; pointer-events: none;
+    transition: opacity var(--dur) var(--ease), transform var(--dur) var(--ease);
+  }
+  .toast.is-on { opacity: 1; transform: translate(-50%, 0); }
+
+  /* ------------------------------------------------------------ responsive */
+  @media (max-width: 860px) {
+    :root { --panel-w: 100%; }
+    .brand__sub { display: none; }
+    .legend { display: none; }
+  }
+  @media (max-width: 660px) {
+    .top { gap: 8px; padding: 0 11px; }
+    .top__tools .btn__txt { display: none; }
+    .top__tools .btn { padding: 0 9px; }
+    .listview { padding: 16px 12px 80px; }
+    .listview__inner { grid-template-columns: 1fr; }
+    .panel {
+      top: auto; height: 88dvh; border-left: 0; border-top: 1px solid var(--line-2);
+      border-radius: 18px 18px 0 0;
+      transform: translateY(101%);
+    }
+    .panel.is-open { transform: none; }
+    .palette { top: 0; left: 0; right: 0; transform: none; width: 100%;
+      max-height: 100dvh; height: 100dvh; border-radius: 0; border: 0; }
+    .palette.is-open { transform: none; }
+  }
+
+  /* ----------------------------------------------------------------- print */
+  @media print {
+    :root { --bg: #fff; --ink: #000; --ink-2: #333; --ink-3: #666; --line: #ccc; }
+    body { overflow: visible; background: #fff; color: #000; }
+    .app { display: block; height: auto; }
+    .top__tools, .zoomer, .legend, .skip, .editbar, .scrim, .palette, .toast,
+    .panel, .lcard__open { display: none !important; }
+    .top {
+      border-bottom: 1px solid #000; padding: 0 0 10px; height: auto;
+      background: none; display: flex;
+    }
+    .brand__mark { color: #000; border-color: #000; background: none; }
+    .brand__sub { color: #555; }
+    .stage { position: static; overflow: visible; }
+    .map { position: static; height: 420px; break-inside: avoid; }
+    .map svg { height: 420px; }
+    .grid-line { display: none; }
+    .edge { stroke: #999; }
+    .node__ring { fill: #fff; stroke: #333; }
+    .node__glyph { color: #000; }
+    .node__label { fill: #000; }
+    .node__meta { fill: #555; }
+    .listview { display: block !important; position: static; overflow: visible; padding: 18px 0 0; }
+    .listview__inner { display: block; max-width: none; }
+    .lcard {
+      border: 0; border-top: 1px solid #bbb; border-radius: 0;
+      background: none; padding: 12px 0; break-inside: avoid;
+    }
+    .lcard__mark { display: none; }
+    /* Stack each entry as label + badge / note / url so long URLs wrap on the
+       page instead of running off the right edge of a flex row. */
+    /* Two-column grid: text left, status badge top-right, URL spanning below.
+       A float can't do this — .tool__note is a block that precedes the badge in
+       flow order, so a floated badge drops beneath it. */
+    .tool {
+      display: grid; grid-template-columns: 1fr auto;
+      align-items: start; column-gap: 10px;
+      border: 0; background: none; padding: 4px 0;
+    }
+    .tool + .tool { margin: 0; }
+    .tool__ico, .tool__go { display: none; }
+    .tool__txt { grid-column: 1; grid-row: 1; }
+    .tool__label { display: inline; font-weight: 700; }
+    .tool__note { display: block; white-space: normal; overflow: visible; color: #555; }
+    .badge {
+      grid-column: 2; grid-row: 1; margin: 0;
+      border-color: #999; color: #444; background: none;
+    }
+    .listview a[href]::after {
+      content: attr(href);
+      grid-column: 1 / -1;
+      font-family: var(--font-mono); font-size: 9.5px; color: #777; word-break: break-all;
+    }
+    .listview a[href^="#"]::after { content: none; }
+    @page { margin: 14mm; }
+  }
+</style>
+
+<a class="skip" href="#stage">Skip to map</a>
+
+<div class="app">
+  <header class="top">
+    <div class="brand">
+      <span class="brand__mark" id="brandMark" aria-hidden="true"></span>
+      <span>
+        <span class="brand__name">DGTL&nbsp;OS</span>
+        <span class="brand__sub" id="brandSub"></span>
+      </span>
+    </div>
+
+    <div class="top__spacer"></div>
+
+    <div class="top__tools">
+      <button class="btn" id="btnSearch" aria-label="Open command palette">
+        <svg class="ico btn__ico" viewBox="0 0 24 24" aria-hidden="true" data-icon="search"></svg>
+        <span class="btn__txt">Search</span>
+        <span class="kbd" id="kbdHint">⌘K</span>
+      </button>
+
+      <div class="seg" role="group" aria-label="View">
+        <button class="btn" id="btnMap" aria-pressed="true">
+          <svg class="ico btn__ico" viewBox="0 0 24 24" aria-hidden="true" data-icon="map"></svg>
+          <span class="btn__txt">Map</span>
+        </button>
+        <button class="btn" id="btnList" aria-pressed="false">
+          <svg class="ico btn__ico" viewBox="0 0 24 24" aria-hidden="true" data-icon="list"></svg>
+          <span class="btn__txt">List</span>
+        </button>
+      </div>
+
+      <button class="btn btn--ghost" id="btnPrint" aria-label="Print or save as PDF">
+        <svg class="ico btn__ico" viewBox="0 0 24 24" aria-hidden="true" data-icon="printer"></svg>
+      </button>
+    </div>
+  </header>
+
+  <main class="stage" id="stage">
+    <div class="map" id="map">
+      <svg id="svg" role="group" aria-label="DGTL systems node map" aria-describedby="mapHelp">
+        <defs>
+          <pattern id="grid" width="40" height="40" patternUnits="userSpaceOnUse">
+            <path class="grid-line" d="M40 0H0V40" />
+          </pattern>
+        </defs>
+        <rect id="gridRect" x="-3000" y="-3000" width="7480" height="6800" fill="url(#grid)" opacity="0.5" />
+        <g id="viewport">
+          <g id="edgeLayer"></g>
+          <g id="nodeLayer"></g>
+        </g>
+      </svg>
+      <p class="sr" id="mapHelp">
+        Use Tab to move between systems and Enter to open a system's tools.
+        Drag to pan, scroll to zoom. Press Command or Control plus K to search everything.
+      </p>
+
+      <div class="zoomer">
+        <button class="btn" id="btnZoomIn" aria-label="Zoom in">+</button>
+        <button class="btn" id="btnZoomOut" aria-label="Zoom out">−</button>
+        <button class="btn" id="btnZoomReset" aria-label="Reset view">
+          <svg class="ico" viewBox="0 0 24 24" aria-hidden="true" data-icon="target"></svg>
+        </button>
+      </div>
+
+      <div class="legend" aria-hidden="true">
+        <span><i class="dot dot--live"></i> Live</span>
+        <span><i class="dot dot--soon"></i> Soon</span>
+        <span><i class="dot dot--private"></i> Private</span>
+      </div>
+    </div>
+
+    <div class="listview" id="listview">
+      <div class="listview__inner" id="listInner"></div>
+    </div>
+
+    <aside class="panel" id="panel" role="dialog" aria-labelledby="panelTitle" aria-modal="false" tabindex="-1">
+      <div class="panel__head">
+        <span class="panel__mark" id="panelMark" aria-hidden="true"></span>
+        <div style="flex:1 1 auto; min-width:0">
+          <p class="panel__eyebrow" id="panelEyebrow"></p>
+          <h2 class="panel__title" id="panelTitle"></h2>
+        </div>
+        <button class="btn btn--ghost" id="btnClosePanel" aria-label="Close panel">
+          <svg class="ico btn__ico" viewBox="0 0 24 24" aria-hidden="true" data-icon="x"></svg>
+        </button>
+      </div>
+      <div class="panel__body" id="panelBody"></div>
+      <div class="panel__foot" id="panelFoot"></div>
+    </aside>
+  </main>
+
+  <div class="editbar" id="editbar">
+    <span class="editbar__tag">
+      <svg class="ico" viewBox="0 0 24 24" aria-hidden="true" data-icon="pencil"></svg>
+      Edit mode — local only
+    </span>
+    <button class="btn" id="btnAddNode">
+      <svg class="ico btn__ico" viewBox="0 0 24 24" aria-hidden="true" data-icon="plus"></svg>
+      Node
+    </button>
+    <button class="btn" id="btnEdges">
+      <svg class="ico btn__ico" viewBox="0 0 24 24" aria-hidden="true" data-icon="link"></svg>
+      Edges
+    </button>
+    <button class="btn btn--gold" id="btnCopyData">
+      <svg class="ico btn__ico" viewBox="0 0 24 24" aria-hidden="true" data-icon="copy"></svg>
+      Copy DATA
+    </button>
+    <button class="btn" id="btnDownload">
+      <svg class="ico btn__ico" viewBox="0 0 24 24" aria-hidden="true" data-icon="download"></svg>
+      JSON
+    </button>
+    <button class="btn btn--danger" id="btnRevert">Revert to file</button>
+    <span class="top__spacer"></span>
+    <span class="editbar__hint">Drag nodes to reposition. Nothing here is published until you paste the DATA block back into the file.</span>
+  </div>
+</div>
+
+<div class="scrim" id="scrim"></div>
+
+<div class="palette" id="palette" role="dialog" aria-modal="true" aria-label="Command palette">
+  <div class="palette__bar">
+    <svg class="ico" viewBox="0 0 24 24" aria-hidden="true" data-icon="search"></svg>
+    <input class="palette__input" id="paletteInput" type="text" role="combobox"
+           placeholder="Search systems, tools, repos…" autocomplete="off"
+           aria-expanded="true" aria-controls="paletteList" aria-autocomplete="list" />
+    <span class="kbd">esc</span>
+  </div>
+  <div class="palette__list" id="paletteList" role="listbox" aria-label="Results"></div>
+  <div class="palette__foot">
+    <span><span class="kbd">↑↓</span> navigate</span>
+    <span><span class="kbd">↵</span> open</span>
+    <span><span class="kbd">esc</span> close</span>
+    <span class="top__spacer"></span>
+    <span id="paletteCount" aria-live="polite"></span>
+  </div>
+</div>
+
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+<script>
+/* ============================================================================
+   1 · CONFIG
+   ========================================================================== */
+
+/* Set to false to strip the live editor from the published file entirely.
+   When false, ?edit=1 does nothing and no editor code ever runs. */
+const EDIT_MODE_ENABLED = true;
+
+
+
+/* ============================================================================
+   2 · DATA  ——  the only thing the public page renders
+   --------------------------------------------------------------------------
+   node:  { id, label, icon, x, y, color?, blurb?, repo?, tools[] }
+          x / y are percentages (0-100) of the map area.
+   tool:  { label, url, status, note?, icon? }
+          status: "live" | "soon" | "private".  Empty url renders as "Soon".
+   edge:  { from, to }  — both must be existing node ids.
+   ========================================================================== */
+const DATA = {
+  meta: {
+    title: "DGTL OS",
+    subtitle: "System Map",
+    updated: "2026-08-04",
+    github: "https://github.com/stfphen"
+  },
+
+  nodes: [
+    {
+      id: "dashboard",
+      label: "Dashboard",
+      icon: "target",
+      x: 50, y: 50,
+      color: "#f0cf50",
+      blurb: "The lobby. Every DGTL system, tool and repo hangs off this node — open one to see what is live, what is coming, and where the code lives.",
+      tools: [
+        { label: "Company Overview", url: "", status: "soon", note: "Single-pane view of revenue, pipeline and delivery" },
+        { label: "DGTL Group", url: "https://dgtlgroup.io", status: "soon", note: "Agency brand page — DNS not pointed yet", icon: "globe" },
+        { label: "Print / export this map", url: "#print", status: "live", note: "Renders a full printable system directory", icon: "printer" }
+      ]
+    },
+
+    {
+      id: "team",
+      label: "Team",
+      icon: "users",
+      x: 22, y: 26,
+      color: "#8ab4f8",
+      blurb: "Who is doing what. Task board, ownership and the growth numbers the team runs against.",
+      tools: [
+        { label: "Task Board", url: "https://deploy.dgtlmedia.io", status: "live", note: "deploy.dgtlmedia.io", icon: "pipeline" },
+        { label: "Growth Dashboard", url: "", status: "soon", note: "Weekly targets vs actuals" },
+        { label: "Ops Runbooks", url: "https://github.com/stfphen/content-checkout-funnel/tree/main/brain/40-Operations", status: "live", note: "Deploy, secrets, backups, git workflow", icon: "github" }
+      ]
+    },
+
+    {
+      id: "content",
+      label: "Content Funnel",
+      icon: "funnel",
+      x: 50, y: 15,
+      color: "#f0cf50",
+      blurb: "The multi-tenant funnel platform. Tenant-branded landing pages, service packages and checkout — one codebase, many brands.",
+      repo: "https://github.com/stfphen/content-checkout-funnel",
+      tools: [
+        { label: "Live Platform", url: "https://app.dgtlmedia.io", status: "live", note: "Canonical host", icon: "globe" },
+        { label: "dgtlmag.com", url: "https://dgtlmag.com", status: "live", note: "Public alias of the default funnel", icon: "globe" },
+        { label: "Funded Growth Studio", url: "https://app.dgtlmedia.io/t/funded-growth", status: "live", note: "Grant / funding-readiness funnel" },
+        { label: "DMTV Studio", url: "https://app.dgtlmedia.io/t/dmtv-studio", status: "live", note: "Showcase template" },
+        { label: "Influence Journal", url: "https://app.dgtlmedia.io/t/dgtl-influence", status: "live", note: "Creator feature publication" },
+        { label: "Tenant Builder", url: "https://app.dgtlmedia.io/admin", status: "private", note: "Admin login required", icon: "lock" }
+      ]
+    },
+
+    {
+      id: "crm",
+      label: "CRM",
+      icon: "pipeline",
+      x: 78, y: 26,
+      color: "#7fd1b9",
+      blurb: "Lead pipeline, prospecting, enrichment and outreach. Everything a funnel submission turns into after the form is sent.",
+      repo: "https://github.com/stfphen/content-checkout-funnel/tree/main/brain/20-Modules",
+      tools: [
+        { label: "Lead Pipeline", url: "https://app.dgtlmedia.io/admin", status: "private", note: "Stages, drawer, assignment", icon: "lock" },
+        { label: "Prospecting", url: "https://app.dgtlmedia.io/admin", status: "private", note: "Sourcing + batch import", icon: "lock" },
+        { label: "Outreach & Drip", url: "https://app.dgtlmedia.io/admin", status: "private", note: "Batch email, follow-ups, unsubscribe", icon: "lock" },
+        { label: "Batch Builder", url: "https://app.dgtlmedia.io/admin", status: "private", note: "Queue → approve → send", icon: "lock" },
+        { label: "Telephony", url: "", status: "soon", note: "Call forwarding + call log" }
+      ]
+    },
+
+    {
+      id: "projects",
+      label: "Projects",
+      icon: "layers",
+      x: 78, y: 74,
+      color: "#c9a0ff",
+      blurb: "Every DGTL codebase, with a direct line to the repo. Public unless marked private.",
+      repo: "https://github.com/stfphen?tab=repositories",
+      tools: [
+        { label: "dgtl", url: "https://github.com/stfphen/dgtl", status: "live", note: "Studio site + brand surface", icon: "github" },
+        { label: "content-checkout-funnel", url: "https://github.com/stfphen/content-checkout-funnel", status: "live", note: "This platform — funnels, CRM, checkout", icon: "github" },
+        { label: "dmtv-culture-engine", url: "https://github.com/stfphen/dmtv-culture-engine", status: "live", note: "DMTV culture / content engine", icon: "github" },
+        { label: "our-little-world", url: "https://github.com/stfphen/our-little-world", status: "live", note: "Side project", icon: "github" },
+        { label: "biz-spark-onboard", url: "https://github.com/twistedrc1017/biz-spark-onboard", status: "live", note: "Client onboarding flow", icon: "github" },
+        { label: "dreamcatcher-ai-hub", url: "https://github.com/stfphen/dreamcatcher-ai-hub", status: "private", note: "Private repo — sign in to view", icon: "lock" }
+      ]
+    },
+
+    {
+      id: "terminal",
+      label: "Terminal",
+      icon: "terminal",
+      x: 50, y: 85,
+      color: "#9aa4b2",
+      blurb: "Where the work actually ships. Agent sessions, deploys and the operational paper trail.",
+      tools: [
+        { label: "Claude Code (web)", url: "https://claude.ai/code", status: "live", note: "Agent sessions against the repos", icon: "terminal" },
+        { label: "Deploy Runbook", url: "https://github.com/stfphen/content-checkout-funnel/blob/main/brain/40-Operations/41-Deployment-Runbook.md", status: "live", note: "Hostinger VPS deploy sequence", icon: "github" },
+        { label: "Known Issues", url: "https://github.com/stfphen/content-checkout-funnel/blob/main/brain/50-Audit-Log/53-Known-Issues.md", status: "live", note: "Open risks, severity-rated", icon: "github" },
+        { label: "Decision Log", url: "https://github.com/stfphen/content-checkout-funnel/blob/main/brain/50-Audit-Log/52-Decision-Log.md", status: "live", note: "Why things are the way they are", icon: "github" }
+      ]
+    },
+
+    {
+      id: "socials",
+      label: "Socials",
+      icon: "share",
+      x: 22, y: 74,
+      color: "#f2996e",
+      blurb: "Distribution. Fill in the handles below — an empty url renders as a Soon badge, so the map never ships a dead link.",
+      tools: [
+        /* Paste the real profile URLs here and the badges flip to Live. */
+        { label: "Instagram", url: "", status: "soon", note: "Add profile URL in the DATA block" },
+        { label: "YouTube", url: "", status: "soon", note: "Add channel URL in the DATA block" },
+        { label: "TikTok", url: "", status: "soon", note: "Add profile URL in the DATA block" },
+        { label: "LinkedIn", url: "", status: "soon", note: "Add company page URL in the DATA block" }
+      ]
+    }
+  ],
+
+  edges: [
+    { from: "dashboard", to: "team" },
+    { from: "dashboard", to: "content" },
+    { from: "dashboard", to: "crm" },
+    { from: "dashboard", to: "projects" },
+    { from: "dashboard", to: "terminal" },
+    { from: "dashboard", to: "socials" },
+    { from: "socials", to: "content" },
+    { from: "content", to: "crm" },
+    { from: "team", to: "projects" },
+    { from: "projects", to: "terminal" }
+  ]
+};
+
+
+/* ============================================================================
+   3 · ICONS  ——  inline SVG, 24x24 stroke box. No emoji, no font deps.
+   ========================================================================== */
+const ICONS = {
+  target: '<circle cx="12" cy="12" r="8.6"/><circle cx="12" cy="12" r="4.4"/><circle cx="12" cy="12" r="1.3" style="fill:currentColor;stroke:none"/>',
+  users: '<path d="M16 19.2v-1.4a3.5 3.5 0 0 0-3.5-3.5h-5A3.5 3.5 0 0 0 4 17.8v1.4"/><circle cx="10" cy="8" r="3.2"/><path d="M17.4 14.4A3.5 3.5 0 0 1 20 17.8v1.4"/><path d="M15.2 5.3a3.2 3.2 0 0 1 0 5.4"/>',
+  funnel: '<path d="M4 5h16l-6 7.2V19l-4 1.6v-8.4L4 5Z"/>',
+  pipeline: '<rect x="3.6" y="4" width="5.6" height="11.4" rx="1.3"/><rect x="14.8" y="4" width="5.6" height="7.6" rx="1.3"/><path d="M3.6 20h16.8"/>',
+  layers: '<path d="M12 3 3.6 7.4 12 11.8l8.4-4.4L12 3Z"/><path d="m3.6 12.2 8.4 4.4 8.4-4.4"/><path d="m3.6 16.8 8.4 4.4 8.4-4.4"/>',
+  terminal: '<rect x="3" y="4.6" width="18" height="14.8" rx="2.2"/><path d="m7.6 10 2.6 2.3-2.6 2.3"/><path d="M12.8 14.6h3.8"/>',
+  share: '<circle cx="17.8" cy="5.6" r="2.4"/><circle cx="6.2" cy="12" r="2.4"/><circle cx="17.8" cy="18.4" r="2.4"/><path d="m8.4 10.8 7.2-3.8"/><path d="m8.4 13.2 7.2 3.8"/>',
+  github: '<path d="M9.2 19.6c-3.9 1.2-3.9-2-5.4-2.6m11 5v-3.5c0-1 .1-1.4-.5-2 2.2-.25 4.2-1.1 4.2-4.8a3.8 3.8 0 0 0-1-2.7 3.5 3.5 0 0 0-.1-2.6s-1.2-.35-3.7 1.4a9 9 0 0 0-4.8 0C6.4 4 5.2 4.35 5.2 4.35a3.5 3.5 0 0 0-.1 2.6 3.8 3.8 0 0 0-1 2.75c0 3.65 2 4.5 4.2 4.8-.55.6-.55 1.2-.5 2v3.5"/>',
+  globe: '<circle cx="12" cy="12" r="8.4"/><path d="M3.6 12h16.8"/><path d="M12 3.6c2.2 2.4 3.4 5.2 3.4 8.4S14.2 18 12 20.4C9.8 18 8.6 15.2 8.6 12S9.8 6 12 3.6Z"/>',
+  external: '<path d="M13.8 4.4h5.8v5.8"/><path d="m19.6 4.4-7.8 7.8"/><path d="M18 14v4.4a1.6 1.6 0 0 1-1.6 1.6h-11A1.6 1.6 0 0 1 3.8 18.4v-11A1.6 1.6 0 0 1 5.4 5.8H10"/>',
+  search: '<circle cx="10.8" cy="10.8" r="6.2"/><path d="m15.4 15.4 4.2 4.2"/>',
+  x: '<path d="m6.2 6.2 11.6 11.6M17.8 6.2 6.2 17.8"/>',
+  plus: '<path d="M12 5.2v13.6M5.2 12h13.6"/>',
+  printer: '<path d="M7 9.4V4h10v5.4"/><rect x="3.4" y="9.4" width="17.2" height="6.6" rx="1.8"/><path d="M7 14.2h10V20H7z"/>',
+  map: '<path d="M9 4.4 3.6 6.8v12.8L9 17.2l6 2.4 5.4-2.4V4.4L15 6.8 9 4.4Z"/><path d="M9 4.4v12.8M15 6.8v12.8"/>',
+  list: '<path d="M8.4 6.4h11.2M8.4 12h11.2M8.4 17.6h11.2"/><path d="M4.4 6.4h.01M4.4 12h.01M4.4 17.6h.01"/>',
+  lock: '<rect x="4.6" y="10.4" width="14.8" height="9.6" rx="2.2"/><path d="M8.2 10.4V8a3.8 3.8 0 0 1 7.6 0v2.4"/>',
+  link: '<path d="M10.2 13.8a3.6 3.6 0 0 0 5.1 0l2.5-2.5a3.6 3.6 0 0 0-5.1-5.1l-1 1"/><path d="M13.8 10.2a3.6 3.6 0 0 0-5.1 0l-2.5 2.5a3.6 3.6 0 0 0 5.1 5.1l1-1"/>',
+  chevron: '<path d="m9.6 6 6 6-6 6"/>',
+  clock: '<circle cx="12" cy="12" r="8.2"/><path d="M12 7.6V12l3.2 2"/>',
+  trash: '<path d="M4.6 7h14.8"/><path d="M9.6 7V4.8h4.8V7"/><path d="m6.6 7 .8 12.1A1.6 1.6 0 0 0 9 20.6h6a1.6 1.6 0 0 0 1.6-1.5L17.4 7"/>',
+  download: '<path d="M12 4v11"/><path d="m7.6 10.6 4.4 4.4 4.4-4.4"/><path d="M4.4 19.6h15.2"/>',
+  copy: '<rect x="9" y="9" width="11" height="11" rx="2.2"/><path d="M15 6.6A2.6 2.6 0 0 0 12.4 4H6.6A2.6 2.6 0 0 0 4 6.6v5.8A2.6 2.6 0 0 0 6.6 15"/>',
+  pencil: '<path d="M4.6 19.4h3.2L19 8.2a2.3 2.3 0 0 0-3.2-3.2L4.6 16.2v3.2Z"/><path d="m14.6 6.6 2.8 2.8"/>',
+  folder: '<path d="M4 7.4A1.6 1.6 0 0 1 5.6 5.8h3.1l2 2.5h7.7A1.6 1.6 0 0 1 20 9.9v7.7a1.6 1.6 0 0 1-1.6 1.6H5.6A1.6 1.6 0 0 1 4 17.6V7.4Z"/>',
+  dot: '<circle cx="12" cy="12" r="3.4"/>'
+};
+
+/** Return the inner SVG markup for an icon name (falls back to a dot). */
+function getIcon(name) {
+  return ICONS[name] || ICONS.dot;
+}
+function iconHTML(name, cls) {
+  return '<svg class="ico ' + (cls || "") + '" viewBox="0 0 24 24" aria-hidden="true">' + getIcon(name) + "</svg>";
+}
+
+
+/* ============================================================================
+   4 · STATE + HELPERS
+   ========================================================================== */
+const LOGICAL_W = 1240;
+const LOGICAL_H = 800;
+const PAD_X = 110;
+const PAD_Y = 86;
+const DRAFT_KEY = "dgtl-os:draft:v1";
+
+const params = new URLSearchParams(location.search);
+const editRequested = params.get("edit") === "1" || location.hash === "#edit";
+
+const state = {
+  data: null,
+  selected: null,
+  view: "map",
+  edit: false,
+  scale: 1,
+  tx: 0,
+  ty: 0,
+  paletteOpen: false,
+  paletteItems: [],
+  paletteIndex: 0,
+  lastFocus: null
+};
+
+const $ = (id) => document.getElementById(id);
+const esc = (s) =>
+  String(s == null ? "" : s).replace(/[&<>"']/g, (c) =>
+    ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c])
+  );
+const clone = (o) => JSON.parse(JSON.stringify(o));
+const clamp = (n, lo, hi) => Math.min(hi, Math.max(lo, n));
+const nodeById = (id) => state.data.nodes.find((n) => n.id === id);
+const lx = (x) => PAD_X + (clamp(Number(x) || 0, 0, 100) / 100) * (LOGICAL_W - PAD_X * 2);
+const ly = (y) => PAD_Y + (clamp(Number(y) || 0, 0, 100) / 100) * (LOGICAL_H - PAD_Y * 2);
+const isSafeUrl = (u) => /^(https?:\/\/|mailto:|tel:|#|\/)/i.test(String(u || "").trim());
+
+function resolvedStatus(tool) {
+  const url = String(tool.url || "").trim();
+  if (!url) return "soon";
+  if (tool.status === "private") return "private";
+  return tool.status === "soon" ? "soon" : "live";
+}
+function toolIcon(tool) {
+  if (tool.icon) return tool.icon;
+  const st = resolvedStatus(tool);
+  if (st === "private") return "lock";
+  if (st === "soon") return "clock";
+  if (/github\.com/.test(String(tool.url))) return "github";
+  return "external";
+}
+function statusBadge(st) {
+  if (st === "live") return '<span class="badge badge--live">Live</span>';
+  if (st === "private") return '<span class="badge badge--private">' + iconHTML("lock") + "Private</span>";
+  return '<span class="badge">Soon</span>';
+}
+function neighbours(id) {
+  const out = [];
+  state.data.edges.forEach((e) => {
+    if (e.from === id && nodeById(e.to)) out.push(e.to);
+    else if (e.to === id && nodeById(e.from)) out.push(e.from);
+  });
+  return [...new Set(out)];
+}
+function toast(msg) {
+  const t = $("toast");
+  t.textContent = msg;
+  t.classList.add("is-on");
+  clearTimeout(toast._t);
+  toast._t = setTimeout(() => t.classList.remove("is-on"), 2200);
+}
+
+
+/* ============================================================================
+   5 · DATA LOAD / VALIDATE
+   ========================================================================== */
+function sanitize(raw) {
+  const data = {
+    meta: Object.assign({ title: "DGTL OS", subtitle: "System Map" }, raw.meta || {}),
+    nodes: [],
+    edges: []
+  };
+  const seen = new Set();
+  (raw.nodes || []).forEach((n) => {
+    if (!n || !n.id || seen.has(n.id)) return;
+    seen.add(n.id);
+    data.nodes.push({
+      id: String(n.id),
+      label: String(n.label || n.id),
+      icon: n.icon || "dot",
+      x: clamp(Number(n.x) || 50, 0, 100),
+      y: clamp(Number(n.y) || 50, 0, 100),
+      color: /^#[0-9a-f]{3,8}$/i.test(String(n.color || "")) ? n.color : "#f0cf50",
+      blurb: n.blurb ? String(n.blurb) : "",
+      repo: isSafeUrl(n.repo) ? String(n.repo) : "",
+      tools: (n.tools || [])
+        .filter((t) => t && t.label)
+        .map((t) => ({
+          label: String(t.label),
+          url: isSafeUrl(t.url) ? String(t.url).trim() : "",
+          status: ["live", "soon", "private"].includes(t.status) ? t.status : "soon",
+          note: t.note ? String(t.note) : "",
+          icon: t.icon ? String(t.icon) : ""
+        }))
+    });
+  });
+  const ids = new Set(data.nodes.map((n) => n.id));
+  const pairs = new Set();
+  (raw.edges || []).forEach((e) => {
+    if (!e || !ids.has(e.from) || !ids.has(e.to) || e.from === e.to) return;
+    const key = [e.from, e.to].sort().join("::");
+    if (pairs.has(key)) return;
+    pairs.add(key);
+    data.edges.push({ from: e.from, to: e.to });
+  });
+  return data;
+}
+
+function loadData() {
+  /* A local draft is only ever honoured inside the unlocked editor.
+     The public URL always renders the baked DATA block. */
+  if (EDIT_MODE_ENABLED && editRequested) {
+    try {
+      const raw = localStorage.getItem(DRAFT_KEY);
+      if (raw) return sanitize(JSON.parse(raw));
+    } catch (err) {
+      /* corrupt draft — fall through to the file data */
+    }
+  }
+  return sanitize(DATA);
+}
+function saveDraft() {
+  if (!state.edit) return;
+  try {
+    localStorage.setItem(DRAFT_KEY, JSON.stringify(state.data));
+  } catch (err) {
+    toast("Could not save draft locally");
+  }
+}
+
+
+/* ============================================================================
+   6 · MAP RENDER
+   ========================================================================== */
+function applyViewport() {
+  $("viewport").setAttribute(
+    "transform",
+    "translate(" + state.tx.toFixed(2) + "," + state.ty.toFixed(2) + ") scale(" + state.scale.toFixed(4) + ")"
+  );
+}
+
+function renderMap() {
+  const svg = $("svg");
+  svg.setAttribute("viewBox", "0 0 " + LOGICAL_W + " " + LOGICAL_H);
+  svg.setAttribute("preserveAspectRatio", "xMidYMid meet");
+
+  const eLayer = $("edgeLayer");
+  const nLayer = $("nodeLayer");
+  eLayer.textContent = "";
+  nLayer.textContent = "";
+
+  state.data.edges.forEach((e, i) => {
+    const a = nodeById(e.from);
+    const b = nodeById(e.to);
+    if (!a || !b) return;
+    const line = document.createElementNS("http://www.w3.org/2000/svg", "line");
+    line.setAttribute("class", "edge");
+    line.setAttribute("x1", lx(a.x));
+    line.setAttribute("y1", ly(a.y));
+    line.setAttribute("x2", lx(b.x));
+    line.setAttribute("y2", ly(b.y));
+    line.dataset.from = e.from;
+    line.dataset.to = e.to;
+    line.dataset.i = String(i);
+    eLayer.appendChild(line);
+  });
+
+  state.data.nodes.forEach((n) => {
+    const g = document.createElementNS("http://www.w3.org/2000/svg", "g");
+    const count = n.tools.length;
+    const liveCount = n.tools.filter((t) => resolvedStatus(t) === "live").length;
+    g.setAttribute("class", "node");
+    g.setAttribute("transform", "translate(" + lx(n.x) + "," + ly(n.y) + ")");
+    g.setAttribute("tabindex", "0");
+    g.setAttribute("role", "button");
+    g.setAttribute("aria-label",
+      n.label + " — " + count + " tool" + (count === 1 ? "" : "s") + ", " + liveCount + " live");
+    g.style.color = n.color;
+    g.dataset.id = n.id;
+    g.innerHTML =
+      '<circle class="node__halo" r="44"/>' +
+      '<circle class="node__ring" r="31"/>' +
+      '<g class="node__glyph" transform="translate(-11,-11) scale(0.92)">' + getIcon(n.icon) + "</g>" +
+      '<text class="node__label" y="54">' + esc(n.label) + "</text>" +
+      '<text class="node__meta" y="72">' + count + " tool" + (count === 1 ? "" : "s") + "</text>";
+    nLayer.appendChild(g);
+  });
+
+  paintActive();
+}
+
+function paintActive() {
+  const sel = state.selected;
+  const hot = sel ? new Set(neighbours(sel).concat(sel)) : null;
+  $("nodeLayer").querySelectorAll(".node").forEach((g) => {
+    const id = g.dataset.id;
+    g.classList.toggle("is-active", id === sel);
+    g.classList.toggle("is-dim", !!sel && !hot.has(id));
+  });
+  $("edgeLayer").querySelectorAll(".edge").forEach((l) => {
+    l.classList.toggle("is-hot", !!sel && (l.dataset.from === sel || l.dataset.to === sel));
+  });
+}
+
+
+/* ============================================================================
+   7 · LIST VIEW (also the printed directory)
+   ========================================================================== */
+function toolRowHTML(tool) {
+  const st = resolvedStatus(tool);
+  const hasUrl = !!tool.url && st !== "soon";
+  const inner =
+    iconHTML(toolIcon(tool), "tool__ico") +
+    '<span class="tool__txt"><span class="tool__label">' + esc(tool.label) + "</span>" +
+    (tool.note ? '<span class="tool__note">' + esc(tool.note) + "</span>" : "") +
+    "</span>" +
+    statusBadge(st) +
+    (hasUrl ? iconHTML("chevron", "tool__go") : "");
+
+  if (!hasUrl) return '<li><div class="tool is-inert">' + inner + "</div></li>";
+
+  const external = /^https?:/i.test(tool.url);
+  return (
+    '<li><a class="tool" href="' + esc(tool.url) + '"' +
+    (external ? ' target="_blank" rel="noopener noreferrer"' : "") +
+    ">" + inner + "</a></li>"
+  );
+}
+
+function renderList() {
+  $("listInner").innerHTML = state.data.nodes
+    .map((n) => {
+      return (
+        '<article class="lcard" id="card-' + esc(n.id) + '">' +
+        '<div class="lcard__head" style="color:' + esc(n.color) + '">' +
+        '<span class="lcard__mark">' + iconHTML(n.icon) + "</span>" +
+        "<span><span class=\"lcard__title\" style=\"color:var(--ink)\">" + esc(n.label) + "</span>" +
+        '<br><span class="lcard__id">' + esc(n.id) + " · " + n.tools.length + " tools</span></span>" +
+        "</div>" +
+        (n.blurb ? '<p class="lcard__blurb">' + esc(n.blurb) + "</p>" : "") +
+        (n.repo
+          ? '<a class="tool" href="' + esc(n.repo) + '" target="_blank" rel="noopener noreferrer">' +
+            iconHTML("github", "tool__ico") +
+            '<span class="tool__txt"><span class="tool__label">Repository</span>' +
+            '<span class="tool__note">' + esc(n.repo.replace(/^https?:\/\/(www\.)?/, "")) + "</span></span>" +
+            iconHTML("chevron", "tool__go") + "</a>"
+          : "") +
+        "<ul>" + n.tools.map(toolRowHTML).join("") + "</ul>" +
+        '<button class="btn lcard__open" data-open="' + esc(n.id) + '">Open system' +
+        iconHTML("chevron", "btn__ico") + "</button>" +
+        "</article>"
+      );
+    })
+    .join("");
+}
+
+
+/* ============================================================================
+   8 · PANEL
+   ========================================================================== */
+function selectNode(id, opts) {
+  const n = nodeById(id);
+  if (!n) return;
+  const o = opts || {};
+  state.selected = id;
+  if (!o.keepFocus) state.lastFocus = document.activeElement;
+
+  $("panelMark").style.color = n.color;
+  $("panelMark").innerHTML = iconHTML(n.icon);
+  $("panelEyebrow").textContent = n.id + " · " + n.tools.length + " tools";
+  $("panelTitle").textContent = n.label;
+
+  const nb = neighbours(id);
+  const body = [];
+  if (n.blurb) body.push('<p class="panel__blurb">' + esc(n.blurb) + "</p>");
+
+  if (n.repo) {
+    body.push(
+      '<div class="sect"><p class="sect__label">Source</p>' +
+      '<a class="tool" href="' + esc(n.repo) + '" target="_blank" rel="noopener noreferrer">' +
+      iconHTML("github", "tool__ico") +
+      '<span class="tool__txt"><span class="tool__label">View on GitHub</span>' +
+      '<span class="tool__note">' + esc(n.repo.replace(/^https?:\/\/(www\.)?/, "")) + "</span></span>" +
+      iconHTML("chevron", "tool__go") + "</a></div>"
+    );
+  }
+
+  body.push(
+    '<div class="sect"><p class="sect__label">Tools</p>' +
+    (n.tools.length ? "<ul>" + n.tools.map(toolRowHTML).join("") + "</ul>"
+                    : '<p class="tool is-inert">Nothing wired up yet.</p>') +
+    "</div>"
+  );
+
+  if (nb.length) {
+    body.push(
+      '<div class="sect"><p class="sect__label">Connected</p><div class="chips">' +
+      nb.map((m) => {
+        const t = nodeById(m);
+        return '<button class="chip" data-goto="' + esc(m) + '" style="--c:' + esc(t.color) + '">' +
+          '<span class="chip__ico" style="color:' + esc(t.color) + '">' + iconHTML(t.icon) + "</span>" +
+          esc(t.label) + "</button>";
+      }).join("") +
+      "</div></div>"
+    );
+  }
+
+  if (state.edit) body.push(editorForNode(n));
+
+  $("panelBody").innerHTML = body.join("");
+  $("panelBody").scrollTop = 0;
+
+  $("panelFoot").innerHTML =
+    '<button class="btn" data-copylink="' + esc(n.id) + '">' + iconHTML("link", "btn__ico") + "Copy link</button>" +
+    '<span class="top__spacer"></span>' +
+    '<span class="editbar__hint">' +
+    n.tools.filter((t) => resolvedStatus(t) === "live").length + " live · " +
+    n.tools.filter((t) => resolvedStatus(t) === "soon").length + " soon</span>";
+
+  const panel = $("panel");
+  panel.classList.add("is-open");
+  panel.setAttribute("aria-modal", window.matchMedia("(max-width: 660px)").matches ? "true" : "false");
+  if (!o.silent) panel.focus({ preventScroll: true });
+
+  if (history.replaceState) history.replaceState(null, "", "#" + n.id);
+  paintActive();
+}
+
+function closePanel() {
+  $("panel").classList.remove("is-open");
+  state.selected = null;
+  paintActive();
+  if (history.replaceState) history.replaceState(null, "", location.pathname + location.search);
+  const back = state.lastFocus;
+  state.lastFocus = null;
+  if (back && document.contains(back)) back.focus({ preventScroll: true });
+}
+
+
+/* ============================================================================
+   9 · COMMAND PALETTE
+   ========================================================================== */
+function fuzzy(query, text) {
+  const q = query.toLowerCase().trim();
+  const t = String(text).toLowerCase();
+  if (!q) return 0;
+  if (t === q) return 1000;
+  let ti = 0, score = 0, streak = 0, first = -1;
+  for (let i = 0; i < q.length; i++) {
+    const c = q[i];
+    if (c === " ") continue;
+    const at = t.indexOf(c, ti);
+    if (at === -1) return -1;
+    if (first < 0) first = at;
+    if (at === ti && i > 0) { streak++; score += 8 + streak * 2; } else { streak = 0; score += 1; }
+    if (at === 0 || /[\s\-_/.·]/.test(t[at - 1] || "")) score += 5;
+    ti = at + 1;
+  }
+  if (t.startsWith(q)) score += 25;
+  score -= first * 0.4;
+  score -= Math.max(0, t.length - q.length) * 0.04;
+  return score;
+}
+
+function highlight(query, text) {
+  const q = query.toLowerCase().replace(/\s/g, "");
+  const src = String(text);
+  if (!q) return esc(src);
+  let out = "", ti = 0;
+  const low = src.toLowerCase();
+  for (let i = 0; i < q.length; i++) {
+    const at = low.indexOf(q[i], ti);
+    if (at === -1) { out += esc(src.slice(ti)); return out; }
+    out += esc(src.slice(ti, at)) + "<mark>" + esc(src[at]) + "</mark>";
+    ti = at + 1;
+  }
+  return out + esc(src.slice(ti));
+}
+
+function paletteCorpus() {
+  const items = [];
+  state.data.nodes.forEach((n) => {
+    items.push({
+      kind: "System", label: n.label, sub: n.id + " · " + n.tools.length + " tools",
+      icon: n.icon, color: n.color, hay: n.label + " " + n.id + " " + (n.blurb || ""),
+      run: () => { setView("map"); selectNode(n.id); }
+    });
+    if (n.repo) {
+      items.push({
+        kind: "Repository", label: n.label + " repo", sub: n.repo.replace(/^https?:\/\/(www\.)?/, ""),
+        icon: "github", hay: n.label + " repo github " + n.repo,
+        run: () => window.open(n.repo, "_blank", "noopener")
+      });
+    }
+    n.tools.forEach((t) => {
+      const st = resolvedStatus(t);
+      items.push({
+        kind: "Tool", label: t.label,
+        sub: n.label + (t.note ? " · " + t.note : "") + (st === "live" ? "" : " · " + st),
+        icon: toolIcon(t), hay: t.label + " " + n.label + " " + (t.note || "") + " " + (t.url || ""),
+        run: () => {
+          if (t.url && st !== "soon") {
+            if (/^https?:/i.test(t.url)) window.open(t.url, "_blank", "noopener");
+            else location.href = t.url;
+          } else { setView("map"); selectNode(n.id); }
+        }
+      });
+    });
+  });
+  items.push(
+    { kind: "Command", label: "Switch to map view", sub: "Node graph", icon: "map", hay: "map view graph nodes", run: () => setView("map") },
+    { kind: "Command", label: "Switch to list view", sub: "Full directory", icon: "list", hay: "list view directory all tools", run: () => setView("list") },
+    { kind: "Command", label: "Print / save as PDF", sub: "Full system directory", icon: "printer", hay: "print pdf export save", run: () => window.print() },
+    { kind: "Command", label: "Copy page link", sub: location.href.split("#")[0], icon: "link", hay: "copy share link url", run: () => copyText(location.href.split("#")[0], "Page link copied") },
+    { kind: "Command", label: "Open GitHub", sub: (state.data.meta.github || "").replace(/^https?:\/\//, ""), icon: "github", hay: "github repos source code", run: () => state.data.meta.github && window.open(state.data.meta.github, "_blank", "noopener") },
+    { kind: "Command", label: "Reset map view", sub: "Recentre and reset zoom", icon: "target", hay: "reset zoom centre center view", run: () => resetView() }
+  );
+  return items;
+}
+
+function renderPalette() {
+  const q = $("paletteInput").value.trim();
+  const all = paletteCorpus();
+  let rows;
+  if (!q) {
+    rows = all.filter((i) => i.kind === "System").concat(all.filter((i) => i.kind === "Command"));
+  } else {
+    /* Labels match fuzzily (subsequence). Secondary text matches by substring
+       only — subsequence over a long blurb matches almost anything and drowns
+       the real hits. */
+    const lq = q.toLowerCase();
+    const scored = all
+      .map((i) => {
+        const direct = fuzzy(q, i.label);
+        const at = i.hay.toLowerCase().indexOf(lq);
+        const hay = at === -1 ? -1 : 22 - Math.min(18, at * 0.3);
+        return { i: i, s: Math.max(direct, hay) };
+      })
+      .filter((r) => r.s > 0)
+      .sort((a, b) => b.s - a.s)
+      .slice(0, 40);
+
+    /* Bucket by kind so each heading renders once. A Map keeps insertion
+       order, so the bucket holding the top-scoring hit stays first. */
+    const buckets = new Map();
+    scored.forEach((r) => {
+      if (!buckets.has(r.i.kind)) buckets.set(r.i.kind, []);
+      buckets.get(r.i.kind).push(r.i);
+    });
+    rows = [].concat.apply([], Array.from(buckets.values()));
+  }
+
+  state.paletteItems = rows;
+  state.paletteIndex = clamp(state.paletteIndex, 0, Math.max(0, rows.length - 1));
+
+  const list = $("paletteList");
+  if (!rows.length) {
+    list.innerHTML = '<p class="palette__empty">No matches for “' + esc(q) + "”.</p>";
+    $("paletteCount").textContent = "0 results";
+    return;
+  }
+
+  let html = "", lastKind = null;
+  rows.forEach((it, idx) => {
+    if (it.kind !== lastKind) {
+      html += '<p class="palette__group">' + esc(it.kind) + "</p>";
+      lastKind = it.kind;
+    }
+    html +=
+      '<button class="prow' + (idx === state.paletteIndex ? " is-sel" : "") + '" role="option"' +
+      ' aria-selected="' + (idx === state.paletteIndex) + '" data-idx="' + idx + '" id="prow-' + idx + '">' +
+      '<span class="prow__ico"' + (it.color ? ' style="color:' + esc(it.color) + '"' : "") + ">" + iconHTML(it.icon) + "</span>" +
+      '<span class="prow__txt"><span class="prow__label">' + highlight(q, it.label) + "</span>" +
+      '<span class="prow__sub">' + esc(it.sub || "") + "</span></span>" +
+      iconHTML("chevron", "prow__go") +
+      "</button>";
+  });
+  list.innerHTML = html;
+  $("paletteCount").textContent = rows.length + " result" + (rows.length === 1 ? "" : "s");
+  scrollSelectionIntoView();
+}
+
+function scrollSelectionIntoView() {
+  const el = $("prow-" + state.paletteIndex);
+  if (el && el.scrollIntoView) el.scrollIntoView({ block: "nearest" });
+  $("paletteInput").setAttribute("aria-activedescendant", el ? el.id : "");
+}
+
+function openPalette() {
+  state.paletteOpen = true;
+  state.lastFocus = document.activeElement;
+  state.paletteIndex = 0;
+  $("palette").classList.add("is-open");
+  $("scrim").classList.add("is-open");
+  $("paletteInput").value = "";
+  renderPalette();
+  $("paletteInput").focus();
+}
+function closePalette() {
+  state.paletteOpen = false;
+  $("palette").classList.remove("is-open");
+  $("scrim").classList.remove("is-open");
+  const back = state.lastFocus;
+  state.lastFocus = null;
+  if (back && document.contains(back)) back.focus({ preventScroll: true });
+}
+function runPalette(idx) {
+  const it = state.paletteItems[idx];
+  if (!it) return;
+  closePalette();
+  it.run();
+}
+
+
+/* ============================================================================
+   10 · VIEW + ZOOM
+   ========================================================================== */
+function setView(v) {
+  state.view = v === "list" ? "list" : "map";
+  document.body.dataset.view = state.view;
+  $("btnMap").setAttribute("aria-pressed", String(state.view === "map"));
+  $("btnList").setAttribute("aria-pressed", String(state.view === "list"));
+}
+function resetView() {
+  state.scale = 1; state.tx = 0; state.ty = 0;
+  applyViewport();
+}
+function zoomAt(factor, cx, cy) {
+  const next = clamp(state.scale * factor, 0.5, 3.2);
+  const k = next / state.scale;
+  state.tx = cx - (cx - state.tx) * k;
+  state.ty = cy - (cy - state.ty) * k;
+  state.scale = next;
+  applyViewport();
+}
+function svgPoint(evt) {
+  const svg = $("svg");
+  const pt = svg.createSVGPoint();
+  pt.x = evt.clientX; pt.y = evt.clientY;
+  const ctm = svg.getScreenCTM();
+  if (!ctm) return { x: LOGICAL_W / 2, y: LOGICAL_H / 2 };
+  return pt.matrixTransform(ctm.inverse());
+}
+function logicalPoint(evt) {
+  const p = svgPoint(evt);
+  return { x: (p.x - state.tx) / state.scale, y: (p.y - state.ty) / state.scale };
+}
+
+
+/* ============================================================================
+   11 · CLIPBOARD
+   ========================================================================== */
+function copyText(text, okMsg) {
+  const done = () => toast(okMsg || "Copied");
+  if (navigator.clipboard && navigator.clipboard.writeText) {
+    navigator.clipboard.writeText(text).then(done, () => fallback());
+  } else fallback();
+
+  function fallback() {
+    const ta = document.createElement("textarea");
+    ta.value = text;
+    ta.setAttribute("readonly", "");
+    ta.style.cssText = "position:fixed;top:-1000px;opacity:0";
+    document.body.appendChild(ta);
+    ta.select();
+    let ok = false;
+    try { ok = document.execCommand("copy"); } catch (err) { ok = false; }
+    document.body.removeChild(ta);
+    if (ok) done(); else toast("Copy failed — select and copy manually");
+  }
+}
+
+
+/* ============================================================================
+   12 · EDITOR  (inert unless EDIT_MODE_ENABLED && ?edit=1)
+   ========================================================================== */
+function editorForNode(n) {
+  const statusOpts = (sel) =>
+    ["live", "soon", "private"]
+      .map((s) => '<option value="' + s + '"' + (s === sel ? " selected" : "") + ">" + s + "</option>")
+      .join("");
+
+  return (
+    '<div class="sect"><p class="sect__label">' + iconHTML("pencil") + "Edit node</p>" +
+    '<label class="field"><span class="field__label">Label</span>' +
+    '<input class="input" data-nf="label" value="' + esc(n.label) + '"></label>' +
+    '<label class="field"><span class="field__label">Blurb</span>' +
+    '<textarea class="input" data-nf="blurb" rows="3">' + esc(n.blurb) + "</textarea></label>" +
+    '<div class="row2">' +
+    '<label class="field"><span class="field__label">Icon</span>' +
+    '<select class="input" data-nf="icon">' +
+    Object.keys(ICONS).map((k) => '<option value="' + k + '"' + (k === n.icon ? " selected" : "") + ">" + k + "</option>").join("") +
+    "</select></label>" +
+    '<label class="field"><span class="field__label">Colour</span>' +
+    '<input class="input" data-nf="color" value="' + esc(n.color) + '"></label>' +
+    "</div>" +
+    '<label class="field"><span class="field__label">Repo URL</span>' +
+    '<input class="input" data-nf="repo" value="' + esc(n.repo) + '" placeholder="https://github.com/…"></label>' +
+    '<div class="row2">' +
+    '<label class="field"><span class="field__label">X %</span>' +
+    '<input class="input" data-nf="x" type="number" min="0" max="100" step="1" value="' + Math.round(n.x) + '"></label>' +
+    '<label class="field"><span class="field__label">Y %</span>' +
+    '<input class="input" data-nf="y" type="number" min="0" max="100" step="1" value="' + Math.round(n.y) + '"></label>' +
+    "</div>" +
+
+    '<p class="sect__label" style="margin-top:16px">Tools</p>' +
+    n.tools.map((t, i) =>
+      '<div class="editcard">' +
+      '<div class="editcard__top"><span class="editcard__n">tool ' + (i + 1) + "</span>" +
+      '<button class="btn btn--ghost btn--danger" data-tdel="' + i + '" aria-label="Remove tool">' +
+      iconHTML("trash", "btn__ico") + "</button></div>" +
+      '<label class="field"><span class="field__label">Label</span>' +
+      '<input class="input" data-tf="label" data-ti="' + i + '" value="' + esc(t.label) + '"></label>' +
+      '<label class="field"><span class="field__label">URL</span>' +
+      '<input class="input" data-tf="url" data-ti="' + i + '" value="' + esc(t.url) + '" placeholder="empty = Soon"></label>' +
+      '<div class="row2">' +
+      '<label class="field"><span class="field__label">Status</span>' +
+      '<select class="input" data-tf="status" data-ti="' + i + '">' + statusOpts(t.status) + "</select></label>" +
+      '<label class="field"><span class="field__label">Icon</span>' +
+      '<select class="input" data-tf="icon" data-ti="' + i + '"><option value="">auto</option>' +
+      Object.keys(ICONS).map((k) => '<option value="' + k + '"' + (k === t.icon ? " selected" : "") + ">" + k + "</option>").join("") +
+      "</select></label></div>" +
+      '<label class="field"><span class="field__label">Note</span>' +
+      '<input class="input" data-tf="note" data-ti="' + i + '" value="' + esc(t.note) + '"></label>' +
+      "</div>"
+    ).join("") +
+    '<button class="btn" data-tadd="1">' + iconHTML("plus", "btn__ico") + "Add tool</button>" +
+    '<button class="btn btn--danger" data-ndel="1" style="margin-left:8px">' +
+    iconHTML("trash", "btn__ico") + "Delete node</button>" +
+    "</div>"
+  );
+}
+
+function serializeData() {
+  const q = (s) => JSON.stringify(String(s == null ? "" : s));
+  const lines = [];
+  lines.push("const DATA = {");
+  lines.push("  meta: " + JSON.stringify(state.data.meta) + ",");
+  lines.push("");
+  lines.push("  nodes: [");
+  state.data.nodes.forEach((n, ni) => {
+    lines.push("    {");
+    lines.push("      id: " + q(n.id) + ",");
+    lines.push("      label: " + q(n.label) + ",");
+    lines.push("      icon: " + q(n.icon) + ",");
+    lines.push("      x: " + Math.round(n.x) + ", y: " + Math.round(n.y) + ",");
+    lines.push("      color: " + q(n.color) + ",");
+    if (n.blurb) lines.push("      blurb: " + q(n.blurb) + ",");
+    if (n.repo) lines.push("      repo: " + q(n.repo) + ",");
+    lines.push("      tools: [");
+    n.tools.forEach((t, ti) => {
+      const parts = [
+        "label: " + q(t.label),
+        "url: " + q(t.url),
+        "status: " + q(resolvedStatus(t))
+      ];
+      if (t.note) parts.push("note: " + q(t.note));
+      if (t.icon) parts.push("icon: " + q(t.icon));
+      lines.push("        { " + parts.join(", ") + " }" + (ti < n.tools.length - 1 ? "," : ""));
+    });
+    lines.push("      ]");
+    lines.push("    }" + (ni < state.data.nodes.length - 1 ? "," : ""));
+  });
+  lines.push("  ],");
+  lines.push("");
+  lines.push("  edges: [");
+  state.data.edges.forEach((e, i) => {
+    lines.push("    { from: " + q(e.from) + ", to: " + q(e.to) + " }" + (i < state.data.edges.length - 1 ? "," : ""));
+  });
+  lines.push("  ]");
+  lines.push("};");
+  return lines.join("\n");
+}
+
+function openEdgeEditor() {
+  const opts = state.data.nodes.map((n) => '<option value="' + esc(n.id) + '">' + esc(n.label) + "</option>").join("");
+  $("panelMark").style.color = "var(--gold)";
+  $("panelMark").innerHTML = iconHTML("link");
+  $("panelEyebrow").textContent = "edit · connections";
+  $("panelTitle").textContent = "Edges";
+  $("panelBody").innerHTML =
+    '<div class="sect"><p class="sect__label">Add connection</p>' +
+    '<div class="row3">' +
+    '<label class="field" style="margin:0"><span class="field__label">From</span><select class="input" id="edgeFrom">' + opts + "</select></label>" +
+    '<label class="field" style="margin:0"><span class="field__label">To</span><select class="input" id="edgeTo">' + opts + "</select></label>" +
+    '<button class="btn btn--gold" id="edgeAdd">Add</button>' +
+    "</div></div>" +
+    '<div class="sect"><p class="sect__label">' + state.data.edges.length + " connections</p><ul>" +
+    state.data.edges.map((e, i) => {
+      const a = nodeById(e.from), b = nodeById(e.to);
+      return '<li><div class="tool">' + iconHTML("link", "tool__ico") +
+        '<span class="tool__txt"><span class="tool__label">' + esc(a.label) + " → " + esc(b.label) + "</span>" +
+        '<span class="tool__note">' + esc(e.from) + " · " + esc(e.to) + "</span></span>" +
+        '<button class="btn btn--ghost btn--danger" data-edel="' + i + '" aria-label="Remove edge">' +
+        iconHTML("trash", "btn__ico") + "</button></div></li>";
+    }).join("") +
+    "</ul></div>";
+  $("panelFoot").innerHTML = '<span class="editbar__hint">Self-links and duplicates are rejected.</span>';
+  state.selected = null;
+  paintActive();
+  $("panel").classList.add("is-open");
+  $("panel").focus({ preventScroll: true });
+}
+
+function rerenderAfterEdit(keepNode) {
+  saveDraft();
+  renderMap();
+  renderList();
+  if (keepNode && nodeById(keepNode)) selectNode(keepNode, { silent: true, keepFocus: true });
+}
+
+
+/* ============================================================================
+   13 · WIRE UP
+   ========================================================================== */
+function init() {
+  state.data = loadData();
+  state.edit = EDIT_MODE_ENABLED && editRequested;
+  document.body.classList.toggle("is-editing", state.edit);
+
+  $("brandMark").innerHTML = iconHTML("target");
+  $("brandSub").textContent =
+    (state.data.meta.subtitle || "") +
+    (state.data.meta.updated ? " · " + state.data.meta.updated : "");
+  document.querySelectorAll("svg.ico[data-icon]").forEach((s) => {
+    s.innerHTML = getIcon(s.dataset.icon);
+  });
+
+  const isMac = /Mac|iPhone|iPad/.test(navigator.platform || navigator.userAgent);
+  $("kbdHint").textContent = isMac ? "⌘K" : "Ctrl K";
+
+  renderMap();
+  renderList();
+  setView(window.matchMedia("(max-width: 660px)").matches ? "list" : "map");
+  applyViewport();
+
+  /* ------------------------------------------------------------ header */
+  $("btnSearch").addEventListener("click", openPalette);
+  $("btnMap").addEventListener("click", () => setView("map"));
+  $("btnList").addEventListener("click", () => setView("list"));
+  $("btnPrint").addEventListener("click", () => window.print());
+  $("btnClosePanel").addEventListener("click", closePanel);
+  $("btnZoomIn").addEventListener("click", () => zoomAt(1.22, LOGICAL_W / 2, LOGICAL_H / 2));
+  $("btnZoomOut").addEventListener("click", () => zoomAt(1 / 1.22, LOGICAL_W / 2, LOGICAL_H / 2));
+  $("btnZoomReset").addEventListener("click", resetView);
+  $("scrim").addEventListener("click", closePalette);
+
+  /* -------------------------------------------------------- node layer */
+  const nodeLayer = $("nodeLayer");
+  nodeLayer.addEventListener("click", (e) => {
+    /* In edit mode a pointerdown starts a drag and captures the pointer, which
+       retargets the synthetic click — selection is handled by endDrag instead. */
+    if (state.edit) return;
+    const g = e.target.closest(".node");
+    if (!g) return;
+    selectNode(g.dataset.id);
+  });
+  nodeLayer.addEventListener("keydown", (e) => {
+    const g = e.target.closest(".node");
+    if (!g) return;
+    if (e.key === "Enter" || e.key === " ") {
+      e.preventDefault();
+      selectNode(g.dataset.id);
+    }
+  });
+  nodeLayer.addEventListener("mouseover", (e) => {
+    const g = e.target.closest(".node");
+    if (!g || state.selected) return;
+    $("edgeLayer").querySelectorAll(".edge").forEach((l) => {
+      l.classList.toggle("is-hot", l.dataset.from === g.dataset.id || l.dataset.to === g.dataset.id);
+    });
+  });
+  nodeLayer.addEventListener("mouseout", () => { if (!state.selected) paintActive(); });
+
+  /* ------------------------------------------------------ pan / zoom / drag */
+  const svg = $("svg");
+  let drag = null;
+
+  const capture = (el, id) => { try { el.setPointerCapture(id); } catch (err) { /* ignore */ } };
+
+  svg.addEventListener("pointerdown", (e) => {
+    if (e.button !== 0) return;
+    const g = e.target.closest(".node");
+    if (state.edit && g) {
+      const n = nodeById(g.dataset.id);
+      if (!n) return;
+      const p = logicalPoint(e);
+      drag = { kind: "node", g: g, id: n.id, ox: p.x - lx(n.x), oy: p.y - ly(n.y), moved: false };
+      g.classList.add("is-drag");
+      /* Capture on the node itself, so pointerup still retargets inside the map. */
+      capture(g, e.pointerId);
+    } else if (!g) {
+      drag = { kind: "pan", sx: e.clientX, sy: e.clientY, tx: state.tx, ty: state.ty };
+      capture(svg, e.pointerId);
+    }
+  });
+
+  svg.addEventListener("pointermove", (e) => {
+    if (!drag) return;
+    if (drag.kind === "pan") {
+      const rect = svg.getBoundingClientRect();
+      const k = LOGICAL_W / Math.max(1, rect.width);
+      state.tx = drag.tx + (e.clientX - drag.sx) * k;
+      state.ty = drag.ty + (e.clientY - drag.sy) * k;
+      applyViewport();
+    } else {
+      const p = logicalPoint(e);
+      const n = nodeById(drag.id);
+      if (!n) return;
+      n.x = clamp(((p.x - drag.ox - PAD_X) / (LOGICAL_W - PAD_X * 2)) * 100, 0, 100);
+      n.y = clamp(((p.y - drag.oy - PAD_Y) / (LOGICAL_H - PAD_Y * 2)) * 100, 0, 100);
+      drag.moved = true;
+      drag.g.setAttribute("transform", "translate(" + lx(n.x) + "," + ly(n.y) + ")");
+      $("edgeLayer").querySelectorAll(".edge").forEach((l) => {
+        if (l.dataset.from === n.id) { l.setAttribute("x1", lx(n.x)); l.setAttribute("y1", ly(n.y)); }
+        if (l.dataset.to === n.id) { l.setAttribute("x2", lx(n.x)); l.setAttribute("y2", ly(n.y)); }
+      });
+    }
+  });
+
+  const endDrag = () => {
+    if (!drag) return;
+    const d = drag;
+    drag = null;
+    if (d.kind !== "node") return;
+    d.g.classList.remove("is-drag");
+    /* A press that never moved is a click: select. A press that moved is a
+       reposition: persist it. */
+    if (d.moved) rerenderAfterEdit(state.selected);
+    else selectNode(d.id);
+  };
+  svg.addEventListener("pointerup", endDrag);
+  svg.addEventListener("pointercancel", endDrag);
+
+  svg.addEventListener("wheel", (e) => {
+    e.preventDefault();
+    const p = svgPoint(e);
+    zoomAt(e.deltaY < 0 ? 1.09 : 1 / 1.09, p.x, p.y);
+  }, { passive: false });
+
+  /* ------------------------------------------------------------- clicks */
+  document.addEventListener("click", (e) => {
+    const open = e.target.closest("[data-open]");
+    if (open) { setView("map"); selectNode(open.dataset.open); return; }
+
+    const goto = e.target.closest("[data-goto]");
+    if (goto) { selectNode(goto.dataset.goto); return; }
+
+    const cl = e.target.closest("[data-copylink]");
+    if (cl) {
+      copyText(location.href.split("#")[0] + "#" + cl.dataset.copylink, "Link copied");
+      return;
+    }
+
+    const row = e.target.closest(".prow");
+    if (row) { runPalette(Number(row.dataset.idx)); return; }
+
+    if (!state.edit) return;
+
+    const tdel = e.target.closest("[data-tdel]");
+    if (tdel) {
+      const n = nodeById(state.selected);
+      n.tools.splice(Number(tdel.dataset.tdel), 1);
+      rerenderAfterEdit(state.selected);
+      return;
+    }
+    if (e.target.closest("[data-tadd]")) {
+      nodeById(state.selected).tools.push({ label: "New tool", url: "", status: "soon", note: "", icon: "" });
+      rerenderAfterEdit(state.selected);
+      return;
+    }
+    const ndel = e.target.closest("[data-ndel]");
+    if (ndel) {
+      const id = state.selected;
+      if (!confirm("Delete node “" + id + "” and its connections?")) return;
+      state.data.nodes = state.data.nodes.filter((n) => n.id !== id);
+      state.data.edges = state.data.edges.filter((x) => x.from !== id && x.to !== id);
+      closePanel();
+      rerenderAfterEdit(null);
+      return;
+    }
+    const edel = e.target.closest("[data-edel]");
+    if (edel) {
+      state.data.edges.splice(Number(edel.dataset.edel), 1);
+      saveDraft(); renderMap(); renderList(); openEdgeEditor();
+      return;
+    }
+    if (e.target.id === "edgeAdd") {
+      const from = $("edgeFrom").value, to = $("edgeTo").value;
+      if (from === to) { toast("Pick two different nodes"); return; }
+      const key = [from, to].sort().join("::");
+      if (state.data.edges.some((x) => [x.from, x.to].sort().join("::") === key)) {
+        toast("That connection already exists"); return;
+      }
+      state.data.edges.push({ from: from, to: to });
+      saveDraft(); renderMap(); renderList(); openEdgeEditor();
+      return;
+    }
+  });
+
+  /* ------------------------------------------------------ editor inputs */
+  if (state.edit) {
+    $("panelBody").addEventListener("input", (e) => {
+      const n = nodeById(state.selected);
+      if (!n) return;
+      const nf = e.target.dataset.nf;
+      if (nf) {
+        if (nf === "x" || nf === "y") n[nf] = clamp(Number(e.target.value) || 0, 0, 100);
+        else n[nf] = e.target.value;
+        saveDraft();
+        renderMap();
+        renderList();
+        if (nf === "label") $("panelTitle").textContent = n.label;
+        return;
+      }
+      const tf = e.target.dataset.tf;
+      if (tf) {
+        n.tools[Number(e.target.dataset.ti)][tf] = e.target.value;
+        saveDraft();
+        renderList();
+      }
+    });
+
+    $("btnAddNode").addEventListener("click", () => {
+      let i = state.data.nodes.length + 1, id = "node-" + i;
+      while (nodeById(id)) { i++; id = "node-" + i; }
+      state.data.nodes.push({
+        id: id, label: "New system", icon: "dot",
+        x: 50, y: 50, color: "#f0cf50", blurb: "", repo: "",
+        tools: [{ label: "New tool", url: "", status: "soon", note: "", icon: "" }]
+      });
+      saveDraft(); renderMap(); renderList(); selectNode(id);
+      toast("Node added — drag it into place");
+    });
+    $("btnEdges").addEventListener("click", openEdgeEditor);
+    $("btnCopyData").addEventListener("click", () =>
+      copyText(serializeData(), "DATA block copied — paste it over the block in index.html"));
+    $("btnDownload").addEventListener("click", () => {
+      const blob = new Blob([JSON.stringify(state.data, null, 2)], { type: "application/json" });
+      const a = document.createElement("a");
+      a.href = URL.createObjectURL(blob);
+      a.download = "dgtl-os-data.json";
+      document.body.appendChild(a); a.click(); a.remove();
+      setTimeout(() => URL.revokeObjectURL(a.href), 1000);
+    });
+    $("btnRevert").addEventListener("click", () => {
+      if (!confirm("Discard the local draft and reload the DATA block from the file?")) return;
+      try { localStorage.removeItem(DRAFT_KEY); } catch (err) { /* ignore */ }
+      state.data = sanitize(DATA);
+      closePanel(); renderMap(); renderList();
+      toast("Reverted to the file's DATA block");
+    });
+  }
+
+  /* ---------------------------------------------------------- keyboard */
+  $("paletteInput").addEventListener("input", () => { state.paletteIndex = 0; renderPalette(); });
+  $("paletteInput").addEventListener("keydown", (e) => {
+    const n = state.paletteItems.length;
+    if (e.key === "ArrowDown") { e.preventDefault(); state.paletteIndex = n ? (state.paletteIndex + 1) % n : 0; renderPalette(); }
+    else if (e.key === "ArrowUp") { e.preventDefault(); state.paletteIndex = n ? (state.paletteIndex - 1 + n) % n : 0; renderPalette(); }
+    else if (e.key === "Home") { e.preventDefault(); state.paletteIndex = 0; renderPalette(); }
+    else if (e.key === "End") { e.preventDefault(); state.paletteIndex = Math.max(0, n - 1); renderPalette(); }
+    else if (e.key === "Enter") { e.preventDefault(); runPalette(state.paletteIndex); }
+    else if (e.key === "Escape") { e.preventDefault(); closePalette(); }
+  });
+
+  document.addEventListener("keydown", (e) => {
+    const k = (e.key || "").toLowerCase();
+    if ((e.metaKey || e.ctrlKey) && k === "k") {
+      e.preventDefault();
+      state.paletteOpen ? closePalette() : openPalette();
+      return;
+    }
+    if (state.paletteOpen) return;
+
+    const typing = /^(input|textarea|select)$/i.test((e.target.tagName || "")) || e.target.isContentEditable;
+
+    if (k === "escape") {
+      if ($("panel").classList.contains("is-open")) { e.preventDefault(); closePanel(); }
+      return;
+    }
+    if (typing) return;
+
+    if (k === "/") { e.preventDefault(); openPalette(); return; }
+    if (k === "m") { setView("map"); return; }
+    if (k === "l") { setView("list"); return; }
+    if (k === "0") { resetView(); return; }
+    if (k === "+" || k === "=") { zoomAt(1.22, LOGICAL_W / 2, LOGICAL_H / 2); return; }
+    if (k === "-") { zoomAt(1 / 1.22, LOGICAL_W / 2, LOGICAL_H / 2); return; }
+  });
+
+  /* --------------------------------------------------------- deep link */
+  const hash = decodeURIComponent(location.hash.replace(/^#/, ""));
+  if (hash && hash !== "edit" && nodeById(hash)) selectNode(hash, { silent: true });
+  window.addEventListener("hashchange", () => {
+    const h = decodeURIComponent(location.hash.replace(/^#/, ""));
+    if (h && nodeById(h)) selectNode(h);
+  });
+
+  /* ------------------------------------------------------ print helper */
+  window.addEventListener("beforeprint", () => { document.body.dataset.prevView = state.view; });
+  window.addEventListener("afterprint", () => { setView(document.body.dataset.prevView || "map"); });
+
+  /* expose a tiny surface for smoke tests / console poking */
+  window.DGTL_OS = {
+    data: () => state.data,
+    state: state,
+    select: selectNode,
+    palette: { open: openPalette, close: closePalette, render: renderPalette, items: () => state.paletteItems },
+    serialize: serializeData,
+    editEnabled: EDIT_MODE_ENABLED,
+    editing: () => state.edit
+  };
+}
+
+if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", init);
+else init();
+</script>

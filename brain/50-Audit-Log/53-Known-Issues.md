@@ -3,7 +3,7 @@ title: 53 · Known Issues, Risks & Tech Debt
 type: log
 tags: [audit, security]
 status: living
-updated: 2026-07-13
+updated: 2026-08-04
 source: docs/SECURITY_REVIEW.md, docs/audits/2026-07-02-codebase-audit.md, status docs
 ---
 
@@ -47,6 +47,29 @@ Latest sweep: `docs/audits/2026-07-02-codebase-audit.md` (branch `audit/2026-07-
 - **OPEN — Stripe webhook idempotency (LOW/MED):** no persisted `event.id` dedup (only a read-then-write on `order.status`); the `leadMissing` path ACKs 200 (loses the event); no idempotency key on session create. Benign today, dangerous once fulfillment gains side effects. Fix: `processed_stripe_events(event_id PK)` insert-or-ignore before fulfilling; return 500 on lead-lookup error. `app/api/webhooks/stripe/route.js`.
 - **OPEN — batch import non-idempotent / no double-submit guard (MED):** re-running an import re-increments counts and can double-create non-dedupable rows; a mid-loop throw leaves the batch non-completed. Fix: guard on `batch.status`, per-row try/catch, recompute (not add) counts. `app/api/admin/prospecting/batches/import/route.js`.
 - **OPEN — no delete path for leads/batches/accounts (INFO):** only `deleteCall` exists (cascades correctly). Stale `batchId`/`campaignId`/`metadata.accountId` refs are never cleaned; bad records can only be removed by hand-editing the store.
+
+## 🗺️ DGTL OS system map (08-04 build, `public/os/index.html`)
+Fixed during verification — recorded because three of the four are patterns that recur in any
+single-file panel/canvas UI:
+- ✅ **RESOLVED: panel focus scrolled the stage and shifted the whole map.** `.panel` slides in with
+  `translateX`, which spills past `.stage` and made it horizontally scrollable; focusing an input in
+  the panel made the browser scroll `.stage` to reveal it, translating the SVG by up to ~110 px and
+  breaking every pointer→coordinate calculation mid-drag (nodes silently landed in the wrong place).
+  Fixed with `overflow: clip` on `.stage` (`hidden` still permits programmatic scrolling), with
+  `overflow: hidden` kept as the fallback declaration. Regression-checked in the Playwright suite.
+- ✅ **RESOLVED: nodes were unselectable in edit mode.** `setPointerCapture` on the `<svg>` retargets
+  the synthetic `click`, so the `#nodeLayer` click handler never fired. Capture now goes on the node
+  itself and selection is decided in `endDrag` (moved → reposition, didn't move → select).
+- ✅ **RESOLVED: list cards overflowed the viewport on mobile.** `white-space: nowrap` tool notes set
+  the grid item's min-content width, inflating the track past the screen; `body{overflow:hidden}` hid
+  the symptom from a naive `scrollWidth` check. Fixed with `minmax(min(300px,100%),1fr)` +
+  `min-width: 0` on the card and row.
+- ✅ **RESOLVED: dragging the map selected the node label text** (`user-select: none` on the SVG), and
+  the grid pattern painted as filled triangles (missing `fill: none`).
+- **OPEN — social links are placeholders (INFO):** the four `socials` tools ship with empty `url`s, so
+  they render as "Soon" badges. Paste the real handles into the `DATA` block to make them live.
+- **OPEN — `dgtlgroup.io` still marked `soon` (INFO):** DNS is not pointed at the platform yet, matching
+  [[63-Tenants-Catalog]]. Flip that tool to `live` once the domain resolves.
 
 ## ⚡ Performance (NEW — 07-02 audit, DB layer)
 - **Missing indexes (MED):** `outreach_*` and `prospecting_batches` have PK-only indexes but are queried by `tenant_id` join + `created_at/updated_at` order; `leads`/`calls` tenant-only filters can't use the team-leading composite indexes; audit-log team filter is an unindexable `metadata->>'teamId'` expression. Concrete `CREATE INDEX` list in the audit report — propose as migration `007_performance_indexes.sql`.
