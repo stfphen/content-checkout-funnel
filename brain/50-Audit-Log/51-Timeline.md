@@ -3,13 +3,31 @@ title: 51 · Project Timeline
 type: log
 tags: [audit]
 status: living
-updated: 2026-07-13
+updated: 2026-08-04
 ---
 
 # Project Timeline
 
 Chronological history, reconstructed from repo docs + git. **Append newest entries at the top.**
 Dates are from doc timestamps / commit themes; treat older "status" claims as point-in-time snapshots.
+
+## 2026-08
+- **08-04** — **DGTL OS system map built + verified** (`claude/dgtl-os-dashboard-84uxwq`). New single-file
+  static page `public/os/index.html` (~84 KB, zero dependencies, zero network requests, works from
+  `file://`): 7-node SVG map of the DGTL systems (Dashboard, Team, Content Funnel, CRM, Projects,
+  Terminal, Socials) with pan/zoom, slide-in tool panel, ⌘K command palette (fuzzy label match +
+  substring match on secondary text), list view, `#node-id` deep links, GitHub backlinks to all six
+  real repos, and a print stylesheet that renders a full directory with every URL expanded.
+  `next.config.mjs` gained one rewrite so `/os` resolves (previously only `/os/index.html` did).
+  Editing model: the published URL is **read-only and always renders the baked `DATA` block**; a
+  drag-and-drop editor unlocks only at `?edit=1`, persists to `localStorage` only, and exports a
+  paste-ready `DATA` block — plus a single `EDIT_MODE_ENABLED` flag that strips it entirely. See
+  [[52-Decision-Log]] and [[53-Known-Issues]].
+  **Verification:** a 75-assertion Playwright suite (desktop + mobile + editor + `flag off`) run
+  against both `file://` and the built server, plus `tests/dgtl-os.test.js` (11 static data/security
+  assertions) in `npm test`. **364/364 tests + clean build.** Four real bugs found and fixed during
+  verification, the notable one being a stage-scroll bug that made the whole map lurch sideways
+  whenever a panel input took focus (see [[53-Known-Issues]]).
 
 ## 2026-07
 - **07-13 (daily sync)** — **DGTL admin reskin base layer COMMITTED.** The first real commit of the
